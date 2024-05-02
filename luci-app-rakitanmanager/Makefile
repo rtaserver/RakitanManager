@@ -56,7 +56,7 @@ endef
 define Package/$(PKG_NAME)/postinst
 #!/bin/sh
 	sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-beta/g" /www/rakitanmanager/curent.svg >/dev/null 2>&1
-	echo "v$(PKG_VERSION)-beta" > /www/rakitanmanager/version.txt >/dev/null 2>&1
+	sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-beta/g" /www/rakitanmanager/version.txt >/dev/null 2>&1
 	chmod 0755 /usr/bin/rakitanmanager.sh
 	chmod 0755 /usr/bin/setuprakitanmanager.sh
     chmod 0755 /usr/bin/modem-orbit.py
