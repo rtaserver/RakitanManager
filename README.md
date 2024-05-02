@@ -4,7 +4,7 @@
 </h1>
 
   <p align="center">
-	<a target="_blank" href="https://github.com/Dreamacro/clash/releases/tag/v1.13.0">
+	<a target="_blank" href="https://github.com/rtaserver/RakitanManager/tree/package/main">
     <img src="https://img.shields.io/github/v/release/rtaserver/RakitanManager?label=Release%20App">
     </a>
   </p>
