@@ -126,7 +126,7 @@ jobs:
         id: changelog
         shell: bash
         run: |
-          cd $WORKING_DIR
+          cd /home/runner/work/RakitanManager/RakitanManager/
           r=$(awk '/^\*\*Changelog\*\*/ {if(found) exit; found=1} found' CHANGELOG.md)
           r="${r//'%'/'%25'}"
           r="${r//$'\n'/'%0A'}"
