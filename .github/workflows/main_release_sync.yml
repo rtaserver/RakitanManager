@@ -1,0 +1,38 @@
+name: Sync Package to Main When release
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+  
+jobs:
+  Sync_package_to_main:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Apt Update
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install git
+
+      - name: Clone OpenClash Repository
+        uses: actions/checkout@v4
+        with:
+          ref: package
+
+      - name: Sync dev package to main
+        run: |
+          if [ -n "$(diff -r ./main/ ./dev/)" ]; then
+            rm -rf ./main/README.md
+            rm -rf ./main/luci-app-openclash_*
+            rm -rf ./main/version
+            cp -rf "./dev/." "./main/"
+            git config user.name 'github-actions[bot]'
+            git config user.email 'github-actions[bot]@users.noreply.github.com'
+            git add .
+            git commit -m "Release: Auto sync dev package"
+            git push
+          else
+            echo "main package already sync to dev, exit"
+          fi

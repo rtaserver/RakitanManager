@@ -1,0 +1,2 @@
+config rakitanmanager 'cfg'
+	option startup '0'
