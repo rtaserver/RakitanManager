@@ -26,8 +26,8 @@ jobs:
       - name: New Version
         id: current_version
         run: |
-          echo "version=$(sed -n 1p ./${{ github.ref_name }}/version |awk -F '-' '{print $1}' |awk -F 'v' '{print $2}')" >> $GITHUB_OUTPUT
-          echo "Current Version: $(sed -n 1p ./${{ github.ref_name }}/version |awk -F '-' '{print $1}' |awk -F 'v' '{print $2}')"
+          echo "version=$(sed -n 1p ./dev/version |awk -F '-' '{print $1}' |awk -F 'v' '{print $2}')" >> $GITHUB_OUTPUT
+          echo "Current Version: $(sed -n 1p ./dev/version |awk -F '-' '{print $1}' |awk -F 'v' '{print $2}')"
 
       - name: Sync dev package to main
         id: sync
