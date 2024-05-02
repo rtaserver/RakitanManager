@@ -154,65 +154,73 @@ foreach ($linesnetwork as $linenetwork) {
     exec('chmod -R 755 /usr/bin/modem-orbit.py');
     ?>
     <script src="lib/vendor/jquery/jquery-3.6.0.slim.min.js"></script>
+
     <script>
         $(document).ready(function () {
-            // Function to check internet connection
+            var previousContent = "";
+            setInterval(function () {
+                $.get("log.php", function (data) {
+                    // Jika konten berubah, lakukan update dan scroll
+                    if (data !== previousContent) {
+                        previousContent = data;
+                        $("#logContent").html(data);
+                        var elem = document.getElementById('logContent');
+                        elem.scrollTop = elem.scrollHeight;
+                    }
+                });
+            }, 1000);
+        });
+        $(document).ready(function () {
+            // Fungsi untuk memeriksa koneksi internet
             function checkConnection() {
                 return navigator.onLine;
             }
 
-            // Function to check for updates
+            // Fungsi untuk memeriksa pembaruan dari GitHub API
             function checkUpdate() {
                 if (!checkConnection()) {
-                    // If no connection, stop the process
+                    // Jika tidak ada koneksi, hentikan proses
                     return;
                 }
 
                 var latestVersionUrl = 'https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/version';
 
-                // Fetch current version from version.txt
-                $.get('version.txt', function (dataCurrent) {
-                    var currentVersion = dataCurrent.split('\n')[0].trim().toLowerCase();
+                $.get(latestVersionUrl, function (data) {
+                    var latestVersion = data.split('\n')[0].trim().toLowerCase();
+                    var currentVersion = '<?php echo trim(file_get_contents("version.txt")); ?>';
 
-                    // Fetch latest version from GitHub
-                    $.get(latestVersionUrl, function (dataLatest) {
-                        var latestVersion = dataLatest.split('\n')[0].trim().toLowerCase();
+                    // Periksa jika versi terbaru berbeda dari versi saat ini
+                    if (latestVersion && latestVersion !== currentVersion) {
+                        // Tampilkan modal
+                        $('#updateModal').modal('show');
 
-                        // Check if latest version is different from current version
-                        if (latestVersion !== currentVersion) {
-                            // Show modal
-                            $('#updateModal').modal('show');
-
-                            // Load Changelog
-                            $.get('https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/changelog.txt', function (changelogData) {
-                                // Find version in Changelog
-                                var versionIndex = changelogData.indexOf('**Changelog**');
-                                if (versionIndex !== -1) {
-                                    // Get Changelog entries starting from the found version
-                                    var changelog = changelogData.substring(versionIndex);
-                                    // Replace special characters
-                                    changelog = changelog.replace(/%0A/g, '\n'); // Replace '%0A' with '\n' (newline)
-                                    changelog = changelog.replace(/%0D/g, ''); // Remove '%0D' (carriage return)
-                                    $('#changelogContent').html(changelog);
-                                } else {
-                                    $('#changelogContent').html('Changelog Tidak Tersedia');
-                                }
-                            });
-                        }
-                    }).fail(function () {
-                        // If failed to fetch latest version
-                        console.error('Failed to fetch latest version.');
-                    });
+                        // Load Changelog
+                        $.get('https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/changelog.txt', function (changelogData) {
+                            // Find the version in Changelog
+                            var versionIndex = changelogData.indexOf('**Changelog**');
+                            if (versionIndex !== -1) {
+                                // Get Changelog entries starting from the found version
+                                var changelog = changelogData.substring(versionIndex);
+                                // Replace special characters
+                                changelog = changelog.replace(/%0A/g, '\n'); // Replace '%0A' with '\n' (newline)
+                                changelog = changelog.replace(/%0D/g, ''); // Remove '%0D' (carriage return)
+                                $('#changelogContent').html(changelog);
+                            } else {
+                                $('#changelogContent').html('Changelog Tidak Tersedia');
+                            }
+                        });
+                    }
                 }).fail(function () {
-                    // If failed to fetch current version
-                    console.error('Failed to fetch current version.');
+                    // Jika koneksi gagal atau ada kesalahan lain dalam memeriksa pembaruan
+                    console.error('Failed to check for update.');
                 });
             }
 
-            // Call function to check for updates when document is ready
+            // Panggil fungsi untuk memeriksa pembaruan ketika dokumen selesai dimuat
             checkUpdate();
         });
     </script>
+
 </head>
 <div class="modal fade" id="updateModal" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel"
     aria-hidden="true">

@@ -4,6 +4,7 @@
 - Fix Rebuild
 - Fix Start
 - Fix Script
+- Fix Show Changelog
 
 **Changelog** (v0.0.1-beta 01-05-2024):
 - Initial Build
