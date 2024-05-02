@@ -1,45 +1,38 @@
+# See /LICENSE for more information.
+# This is free software, licensed under the GNU General Public License v3.
+# Copyright (C) 2024 rtaserver
+
 include $(TOPDIR)/rules.mk
 
+LUCI_TITLE:=Auto Reconnect Modem Rakitan
 PKG_NAME:=luci-app-rakitanmanager
+LUCI_DEPENDS:=+modemmanager +python3-pip +jq +adb
 PKG_VERSION:=0.0.1
-PKG_RELEASE:=beta
-PKG_MAINTAINER:=rtaserver <https://github.com/rtaserver/RakitanManager>
-
-PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
-
-include $(INCLUDE_DIR)/package.mk
-
-define Package/$(PKG_NAME)/config
-	config PACKAGE_luci-compat
-	default y if PACKAGE_$(PKG_NAME)
-endef
+PKG_LICENSE:=Apache-2.0
+PKG_MAINTAINER:=Rizki Kotet <rizkidhc31@gmail.com>
 
 define Package/$(PKG_NAME)
-	CATEGORY:=LuCI
-	SUBMENU:=3. Applications
-	TITLE:=LuCI support for Modem Manager
-	PKGARCH:=all
-	DEPENDS:=+modemmanager +python3-pip +jq +adb +unzip
-	MAINTAINER:=rtaserver
+  $(call Package/luci/webtemplate)
+  TITLE:=$(LUCI_TITLE)
+  DEPENDS:=$(LUCI_DEPENDS)
 endef
 
 define Package/$(PKG_NAME)/description
-	A LuCI support for Modem Manager
+  LuCI version of Rakitiw, with some mods and additions for modem rakitan.
 endef
 
+include $(INCLUDE_DIR)/package.mk
+
 define Build/Prepare
+	mkdir -p $(PKG_BUILD_DIR)
 	$(CP) $(CURDIR)/root $(PKG_BUILD_DIR)
 	$(CP) $(CURDIR)/luasrc $(PKG_BUILD_DIR)
-	sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-beta/g" $(PKG_BUILD_DIR)/root/www/rakitanmanager/curent.svg >/dev/null 2>&1
+	$(CP) $(CURDIR)/htdocs $(PKG_BUILD_DIR)
 	chmod 0755 $(PKG_BUILD_DIR)/root/etc/init.d/rakitanmanager
 	chmod 0755 $(PKG_BUILD_DIR)/root/usr/bin/rakitanmanager.sh
-	chmod 0755 $(PKG_BUILD_DIR)/root/usr/bin/modem-orbit.py
+  	chmod 0755 $(PKG_BUILD_DIR)/root/usr/bin/modem-orbit.py
 	chmod 0755 $(PKG_BUILD_DIR)/root/usr/bin/setuprakitanmanager.sh
 	chmod 0755 $(PKG_BUILD_DIR)/root/etc/uci-defaults/99_rakitanmanager
-	chmod -R 0755 $(PKG_BUILD_DIR)/root/usr/share/rakitanmanager/
-	mkdir -p $(PKG_BUILD_DIR)/root/etc/rakitanmanager/backup
-	mkdir -p $(PKG_BUILD_DIR)/root/usr/share/rakitanmanager/backup
-	cp -f "$(PKG_BUILD_DIR)/root/etc/config/rakitanmanager" "$(PKG_BUILD_DIR)/root/usr/share/rakitanmanager/backup/rakitanmanager" >/dev/null 2>&1
 endef
 
 define Build/Configure
@@ -48,41 +41,44 @@ endef
 define Build/Compile
 endef
 
-define Package/$(PKG_NAME)/conffiles
-endef
-
 define Package/$(PKG_NAME)/preinst
 #!/bin/sh
-	if [ -f "/etc/config/rakitanmanager" ]; then
-		cp -f "/etc/config/rakitanmanager" "/tmp/rakitanmanager.bak" >/dev/null 2>&1
+	if [ -f "/www/rakitanmanager/data_modem.json" ]; then
+		rm -rf /www/rakitanmanager/ >/dev/null 2>&1
 	fi
 	exit 0
 endef
 
 define Package/$(PKG_NAME)/postinst
 #!/bin/sh
-	sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-beta/g" /www/raakitanmanager/curent.svg >/dev/null 2>&1
+	chmod 0755 /usr/bin/rakitanmanager.sh
+	chmod 0755 /usr/bin/setuprakitanmanager.sh
+    chmod 0755 /usr/bin/modem-orbit.py
+	chmod 0755 /etc/init.d/rakitanmanager
 	exit 0
 endef
 
 define Package/$(PKG_NAME)/prerm
 #!/bin/sh
-	uci -q set rakitanmanager.startup=0
-	uci -q commit rakitanmanager
-	cp -f "/etc/config/rakitanmanager" "/tmp/rakitanmanager.bak" >/dev/null 2>&1
+	/usr/bin/rakitanmanager -k
 	exit 0
 endef
 
 define Package/$(PKG_NAME)/postrm
 #!/bin/sh
-	rm -rf /var/log/rakitanmanager.log >/dev/null 2>&1
-	rm -rf /usr/share/rakitanmanager/backup >/dev/null 2>&1
+	rm -rf /etc/rakitanmanager/ >/dev/null 2>&1
+	rm -rf /www/rakitanmanager/ >/dev/null 2>&1
 	exit 0
 endef
 
 define Package/$(PKG_NAME)/install
+	$(INSTALL_DIR) $(1)/usr/lib/lua/luci
+	$(INSTALL_DIR) $(1)/www/rakitanmanager
 	$(CP) $(PKG_BUILD_DIR)/root/* $(1)/
-    $(CP) $(PKG_BUILD_DIR)/luasrc/* $(1)/usr/lib/lua/luci/
+	$(CP) $(PKG_BUILD_DIR)/luasrc/* $(1)/usr/lib/lua/luci/
+	$(CP) $(PKG_BUILD_DIR)/root/www/* $(1)/www/
 endef
+
+include $(TOPDIR)/feeds/luci/luci.mk
 
 $(eval $(call BuildPackage,$(PKG_NAME)))
