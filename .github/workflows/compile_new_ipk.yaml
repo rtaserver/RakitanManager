@@ -137,6 +137,7 @@ jobs:
           echo "https://img.shields.io/badge/New Release-v${{ needs.Get-Version.outputs.version }}--beta-orange.svg" >> ./${{ github.ref_name }}/version
           cd ..
           cp /home/runner/work/RakitanManager/RakitanManager/luci-app-rakitanmanager-release/*.ipk ./RakitanManager/${{ github.ref_name }}/luci-app-rakitanmanager_${{ needs.Get-Version.outputs.version }}-beta_all.ipk
+          rm -rf /home/runner/work/RakitanManager/RakitanManager/luci-app-rakitanmanager-release/
           sed -i -E "s/RakitanManager\/tree\/v(.*)-beta/RakitanManager\/tree\/v${{ needs.Get-Version.outputs.version }}-beta/g" ./RakitanManager/${{ github.ref_name }}/README.md
           sed -i -E "s/RakitanManager\/releases\/tag\/v(.*)-beta/RakitanManager\/releases\/tag\/v${{ needs.Get-Version.outputs.version }}-beta/g" ./RakitanManager/${{ github.ref_name }}/README.md
           sed -i -E "s/source code-v(.*)--beta-green/source code-v${{ needs.Get-Version.outputs.version }}--beta-green/g" ./RakitanManager/${{ github.ref_name }}/README.md
