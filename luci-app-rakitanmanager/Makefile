@@ -81,8 +81,10 @@ define Package/$(PKG_NAME)/postrm
 endef
 
 define Package/$(PKG_NAME)/install
+	$(INSTALL_DIR) $(1)/usr/lib/lua/luci
+	$(INSTALL_DIR) $(1)/www/rakitanmanager
 	$(CP) $(PKG_BUILD_DIR)/root/* $(1)/
-	$(CP) $(PKG_BUILD_DIR)/luasrc/* $(1)/usr/lib/lua/luci/
+    $(CP) $(PKG_BUILD_DIR)/luasrc/* $(1)/usr/lib/lua/luci/
 endef
 
 $(eval $(call BuildPackage,$(PKG_NAME)))
