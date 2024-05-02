@@ -58,10 +58,10 @@ jobs:
         run: |
           cd ..
           mkdir tmp
-          curl -SLk --connect-timeout 30 --retry 2 "https://archive.openwrt.org/chaos_calmer/15.05.1/ar71xx/generic/OpenWrt-SDK-15.05.1-ar71xx-generic_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64.tar.bz2" -o "./tmp/SDK.tar.bz2"
+          curl -SLk --connect-timeout 30 --retry 2 "https://downloads.openwrt.org/releases/21.02.5/targets/x86/64/openwrt-sdk-21.02.5-x86-64_gcc-8.4.0_musl.Linux-x86_64.tar.xz" -o "./tmp/SDK.tar.xz"
           cd \tmp
-          tar xjf SDK.tar.bz2
-          mv "OpenWrt-SDK-15.05.1-ar71xx-generic_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64" "SDK"
+          tar xjf SDK.tar.xz
+          mv "openwrt-sdk-21.02.5-x86-64_gcc-8.4.0_musl.Linux-x86_64" "SDK"
 
       - name: Copy RakitanManager Source Codes
         run: |
@@ -73,7 +73,13 @@ jobs:
         run: |
           cd ..
           cd tmp/SDK
-          make package/luci-app-rakitanmanager/compile V=99
+          echo "src-git base https://github.com/openwrt/openwrt.git;openwrt-21.02.5" > feeds.conf
+          echo "src-git packages https://github.com/openwrt/packages.git;openwrt-21.02.5" >> feeds.conf
+          echo "src-git luci https://github.com/openwrt/luci.git;openwrt-21.02.5" >> feeds.conf
+          echo "src-git routing https://git.openwrt.org/feed/routing.git;openwrt-21.02.5"  >> feeds.conf
+          ./scripts/feeds update -a
+          make download -j8
+          make package/luci-app-rakitanmanager/{clean,compile} V=99
 
       - name: Switch RakitanManager Repository to Package
         uses: actions/checkout@v4
