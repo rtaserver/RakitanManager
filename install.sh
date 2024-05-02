@@ -96,13 +96,13 @@ install_upgrade()
     sleep 1
     clear
     echo "Downloading files from repo..."
-    rakitanmanager_api="https://api.github.com/repos/rtaserver/RakitanManager/releases"
-    rakitanmanager_file="luci-app-rakitanmanager"
+    version_info=$(curl -s https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/version)
+    latest_version=$(echo "$version_info" | grep -oP '(?<=New Release-v)[^"]+')
+    file_url="https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/luci-app-rakitanmanager_${latest_version}_all.ipk"
     if [ -f "$DIR/rakitanmanager.ipk" ]; then
         rm -f $DIR/rakitanmanager.ipk
     fi
-    rakitanmanager_file_down="$(curl -s ${rakitanmanager_api} | grep "browser_download_url" | grep -oE "https.*${rakitanmanager_file}.*.ipk" | head -n 1)"
-    wget -O $DIR/rakitanmanager.ipk ${rakitanmanager_file_down}
+    wget -O $DIR/rakitanmanager.ipk ${file_url}
     opkg install $DIR/rakitanmanager.ipk --force-reinstall
     sleep 3
     finish
