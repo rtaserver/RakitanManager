@@ -8,6 +8,8 @@ on:
 jobs:
   Sync_package_to_main:
     runs-on: ubuntu-latest
+    outputs:
+      current_version: ${{ steps.current_version.outputs.version }}
     steps:
       - name: Apt Update
         env:
@@ -21,7 +23,14 @@ jobs:
         with:
           ref: package
 
+      - name: New Version
+        id: current_version
+        run: |
+          echo "version=$(sed -n 1p ./${{ github.ref_name }}/version |awk -F '-' '{print $1}' |awk -F 'v' '{print $2}')" >> $GITHUB_OUTPUT
+          echo "Current Version: $(sed -n 1p ./${{ github.ref_name }}/version |awk -F '-' '{print $1}' |awk -F 'v' '{print $2}')"
+
       - name: Sync dev package to main
+        id: sync
         run: |
           if [ -n "$(diff -r ./main/ ./dev/)" ]; then
             rm -rf ./main/README.md
@@ -34,6 +43,27 @@ jobs:
             git add .
             git commit -m "Release: Auto sync dev package"
             git push
+            echo "status=true" >> $GITHUB_OUTPUT
           else
+            echo "status=false" >> $GITHUB_OUTPUT
             echo "main package already sync to dev, exit"
           fi
+
+      - name: Generate new tag & release
+        if: steps.sync.outputs.status == 'true'
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          prerelease: false
+          tag_name: ${{ steps.current_version.outputs.version }}
+          body: |
+            ## :mega:Update content
+            ---
+            INSTALL & UPGRADE
+            ---
+            1. Buka / Akses Terminal Openwrt
+            2. Jalankan Perintah ini di Terminal
+            ```
+            bash -c "$(wget -qO - 'https://raw.githubusercontent.com/rtaserver/rakitanmanager/main/install.sh')"
+            ```
