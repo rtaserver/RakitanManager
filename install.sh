@@ -57,6 +57,9 @@ install_upgrade()
     opkg install modemmanager
     sleep 1
     clear
+    opkg install python3-pip
+    sleep 1
+    clear
     opkg install jq
     sleep 1
     clear
@@ -117,6 +120,7 @@ uninstaller() {
 	bash -c "$(wget -qO - 'https://raw.githubusercontent.com/rtaserver/RakitanManager/main/install.sh')"
 }
 
+clear
 echo -e "${DB} =================================================="
 echo -e "${R}          RAKITAN MANAGER AUTO INSTALLER           "
 echo -e "${DB} =================================================="
