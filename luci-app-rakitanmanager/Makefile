@@ -27,7 +27,7 @@ define Build/Prepare
 	mkdir -p $(PKG_BUILD_DIR)
 	$(CP) $(CURDIR)/root $(PKG_BUILD_DIR)
 	$(CP) $(CURDIR)/luasrc $(PKG_BUILD_DIR)
-	$(CP) $(CURDIR)/htdocs $(PKG_BUILD_DIR)
+	$(CP) $(CURDIR)/root/www $(PKG_BUILD_DIR)
 	chmod 0755 $(PKG_BUILD_DIR)/root/etc/init.d/rakitanmanager
 	chmod 0755 $(PKG_BUILD_DIR)/root/usr/bin/rakitanmanager.sh
   	chmod 0755 $(PKG_BUILD_DIR)/root/usr/bin/modem-orbit.py
