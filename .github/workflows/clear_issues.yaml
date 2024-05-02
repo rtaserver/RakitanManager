@@ -1,6 +1,7 @@
 name: Mark and close stale issues
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: "30 8 * * *"
 
@@ -16,3 +17,11 @@ jobs:
           days-before-stale: 60
           days-before-close: 5
           operations-per-run: 200
+      
+      - name: Delete workflow runs
+        uses: Mattraks/delete-workflow-runs@v2.0.3
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          retain_days: 1
+          keep_minimum_runs: 0
