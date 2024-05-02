@@ -1,5 +1,8 @@
 # What's New!
 
+**Changelog** (v0.0.3-beta 03-05-2024):
+- Fix Kedip - Kedip :v
+
 **Changelog** (v0.0.2-beta 02-05-2024):
 - Fix Rebuild
 - Fix Start
