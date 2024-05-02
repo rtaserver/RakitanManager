@@ -155,76 +155,64 @@ foreach ($linesnetwork as $linenetwork) {
     ?>
     <script src="lib/vendor/jquery/jquery-3.6.0.slim.min.js"></script>
     <script>
-    $(document).ready(function () {
-        var previousContent = "";
-        setInterval(function () {
-            $.get("log.php", function (data) {
-                // If content changes, update and scroll
-                if (data !== previousContent) {
-                    previousContent = data;
-                    $("#logContent").html(data);
-                    var elem = document.getElementById('logContent');
-                    elem.scrollTop = elem.scrollHeight;
-                }
-            });
-        }, 1000);
-    });
-
-    $(document).ready(function () {
-        // Function to check internet connection
-        function checkConnection() {
-            return navigator.onLine;
-        }
-
-        // Function to check for updates
-        function checkUpdate() {
-            if (!checkConnection()) {
-                // If no connection, stop the process
-                return;
+        $(document).ready(function () {
+            // Function to check internet connection
+            function checkConnection() {
+                return navigator.onLine;
             }
 
-            var latestVersionUrl = 'https://api.github.com/repos/rtaserver/RakitanManager/releases/latest';
+            // Function to check for updates
+            function checkUpdate() {
+                if (!checkConnection()) {
+                    // If no connection, stop the process
+                    return;
+                }
 
-            // Fetch current version from version.txt
-            $.get('version.txt', function(currentVersion) {
-                currentVersion = currentVersion.trim();
+                var latestVersionUrl = 'https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/version';
 
-                // Fetch latest version from GitHub
-                $.get(latestVersionUrl, function (data) {
-                    var latestVersion = data.tag_name;
+                // Fetch current version from version.txt
+                $.get('version.txt', function (dataCurrent) {
+                    var currentVersion = dataCurrent.split('\n')[0].trim().toLowerCase();
 
-                    // Check if latest version is different from current version
-                    if (latestVersion && latestVersion !== currentVersion) {
-                        // Show modal
-                        $('#updateModal').modal('show');
+                    // Fetch latest version from GitHub
+                    $.get(latestVersionUrl, function (dataLatest) {
+                        var latestVersion = dataLatest.split('\n')[0].trim().toLowerCase();
 
-                        // Load Changelog
-                        $.get('https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/changelog.txt', function (changelogData) {
-                            // Find version in Changelog
-                            var versionIndex = changelogData.indexOf('**Changelog** V' + latestVersion);
-                            if (versionIndex !== -1) {
-                                // Get Changelog entries starting from the found version
-                                var changelog = changelogData.substring(versionIndex);
-                                $('#changelogContent').html(changelog);
-                            } else {
-                                $('#changelogContent').html('Changelog not found for this version.');
-                            }
-                        });
-                    }
+                        // Check if latest version is different from current version
+                        if (latestVersion !== currentVersion) {
+                            // Show modal
+                            $('#updateModal').modal('show');
+
+                            // Load Changelog
+                            $.get('https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/changelog.txt', function (changelogData) {
+                                // Find version in Changelog
+                                var versionIndex = changelogData.indexOf('**Changelog**');
+                                if (versionIndex !== -1) {
+                                    // Get Changelog entries starting from the found version
+                                    var changelog = changelogData.substring(versionIndex);
+                                    // Replace special characters
+                                    changelog = changelog.replace(/%0A/g, '\n'); // Replace '%0A' with '\n' (newline)
+                                    changelog = changelog.replace(/%0D/g, ''); // Remove '%0D' (carriage return)
+                                    $('#changelogContent').html(changelog);
+                                } else {
+                                    $('#changelogContent').html('Changelog Tidak Tersedia');
+                                }
+                            });
+                        }
+                    }).fail(function () {
+                        // If failed to fetch latest version
+                        console.error('Failed to fetch latest version.');
+                    });
                 }).fail(function () {
-                    // If failed to fetch latest version
-                    console.error('Failed to fetch latest version.');
+                    // If failed to fetch current version
+                    console.error('Failed to fetch current version.');
                 });
-            }).fail(function () {
-                // If failed to fetch current version
-                console.error('Failed to fetch current version.');
-            });
-        }
+            }
 
-        // Call function to check for updates when document is ready
-        checkUpdate();
-    });
-</script>
+            // Call function to check for updates when document is ready
+            checkUpdate();
+        });
+    </script>
 </head>
 <div class="modal fade" id="updateModal" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel"
     aria-hidden="true">
@@ -266,7 +254,7 @@ foreach ($linesnetwork as $linenetwork) {
                                 <div class="card-body py-0 px-0">
                                     <div class="body">
                                         <div class="text-center">
-                                            <img src="curent.svg" alt="Curent Version">
+                                            <img src="curent.svg" alt="Current Version">
                                             <img alt="Latest Version"
                                                 src="https://img.shields.io/github/v/release/rtaserver/RakitanManager?display_name=tag&logo=openwrt&label=Latest%20Version&color=dark-green">
                                         </div>

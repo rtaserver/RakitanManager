@@ -25,7 +25,7 @@ jobs:
         run: |
           if [ -n "$(diff -r ./main/ ./dev/)" ]; then
             rm -rf ./main/README.md
-            rm -rf ./main/luci-app-rakitanmanager_*
+            rm -rf ./main/luci-app-rakitanmanager_*.ipk
             rm -rf ./main/version
             rm -rf ./main/changelog.txt
             cp -rf "./dev/." "./main/"
