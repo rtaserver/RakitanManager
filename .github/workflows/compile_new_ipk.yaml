@@ -94,9 +94,7 @@ jobs:
           echo "CONFIG_ALL=n" >> .config
           echo "CONFIG_AUTOREMOVE=n" >> .config
           echo "CONFIG_LUCI_LANG_zh_Hans=n" >> .config
-  
           echo "CONFIG_PACKAGE_luci-app-rakitanmanager=m" >> .config
-  
           make defconfig
   
       - name: Compile rakitanmanager
@@ -124,7 +122,7 @@ jobs:
           echo "v${{ needs.Get-Version.outputs.version }}-beta" > ./${{ github.ref_name }}/version
           echo "https://img.shields.io/badge/New Release-v${{ needs.Get-Version.outputs.version }}--beta-orange.svg" >> ./${{ github.ref_name }}/version
           cd ..
-          cp "${{ env.FIRMWARE }}/luci-app-rakitanmanager_${{ needs.Get-Version.outputs.version }}-beta_all.ipk" "./RakitanManager/${{ github.ref_name }}/luci-app-rakitanmanager_${{ needs.Get-Version.outputs.version }}-beta_all.ipk"
+          cp "${{ env.FIRMWARE }}/rakitanmanager/luci-app-rakitanmanager_${{ needs.Get-Version.outputs.version }}-beta_all.ipk" "./RakitanManager/${{ github.ref_name }}/luci-app-rakitanmanager_${{ needs.Get-Version.outputs.version }}-beta_all.ipk"
           sed -i -E "s/RakitanManager\/tree\/v(.*)-beta/RakitanManager\/tree\/v${{ needs.Get-Version.outputs.version }}-beta/g" ./RakitanManager/${{ github.ref_name }}/README.md
           sed -i -E "s/RakitanManager\/releases\/tag\/v(.*)-beta/RakitanManager\/releases\/tag\/v${{ needs.Get-Version.outputs.version }}-beta/g" ./RakitanManager/${{ github.ref_name }}/README.md
           sed -i -E "s/source code-v(.*)--beta-green/source code-v${{ needs.Get-Version.outputs.version }}--beta-green/g" ./RakitanManager/${{ github.ref_name }}/README.md
