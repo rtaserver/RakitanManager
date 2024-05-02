@@ -1,2 +1,7 @@
 config rakitanmanager 'cfg'
+	option enabled '0'
 	option startup '0'
+config rakitanmanager 'telegram'
+	option enabled '0'
+	option botid '0'
+	option chatid '0'

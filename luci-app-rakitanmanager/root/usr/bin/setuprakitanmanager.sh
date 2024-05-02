@@ -9,7 +9,6 @@ log() {
 
 
 log "Setup Modem RakitanManager"
-if [[ $(uci -q get rakitanmanager.cfg.setup) == "nothing" ]]; then
 
 rpid=$(pgrep "rakitanmanager")
 if [[ -n $rpid ]]; then
@@ -55,6 +54,5 @@ else
     exit 1  # Keluar dari skrip dengan status error
 fi
 
-else
 log "Setup Done | Modem RakitanManager Berhasil Di Install"
-fi
+exit

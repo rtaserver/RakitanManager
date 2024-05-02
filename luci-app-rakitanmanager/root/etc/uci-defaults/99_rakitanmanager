@@ -28,3 +28,4 @@ chmod 0755 /usr/bin/modem-orbit.py
 chmod 0755 /etc/init.d/rakitanmanager
 
 /usr/bin/setuprakitanmanager.sh
+exit

@@ -86,10 +86,6 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET["hapus_modem"])) {
     }
 }
 
-if (isset($_POST['setup'])) {
-    shell_exec('/usr/bin/setuprakitanmanager.sh');
-}
-
 // Baca data modem
 $modems = bacaDataModem();
 $modem_count = count($modems); // Hitung jumlah modem yang tersimpan
