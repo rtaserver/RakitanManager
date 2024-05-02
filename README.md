@@ -21,8 +21,8 @@ File Download
 ---
 
 
-* IPK [Download](https://github.com/vernesong/OpenClash/releases)
-* Auto Script [Disini]()
+* IPK [Download](https://github.com/rtaserver/RakitanManager/tree/package/main)
+* Auto Script [Disini](#installasi)
 
 
 Paket Yang Terkait
