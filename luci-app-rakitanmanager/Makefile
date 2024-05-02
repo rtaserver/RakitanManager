@@ -23,6 +23,20 @@ endef
 
 include $(INCLUDE_DIR)/package.mk
 
+define Package/$(PKG_NAME)/config
+	config PACKAGE_modemmanager
+	default y if PACKAGE_$(PKG_NAME)
+
+	config PACKAGE_python3-pip
+	default y if PACKAGE_$(PKG_NAME)
+
+	config PACKAGE_jq
+	default y if PACKAGE_$(PKG_NAME)
+
+	config PACKAGE_adb
+	default y if PACKAGE_$(PKG_NAME)
+endef
+
 define Build/Prepare
 	mkdir -p $(PKG_BUILD_DIR)
 	$(CP) $(CURDIR)/root $(PKG_BUILD_DIR)
