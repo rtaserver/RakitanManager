@@ -12,6 +12,19 @@ P='\e[35;1m' # Ungu
 LB='\e[36;1m' # Biru Terang
 #=====================
 
+echo -e "${LB} Sedang Menjalankan Script. Mohon Tunggu.."
+echo -e "${LB} Pastikan Koneksi Internet Lancar"
+
+latestVersion=$(curl -s 'https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/version' | head -n 1 | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]' | sed 's/bt/beta/g')
+if [ -z "$latestVersion" ]; then
+    latestVersion="Versi Tidak Ada / Tidak Terinstall"
+fi
+
+currentVersion=$(head -n 1 /www/rakitanmanager/version.txt 2>/dev/null | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')
+if [ -z "$currentVersion" ]; then
+    currentVersion="Versi Tidak Ada / Tidak Terinstall"
+fi
+
 finish(){
     clear
     echo ""
@@ -107,8 +120,8 @@ uninstaller() {
 echo -e "${DB} =================================================="
 echo -e "${R}          RAKITAN MANAGER AUTO INSTALLER           "
 echo -e "${DB} =================================================="
-echo -e "${R} Versi Terinstall:     "
-echo -e "${R} Versi Terbaru:     "
+echo -e "${R} Versi Terinstall: ${currentVersion}  "
+echo -e "${R} Versi Terbaru: ${latestVersion} "
 echo -e "${DB} =================================================="
 echo -e "${LB} DAFTAR MENU :                                     "
 echo -e "${LB} [\e[36m1\e[0m${LB}] Install / Upgrade Rakitan Manager                        "
