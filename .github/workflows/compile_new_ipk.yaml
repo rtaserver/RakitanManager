@@ -8,6 +8,13 @@ on:
       - 'luci-app-rakitanmanager/Makefile'
   workflow_dispatch:
 
+env:
+  TZ: Asia/Shanghai
+  sdk_url: https://downloads.openwrt.org/releases/21.02.5/targets/x86/64/openwrt-sdk-21.02.5-x86-64_gcc-8.4.0_musl.Linux-x86_64.tar.xz
+  sdk_ver: 21.02
+  luci_ver: 19.07
+  FIRMWARE: $PWD
+
 jobs:
   Get-Version:
     runs-on: ubuntu-latest
@@ -63,21 +70,19 @@ jobs:
         uses: actions/cache@v4
         with:
           path: sdk
-          key: openwrt-sdk-21.02
+          key: openwrt-sdk-${{ env.sdk_ver }}
 
       - name: Initialization environment
         if: steps.cache-sdk.outputs.cache-hit != 'true'
-        env:
-          url_sdk: https://downloads.openwrt.org/releases/21.02.5/targets/x86/64/openwrt-sdk-21.02.5-x86-64_gcc-8.4.0_musl.Linux-x86_64.tar.xz
         run: |
-          wget ${{ env.url_sdk }}
-          file_name=$(echo ${{env.url_sdk}} | awk -F/ '{print $NF}')
+          wget ${{ env.sdk_url }}
+          file_name=$(echo ${{env.sdk_url}} | awk -F/ '{print $NF}')
           mkdir sdk && tar -xJf $file_name -C ./sdk --strip-components=1
           cd sdk
-          echo "src-git base https://github.com/openwrt/openwrt.git;openwrt-21.02" > feeds.conf
-          echo "src-git packages https://github.com/openwrt/packages.git;openwrt-21.02" >> feeds.conf
-          echo "src-git luci https://github.com/openwrt/luci.git;openwrt-21.02" >> feeds.conf
-          echo "src-git routing https://git.openwrt.org/feed/routing.git;openwrt-21.02"  >> feeds.conf
+          echo "src-git base https://github.com/openwrt/openwrt.git;openwrt-${{ env.sdk_ver }}" > feeds.conf
+          echo "src-git packages https://github.com/openwrt/packages.git;openwrt-${{ env.sdk_ver }}" >> feeds.conf
+          echo "src-git luci https://github.com/openwrt/luci.git;openwrt-${{ env.sdk_ver }}" >> feeds.conf
+          echo "src-git routing https://git.openwrt.org/feed/routing.git;openwrt-${{ env.sdk_ver }}"  >> feeds.conf
           echo "src-git rakitanmanager https://github.com/rtaserver/RakitanManager.git;dev" >> feeds.conf
           ./scripts/feeds update -a
           echo "CONFIG_PACKAGE_luci-app-rakitanmanager=m" > .config
@@ -106,15 +111,24 @@ jobs:
           mv bin/packages/x86_64/rakitanmanager/ ../
           rm .config .config.old
           cd ../rakitanmanager
-          for i in $(ls); do mv $i luci-19.07_$i; done
+          for i in $(ls); do mv $i luci-${{ env.luci_ver }}_$i; done
           cd ..
           echo "status=success" >> $GITHUB_OUTPUT
           echo "FIRMWARE=$PWD" >> $GITHUB_ENV
+      
+      - name: Delivering Package
+        uses: actions/upload-artifact@v2
+        with:
+          name: luci-app-rakitanmanager-release
+          path: ${{ env.FIRMWARE }}/rakitanmanager/*.ipk
 
       - name: Switch RakitanManager Repository to Package
         uses: actions/checkout@v4
         with:
           ref: package
+
+      - name: Download temporary artifact
+        uses: actions/download-artifact@v3
 
       - name: Commit and Push New Version
         run: |
@@ -122,7 +136,7 @@ jobs:
           echo "v${{ needs.Get-Version.outputs.version }}-beta" > ./${{ github.ref_name }}/version
           echo "https://img.shields.io/badge/New Release-v${{ needs.Get-Version.outputs.version }}--beta-orange.svg" >> ./${{ github.ref_name }}/version
           cd ..
-          cp "${{ env.FIRMWARE }}/rakitanmanager/*.ipk" "./RakitanManager/${{ github.ref_name }}/luci-app-rakitanmanager_${{ needs.Get-Version.outputs.version }}-beta_all.ipk"
+          cp -rf ./luci-app-rakitanmanager-release/* ./RakitanManager/${{ github.ref_name }}/luci-app-rakitanmanager_${{ needs.Get-Version.outputs.version }}-beta_all.ipk
           sed -i -E "s/RakitanManager\/tree\/v(.*)-beta/RakitanManager\/tree\/v${{ needs.Get-Version.outputs.version }}-beta/g" ./RakitanManager/${{ github.ref_name }}/README.md
           sed -i -E "s/RakitanManager\/releases\/tag\/v(.*)-beta/RakitanManager\/releases\/tag\/v${{ needs.Get-Version.outputs.version }}-beta/g" ./RakitanManager/${{ github.ref_name }}/README.md
           sed -i -E "s/source code-v(.*)--beta-green/source code-v${{ needs.Get-Version.outputs.version }}--beta-green/g" ./RakitanManager/${{ github.ref_name }}/README.md
