@@ -1,5 +1,5 @@
 #!/bin/bash
-
+DIR="/tmp"
 clear
 
 #===================
@@ -110,6 +110,7 @@ install_upgrade()
     wget -O $DIR/rakitanmanager.ipk ${file_url}
     opkg install $DIR/rakitanmanager.ipk --force-reinstall
     sleep 3
+    rm -f $DIR/rakitanmanager.ipk
     finish
 }
 
