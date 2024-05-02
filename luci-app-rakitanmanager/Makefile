@@ -24,7 +24,7 @@ define Package/$(PKG_NAME)
 endef
 
 define Package/$(PKG_NAME)/description
-    A LuCI support for Modem Manager
+	A LuCI support for Modem Manager
 endef
 
 define Build/Prepare
@@ -33,14 +33,13 @@ define Build/Prepare
 	sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-beta/g" $(PKG_BUILD_DIR)/root/www/rakitanmanager/curent.svg >/dev/null 2>&1
 	chmod 0755 $(PKG_BUILD_DIR)/root/etc/init.d/rakitanmanager
 	chmod 0755 $(PKG_BUILD_DIR)/root/usr/bin/rakitanmanager.sh
-  	chmod 0755 $(PKG_BUILD_DIR)/root/usr/bin/modem-orbit.py
+	chmod 0755 $(PKG_BUILD_DIR)/root/usr/bin/modem-orbit.py
 	chmod 0755 $(PKG_BUILD_DIR)/root/usr/bin/setuprakitanmanager.sh
 	chmod 0755 $(PKG_BUILD_DIR)/root/etc/uci-defaults/99_rakitanmanager
 	chmod -R 0755 $(PKG_BUILD_DIR)/root/usr/share/rakitanmanager/
 	mkdir -p $(PKG_BUILD_DIR)/root/etc/rakitanmanager/backup
 	mkdir -p $(PKG_BUILD_DIR)/root/usr/share/rakitanmanager/backup
 	cp -f "$(PKG_BUILD_DIR)/root/etc/config/rakitanmanager" "$(PKG_BUILD_DIR)/root/usr/share/rakitanmanager/backup/rakitanmanager" >/dev/null 2>&1
-	exit 0
 endef
 
 define Build/Configure
@@ -68,7 +67,7 @@ endef
 
 define Package/$(PKG_NAME)/prerm
 #!/bin/sh
-	uci -q set rakitanmanager.cfg.startup=0
+	uci -q set rakitanmanager.startup=0
 	uci -q commit rakitanmanager
 	cp -f "/etc/config/rakitanmanager" "/tmp/rakitanmanager.bak" >/dev/null 2>&1
 	exit 0
