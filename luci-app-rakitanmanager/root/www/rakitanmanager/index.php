@@ -155,47 +155,52 @@ foreach ($linesnetwork as $linenetwork) {
     ?>
     <script src="lib/vendor/jquery/jquery-3.6.0.slim.min.js"></script>
     <script>
-        $(document).ready(function () {
-            var previousContent = "";
-            setInterval(function () {
-                $.get("log.php", function (data) {
-                    // Jika konten berubah, lakukan update dan scroll
-                    if (data !== previousContent) {
-                        previousContent = data;
-                        $("#logContent").html(data);
-                        var elem = document.getElementById('logContent');
-                        elem.scrollTop = elem.scrollHeight;
-                    }
-                });
-            }, 1000);
-        });
-        $(document).ready(function () {
-            // Fungsi untuk memeriksa koneksi internet
-            function checkConnection() {
-                return navigator.onLine;
+    $(document).ready(function () {
+        var previousContent = "";
+        setInterval(function () {
+            $.get("log.php", function (data) {
+                // If content changes, update and scroll
+                if (data !== previousContent) {
+                    previousContent = data;
+                    $("#logContent").html(data);
+                    var elem = document.getElementById('logContent');
+                    elem.scrollTop = elem.scrollHeight;
+                }
+            });
+        }, 1000);
+    });
+
+    $(document).ready(function () {
+        // Function to check internet connection
+        function checkConnection() {
+            return navigator.onLine;
+        }
+
+        // Function to check for updates
+        function checkUpdate() {
+            if (!checkConnection()) {
+                // If no connection, stop the process
+                return;
             }
 
-            // Fungsi untuk memeriksa pembaruan dari GitHub API
-            function checkUpdate() {
-                if (!checkConnection()) {
-                    // Jika tidak ada koneksi, hentikan proses
-                    return;
-                }
+            var latestVersionUrl = 'https://api.github.com/repos/rtaserver/RakitanManager/releases/latest';
 
-                var latestVersionUrl = 'https://api.github.com/repos/rtaserver/luci-app-rakitanmanager/releases/latest';
+            // Fetch current version from version.txt
+            $.get('version.txt', function(currentVersion) {
+                currentVersion = currentVersion.trim();
 
+                // Fetch latest version from GitHub
                 $.get(latestVersionUrl, function (data) {
                     var latestVersion = data.tag_name;
-                    var currentVersion = '<?php echo trim(file_get_contents("version.txt")); ?>';
 
-                    // Periksa jika versi terbaru berbeda dari versi saat ini
+                    // Check if latest version is different from current version
                     if (latestVersion && latestVersion !== currentVersion) {
-                        // Tampilkan modal
+                        // Show modal
                         $('#updateModal').modal('show');
 
                         // Load Changelog
-                        $.get('https://raw.githubusercontent.com/rtaserver/luci-app-rakitanmanager/main/changelog.txt', function (changelogData) {
-                            // Find the version in Changelog
+                        $.get('https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/changelog.txt', function (changelogData) {
+                            // Find version in Changelog
                             var versionIndex = changelogData.indexOf('**Changelog** V' + latestVersion);
                             if (versionIndex !== -1) {
                                 // Get Changelog entries starting from the found version
@@ -207,16 +212,19 @@ foreach ($linesnetwork as $linenetwork) {
                         });
                     }
                 }).fail(function () {
-                    // Jika koneksi gagal atau ada kesalahan lain dalam memeriksa pembaruan
-                    console.error('Failed to check for update.');
+                    // If failed to fetch latest version
+                    console.error('Failed to fetch latest version.');
                 });
-            }
+            }).fail(function () {
+                // If failed to fetch current version
+                console.error('Failed to fetch current version.');
+            });
+        }
 
-            // Panggil fungsi untuk memeriksa pembaruan ketika dokumen selesai dimuat
-            checkUpdate();
-        });
-    </script>
-
+        // Call function to check for updates when document is ready
+        checkUpdate();
+    });
+</script>
 </head>
 <div class="modal fade" id="updateModal" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel"
     aria-hidden="true">
@@ -233,7 +241,7 @@ foreach ($linesnetwork as $linenetwork) {
                 <pre id="changelogContent"></pre>
             </div>
             <div class="modal-footer">
-                <a href="https://github.com/rtaserver/luci-app-rakitanmanager/releases/latest" target="_blank"
+                <a href="https://github.com/rtaserver/RakitanManager/releases/latest" target="_blank"
                     class="btn btn-primary">Download Dan Update</a>
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
             </div>
@@ -260,7 +268,7 @@ foreach ($linesnetwork as $linenetwork) {
                                         <div class="text-center">
                                             <img src="curent.svg" alt="Curent Version">
                                             <img alt="Latest Version"
-                                                src="https://img.shields.io/github/v/release/rtaserver/luci-app-rakitanmanager?display_name=tag&logo=openwrt&label=Latest%20Version&color=dark-green">
+                                                src="https://img.shields.io/github/v/release/rtaserver/RakitanManager?display_name=tag&logo=openwrt&label=Latest%20Version&color=dark-green">
                                         </div>
                                         <br>
                                     </div>

@@ -25,8 +25,9 @@ jobs:
         run: |
           if [ -n "$(diff -r ./main/ ./dev/)" ]; then
             rm -rf ./main/README.md
-            rm -rf ./main/luci-app-openclash_*
+            rm -rf ./main/luci-app-rakitanmanager_*
             rm -rf ./main/version
+            rm -rf ./main/changelog.txt
             cp -rf "./dev/." "./main/"
             git config user.name 'github-actions[bot]'
             git config user.email 'github-actions[bot]@users.noreply.github.com'

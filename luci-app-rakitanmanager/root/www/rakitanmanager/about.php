@@ -28,7 +28,7 @@
                             </ul>
                         </div>
                         <p class="text-center m-0">Libernet Theme By : <a href="https://facebook.com/lutfailham"><i>Lutfa Ilham</i></a></p>
-                        <p class="text-center m-0">Luci-app-rakitanmanager : <a href="https://github.com/rtaserver/luci-app-rakitanmanager"><i>RTA SERVER</i></a></p>
+                        <p class="text-center m-0">Luci-app-rakitanmanager : <a href="https://github.com/rtaserver/RakitanManager"><i>RTA SERVER</i></a></p>
                         <p class="text-center m-0">Developer : <a href="https://t.me/Rizki_Kotet"><i>Rizki Kotet</i></a></p>
                     </div>
                 </div>
