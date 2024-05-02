@@ -101,8 +101,9 @@ install_upgrade()
     clear
     echo "Downloading files from repo..."
     version_info=$(curl -s https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/version)
-    latest_version=$(echo "$version_info" | grep -oP '(?<=New Release-v)[^"]+')
-    file_url="https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/luci-app-rakitanmanager_${latest_version}_all.ipk"
+    latest_version=$(echo "$version_info" | grep -o 'New Release-v[^"]*' | cut -d 'v' -f 2 | cut -d '-' -f1)
+    file_url="https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/luci-app-rakitanmanager_${latest_version}-beta_all.ipk"
+    echo $file_url
     if [ -f "$DIR/rakitanmanager.ipk" ]; then
         rm -f $DIR/rakitanmanager.ipk
     fi
