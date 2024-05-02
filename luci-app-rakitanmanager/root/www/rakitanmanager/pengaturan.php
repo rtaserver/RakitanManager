@@ -57,7 +57,7 @@ $startup_status = exec("uci -q get rakitanmanager.cfg.startup");
                                         <div class="text-center">
                                             <img src="curent.svg" alt="Curent Version">
                                             <img alt="Latest Version"
-                                                src="https://img.shields.io/github/v/release/rtaserver/luci-app-rakitanmanager?display_name=tag&logo=openwrt&label=Latest%20Version&color=dark-green">
+                                                src="https://img.shields.io/github/v/release/rtaserver/RakitanManager?display_name=tag&logo=openwrt&label=Latest%20Version&color=dark-green">
                                         </div>
                                         <br>
                                     </div>

@@ -122,6 +122,17 @@ jobs:
           name: luci-app-rakitanmanager-release
           path: ${{ env.FIRMWARE }}/rakitanmanager/*.ipk
 
+      - name: Add changelog info to new release description
+        id: changelog
+        shell: bash
+        run: |
+          cd $WORKING_DIR
+          r=$(awk '/^\*\*Changelog\*\*/ {if(found) exit; found=1} found' CHANGELOG.md)
+          r="${r//'%'/'%25'}"
+          r="${r//$'\n'/'%0A'}"
+          r="${r//$'\r'/'%0D'}"  
+          echo "CHANGELOG=$r" >> $GITHUB_OUTPUT 
+
       - name: Switch RakitanManager Repository to Package
         uses: actions/checkout@v4
         with:
@@ -132,6 +143,7 @@ jobs:
 
       - name: Commit and Push New Version
         run: |
+          echo "${{ steps.changelog.outputs.CHANGELOG }}" > ./${{ github.ref_name }}/changelog.txt
           rm -rf ./${{ github.ref_name }}/luci-app-rakitanmanager_*
           echo "v${{ needs.Get-Version.outputs.version }}-beta" > ./${{ github.ref_name }}/version
           echo "https://img.shields.io/badge/New Release-v${{ needs.Get-Version.outputs.version }}--beta-orange.svg" >> ./${{ github.ref_name }}/version
