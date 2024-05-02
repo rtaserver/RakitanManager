@@ -1,0 +1,20 @@
+#!/bin/sh /etc/rc.common
+# (C) 2024 rtaserver
+
+START=99
+
+BIN="/usr/bin/rakitanmanager.sh"
+
+start() {
+    if [ "$(uci get rakitanmanager.cfg.startup)" = "1" ]; then
+        sleep 1 && $BIN -s
+    fi
+}
+
+stop_service() {
+    $BIN -k
+}
+
+stop() {
+    $BIN -k
+}

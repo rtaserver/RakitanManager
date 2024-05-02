@@ -1,0 +1,30 @@
+#!/bin/bash
+# Copyright 2024 RTA SERVER
+
+sed -i 's/\r$//' /usr/bin/setuprakitanmanager.sh
+sed -i 's/\r$//' /usr/bin/rakitanmanager.sh
+
+echo "Setup ModemManager"
+mm1="/usr/lib/ModemManager/connection.d/10-report-down"
+mm2="/usr/lib/ModemManager/connection.d/10-report-down-and-reconnect"
+mm3="/usr/lib/ModemManager/connection.d/rakitanmanager"
+
+if [ -f "$mm1" ]; then
+    rm /usr/lib/ModemManager/connection.d/10-report-down
+fi
+if [ -f "$mm3" ]; then
+    if [ -f "$mm2" ]; then
+        rm /usr/lib/ModemManager/connection.d/10-report-down-and-reconnect
+    fi
+    mv "/usr/lib/ModemManager/connection.d/rakitanmanager" "/usr/lib/ModemManager/connection.d/10-report-down-and-reconnect"
+    chmod +x /usr/lib/ModemManager/connection.d/10-report-down-and-reconnect
+fi
+
+echo "Setup ModemManager Done"
+
+chmod 0755 /usr/bin/rakitanmanager.sh
+chmod 0755 /usr/bin/setuprakitanmanager.sh
+chmod 0755 /usr/bin/modem-orbit.py
+chmod 0755 /etc/init.d/rakitanmanager
+
+/usr/bin/setuprakitanmanager.sh
