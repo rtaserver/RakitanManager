@@ -69,14 +69,6 @@ jobs:
           mkdir tmp/SDK/package/luci-app-rakitanmanager
           cp -rf "./RakitanManager/luci-app-rakitanmanager/." "./tmp/SDK/package/luci-app-rakitanmanager/"
 
-      - name: Compile po2lmo
-        run: |
-          cd ..
-          cd tmp/SDK/package/
-          pushd luci-app-rakitanmanager/tools/po2lmo
-          make && sudo make install
-          popd
-
       - name: Compile RakitanManager IPK
         run: |
           cd ..
