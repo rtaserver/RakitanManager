@@ -165,8 +165,7 @@ foreach ($linesnetwork as $linenetwork) {
                     }
                 });
             }, 1000);
-        });
-        $(document).ready(function () {
+
             // Fungsi untuk memeriksa koneksi internet
             function checkConnection() {
                 return navigator.onLine;
@@ -181,35 +180,43 @@ foreach ($linesnetwork as $linenetwork) {
 
                 var latestVersionUrl = 'https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/version';
 
-                $.get(latestVersionUrl, function (data) {
-                    var latestVersion = data.split('\n')[0].trim().toLowerCase();
-                    var currentVersion = '<?php echo trim(file_get_contents("version.txt")); ?>';
+                fetch(latestVersionUrl)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.text();
+                    })
+                    .then(data => {
+                        var latestVersion = data.split('\n')[0].trim().toLowerCase();
+                        var currentVersion = '<?php echo trim(file_get_contents("version.txt")); ?>';
 
-                    // Periksa jika versi terbaru berbeda dari versi saat ini
-                    if (latestVersion && latestVersion !== currentVersion) {
-                        // Tampilkan modal
-                        $('#updateModal').modal('show');
+                        // Periksa jika versi terbaru berbeda dari versi saat ini
+                        if (latestVersion && latestVersion !== currentVersion) {
+                            // Tampilkan modal
+                            $('#updateModal').modal('show');
 
-                        // Load Changelog
-                        $.get('https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/changelog.txt', function (changelogData) {
-                            // Find the version in Changelog
-                            var versionIndex = changelogData.indexOf('**Changelog**');
-                            if (versionIndex !== -1) {
-                                // Get Changelog entries starting from the found version
-                                var changelog = changelogData.substring(versionIndex);
-                                // Replace special characters
-                                changelog = changelog.replace(/%0A/g, '\n'); // Replace '%0A' with '\n' (newline)
-                                changelog = changelog.replace(/%0D/g, ''); // Remove '%0D' (carriage return)
-                                $('#changelogContent').html(changelog);
-                            } else {
-                                $('#changelogContent').html('Changelog Tidak Tersedia');
-                            }
-                        });
-                    }
-                }).fail(function () {
-                    // Jika koneksi gagal atau ada kesalahan lain dalam memeriksa pembaruan
-                    console.error('Failed to check for update.');
-                });
+                            // Load Changelog
+                            $.get('https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/changelog.txt', function (changelogData) {
+                                // Find the version in Changelog
+                                var versionIndex = changelogData.indexOf('**Changelog**');
+                                if (versionIndex !== -1) {
+                                    // Get Changelog entries starting from the found version
+                                    var changelog = changelogData.substring(versionIndex);
+                                    // Replace special characters
+                                    changelog = changelog.replace(/%0A/g, '\n'); // Replace '%0A' with '\n' (newline)
+                                    changelog = changelog.replace(/%0D/g, ''); // Remove '%0D' (carriage return)
+                                    $('#changelogContent').html(changelog);
+                                } else {
+                                    $('#changelogContent').html('Changelog Tidak Tersedia');
+                                }
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        // Jika koneksi gagal atau ada kesalahan lain dalam memeriksa pembaruan
+                        console.error('Failed to check for update:', error);
+                    });
             }
 
             // Panggil fungsi untuk memeriksa pembaruan ketika dokumen selesai dimuat

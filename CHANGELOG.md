@@ -1,5 +1,8 @@
 # What's New!
 
+**Changelog** (v0.0.4-beta 03-05-2024):
+- Fix Log Tidak Muncul
+
 **Changelog** (v0.0.3-beta 03-05-2024):
 - Fix Kedip - Kedip :v
 
