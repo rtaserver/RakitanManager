@@ -37,7 +37,8 @@ finish(){
     echo -e "${Y}Atau Membuka Manual Di Tab Baru : 192.168.1.1/rakitanmanager${W}"
     echo ""
     echo -e "${Y}Ulangi Instalasi Jika Ada Yang Gagal :)"
-    read -n 1 -s -r -p "${Y}Ketik Apapun Untuk Kembali Ke Menu${W}"
+    echo ""
+    read -n 1 -s -r -p "Ketik Apapun Untuk Kembali Ke Menu"
     bash -c "$(wget -qO - 'https://raw.githubusercontent.com/rtaserver/RakitanManager/main/install.sh')"
 }
 
