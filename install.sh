@@ -20,7 +20,7 @@ if [ -z "$latestVersion" ]; then
     latestVersion="Versi Tidak Ada / Tidak Terinstall"
 fi
 
-currentVersion=$(head -n 1 /www/rakitanmanager/version.txt 2>/dev/null | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')
+currentVersion=$(head -n 1 /www/rakitanmanager/version.txt 2>/dev/null | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]' | sed 's/bt/beta/g')
 if [ -z "$currentVersion" ]; then
     currentVersion="Versi Tidak Ada / Tidak Terinstall"
 fi
@@ -38,7 +38,8 @@ finish(){
     echo ""
     echo -e "${Y}Ulangi Instalasi Jika Ada Yang Gagal :)"
     echo ""
-    read -n 1 -s -r -p "Ketik Apapun Untuk Kembali Ke Menu"
+    echo "Ketik Apapun Untuk Kembali Ke Menu"
+    read -n 1 -s -r -p ""
     bash -c "$(wget -qO - 'https://raw.githubusercontent.com/rtaserver/RakitanManager/main/install.sh')"
 }
 
