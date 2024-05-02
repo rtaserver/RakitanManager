@@ -66,7 +66,7 @@ jobs:
         id: cache-sdk
         uses: actions/cache@v4
         with:
-          path: sdk
+          path: ${{ env.FIRMWARE }}/sdk
           key: openwrt-sdk-${{ env.sdk_ver }}
 
       - name: Initialization environment
