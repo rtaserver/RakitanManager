@@ -7,7 +7,7 @@ include $(TOPDIR)/rules.mk
 LUCI_TITLE:=Auto Reconnect Modem Rakitan
 PKG_NAME:=luci-app-rakitanmanager
 LUCI_DEPENDS:=+modemmanager +python3-pip +jq +adb
-PKG_VERSION:=1.0.0
+PKG_VERSION:=0.0.1
 PKG_LICENSE:=Apache-2.0
 PKG_MAINTAINER:=Rizki Kotet <rizkidhc31@gmail.com>
 
