@@ -45,6 +45,12 @@ finish(){
 
 install_upgrade()
 {
+    if pidof rakitanmanager.sh > /dev/null; then
+        killall -9 rakitanmanager.sh
+        echo "RakitanManager Berhasil Di Hentikan."
+    else
+        echo "RakitanManager is not running."
+    fi
     echo "Update dan instal prerequisites"
     clear
     opkg update
@@ -117,6 +123,12 @@ install_upgrade()
 
 uninstaller() {
 	echo "Menghapus Rakitan Manager"
+    if pidof rakitanmanager.sh > /dev/null; then
+        killall -9 rakitanmanager.sh
+        echo "RakitanManager Berhasil Di Hentikan."
+    else
+        echo "RakitanManager is not running."
+    fi
 	opkg remove luci-app-rakitanmanager
 	clear
 	echo "Menghapus Rakitan Manager Selesai"
