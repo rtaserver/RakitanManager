@@ -37,7 +37,8 @@ finish(){
     echo -e "${Y}Atau Membuka Manual Di Tab Baru : 192.168.1.1/rakitanmanager${W}"
     echo ""
     echo -e "${Y}Ulangi Instalasi Jika Ada Yang Gagal :)"
-    read -n 1 -s -r -p "${Y}Ketik Apapun Untuk Kembali Ke Menu${W}"
+    echo ""
+    read -n 1 -s -r -p "Ketik Apapun Untuk Kembali Ke Menu"
     bash -c "$(wget -qO - 'https://raw.githubusercontent.com/rtaserver/RakitanManager/main/install.sh')"
 }
 
@@ -100,8 +101,9 @@ install_upgrade()
     clear
     echo "Downloading files from repo..."
     version_info=$(curl -s https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/version)
-    latest_version=$(echo "$version_info" | grep -oP '(?<=New Release-v)[^"]+')
-    file_url="https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/luci-app-rakitanmanager_${latest_version}_all.ipk"
+    latest_version=$(echo "$version_info" | grep -o 'New Release-v[^"]*' | cut -d 'v' -f 2 | cut -d '-' -f1)
+    file_url="https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/luci-app-rakitanmanager_${latest_version}-beta_all.ipk"
+    echo $file_url
     if [ -f "$DIR/rakitanmanager.ipk" ]; then
         rm -f $DIR/rakitanmanager.ipk
     fi
