@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-rakitanmanager
-PKG_VERSION:=0.0.4
+PKG_VERSION:=0.0.5
 PKG_RELEASE:=beta
 PKG_MAINTAINER:=rtaserver <https://github.com/rtaserver/RakitanManager>
 
@@ -27,7 +27,8 @@ define Build/Prepare
 	$(CP) $(CURDIR)/root $(PKG_BUILD_DIR)
 	$(CP) $(CURDIR)/luasrc $(PKG_BUILD_DIR)
 	sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-beta/g" $(PKG_BUILD_DIR)/root/www/rakitanmanager/curent.svg >/dev/null 2>&1
-	sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-beta/g" $(PKG_BUILD_DIR)/root/www/rakitanmanager/version.txt >/dev/null 2>&1
+	sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-beta/g" $(PKG_BUILD_DIR)/root/www/rakitanmanager/versionmain.txt >/dev/null 2>&1
+	sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-beta/g" $(PKG_BUILD_DIR)/root/www/rakitanmanager/versiondev.txt >/dev/null 2>&1
 	chmod 0755 $(PKG_BUILD_DIR)/root/etc/init.d/rakitanmanager
 	chmod 0755 $(PKG_BUILD_DIR)/root/usr/bin/rakitanmanager.sh
   	chmod 0755 $(PKG_BUILD_DIR)/root/usr/bin/modem-orbit.py
@@ -56,7 +57,8 @@ endef
 define Package/$(PKG_NAME)/postinst
 #!/bin/sh
 	sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-beta/g" /www/rakitanmanager/curent.svg >/dev/null 2>&1
-	sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-beta/g" /www/rakitanmanager/version.txt >/dev/null 2>&1
+	sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-beta/g" /www/rakitanmanager/versionmain.txt >/dev/null 2>&1
+	sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-beta/g" /www/rakitanmanager/versiondev.txt >/dev/null 2>&1
 	chmod 0755 /usr/bin/rakitanmanager.sh
 	chmod 0755 /usr/bin/setuprakitanmanager.sh
     chmod 0755 /usr/bin/modem-orbit.py

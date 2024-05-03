@@ -20,6 +20,10 @@ $url = end($url_array);
                 echo 'active'; ?>">
                 <a class="nav-link" href="hostip.php"><i class="fa fa-bomb"></i> Hostname To IP</a>
             </li>
+            <li class="nav-item <?php if ($url === 'telegram.php')
+                echo 'active'; ?>">
+                <a class="nav-link" href="telegram.php"><i class="fa fa-telegram"></i> Bot Telegram</a>
+            </li>
             <li class="nav-item <?php if ($url === 'pengaturan.php')
                 echo 'active'; ?>">
                 <a class="nav-link" href="pengaturan.php"><i class="fa fa-gear"></i> Pengaturan</a>

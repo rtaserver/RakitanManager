@@ -1,5 +1,9 @@
 # What's New!
 
+**Changelog** (v0.0.5-beta 03-05-2024):
+- Add Bot Telegram
+- Fixed Reset Modem Rakitan
+
 **Changelog** (v0.0.4-beta 03-05-2024):
 - Fix Log Tidak Muncul
 
