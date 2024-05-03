@@ -228,7 +228,12 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="updateModalLabel">Update Available</h5>
+                <?php if ($branch_select == "main"): ?>
+                <h5 class="modal-title" id="updateModalLabel">Update Available | Branch Main</h5>
+                <?php endif; ?>
+                <?php if ($branch_select == "dev"): ?>
+                <h5 class="modal-title" id="updateModalLabel">Update Available | Branch Dev</h5>
+                <?php endif; ?>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -238,8 +243,18 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
                 <pre id="changelogContent"></pre>
             </div>
             <div class="modal-footer">
-                <a href="https://github.com/rtaserver/RakitanManager/releases/latest" target="_blank"
+                <?php if ($branch_select == "main"): ?>
+                <a href="https://github.com/rtaserver/RakitanManager/blob/main/CHANGELOG.md" target="_blank"
+                    class="btn btn-primary">Full Changelog</a>
+                <a href="https://github.com/rtaserver/RakitanManager/tree/package/main" target="_blank"
                     class="btn btn-primary">Download Dan Update</a>
+                <?php endif; ?>
+                <?php if ($branch_select == "dev"): ?>
+                <a href="https://github.com/rtaserver/RakitanManager/blob/dev/CHANGELOG.md" target="_blank"
+                    class="btn btn-primary">Full Changelog</a>
+                <a href="https://github.com/rtaserver/RakitanManager/tree/package/dev" target="_blank"
+                    class="btn btn-primary">Download Dan Update</a>
+                <?php endif; ?>
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
             </div>
         </div>
