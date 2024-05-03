@@ -129,7 +129,10 @@ install_upgrade_main()
     opkg install $DIR/rakitanmanager.ipk --force-reinstall
     sleep 3
     rm -f $DIR/rakitanmanager.ipk
-    uci set rakitanmanager.cfg.branch='main' && uci commit rakitanmanager
+    uci set rakitanmanager.cfg.branch='main'
+    uci commit rakitanmanager
+    clear
+    sleep 1
     finish
 }
 
@@ -149,7 +152,10 @@ install_upgrade_dev()
     opkg install $DIR/rakitanmanager.ipk --force-reinstall
     sleep 3
     rm -f $DIR/rakitanmanager.ipk
-    uci set rakitanmanager.cfg.branch='dev' && uci commit rakitanmanager
+    uci set rakitanmanager.cfg.branch='dev'
+    uci commit rakitanmanager
+    clear
+    sleep 1
     finish
 }
 

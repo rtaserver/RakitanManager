@@ -125,7 +125,7 @@ foreach ($linesnetwork as $linenetwork) {
 }
 
 $rakitanmanager_status = exec("uci -q get rakitanmanager.cfg.enabled") ? 1 : 0;
-$branch_select = exec("uci -q get rakitanmanager.cfg.branch") ? "main" : "dev";
+$branch_select = exec("uci -q get rakitanmanager.cfg.branch");
 ?>
 
 <!DOCTYPE html>
@@ -171,85 +171,50 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch") ? "main" : "dev";
 
                 <?php if ($branch_select == "main"): ?>
                     var latestVersionUrl = 'https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/version';
-
-                    fetch(latestVersionUrl)
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error('Network response was not ok');
-                            }
-                            return response.text();
-                        })
-                        .then(data => {
-                            var latestVersion = data.split('\n')[0].trim().toLowerCase();
-                            var currentVersion = '<?php echo trim(file_get_contents("versionmain.txt")); ?>';
-
-                            // Periksa jika versi terbaru berbeda dari versi saat ini
-                            if (latestVersion && latestVersion !== currentVersion) {
-                                // Tampilkan modal
-                                $('#updateModal').modal('show');
-
-                                // Load Changelog
-                                $.get('https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/changelog.txt', function (changelogData) {
-                                    // Find the version in Changelog
-                                    var versionIndex = changelogData.indexOf('**Changelog**');
-                                    if (versionIndex !== -1) {
-                                        // Get Changelog entries starting from the found version
-                                        var changelog = changelogData.substring(versionIndex);
-                                        // Replace special characters
-                                        changelog = changelog.replace(/%0A/g, '\n'); // Replace '%0A' with '\n' (newline)
-                                        changelog = changelog.replace(/%0D/g, ''); // Remove '%0D' (carriage return)
-                                        $('#changelogContent').html(changelog);
-                                    } else {
-                                        $('#changelogContent').html('Changelog Tidak Tersedia');
-                                    }
-                                });
-                            }
-                        })
-                        .catch(error => {
-                            // Jika koneksi gagal atau ada kesalahan lain dalam memeriksa pembaruan
-                            console.error('Failed to check for update:', error);
-                        });
-                <?php else: ?>
-                    var latestVersionUrl = 'https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/version';
-
-                    fetch(latestVersionUrl)
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error('Network response was not ok');
-                            }
-                            return response.text();
-                        })
-                        .then(data => {
-                            var latestVersion = data.split('\n')[0].trim().toLowerCase();
-                            var currentVersion = '<?php echo trim(file_get_contents("versiondev.txt")); ?>';
-
-                            // Periksa jika versi terbaru berbeda dari versi saat ini
-                            if (latestVersion && latestVersion !== currentVersion) {
-                                // Tampilkan modal
-                                $('#updateModal').modal('show');
-
-                                // Load Changelog
-                                $.get('https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/changelog.txt', function (changelogData) {
-                                    // Find the version in Changelog
-                                    var versionIndex = changelogData.indexOf('**Changelog**');
-                                    if (versionIndex !== -1) {
-                                        // Get Changelog entries starting from the found version
-                                        var changelog = changelogData.substring(versionIndex);
-                                        // Replace special characters
-                                        changelog = changelog.replace(/%0A/g, '\n'); // Replace '%0A' with '\n' (newline)
-                                        changelog = changelog.replace(/%0D/g, ''); // Remove '%0D' (carriage return)
-                                        $('#changelogContent').html(changelog);
-                                    } else {
-                                        $('#changelogContent').html('Changelog Tidak Tersedia');
-                                    }
-                                });
-                            }
-                        })
-                        .catch(error => {
-                            // Jika koneksi gagal atau ada kesalahan lain dalam memeriksa pembaruan
-                            console.error('Failed to check for update:', error);
-                        });
+                    var changelogUrl = 'https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/changelog.txt';
                 <?php endif; ?>
+                <?php if ($branch_select == "dev"): ?>
+                    var latestVersionUrl = 'https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/version';
+                    var changelogUrl = 'https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/changelog.txt';
+                <?php endif; ?>
+
+                fetch(latestVersionUrl)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.text();
+                    })
+                    .then(data => {
+                        var latestVersion = data.split('\n')[0].trim().toLowerCase();
+                        var currentVersion = '<?php echo trim(file_get_contents("versionmain.txt")); ?>';
+
+                        // Periksa jika versi terbaru berbeda dari versi saat ini
+                        if (latestVersion && latestVersion !== currentVersion) {
+                            // Tampilkan modal
+                            $('#updateModal').modal('show');
+
+                            // Load Changelog
+                            $.get(changelogUrl, function (changelogData) {
+                                // Find the version in Changelog
+                                var versionIndex = changelogData.indexOf('**Changelog**');
+                                if (versionIndex !== -1) {
+                                    // Get Changelog entries starting from the found version
+                                    var changelog = changelogData.substring(versionIndex);
+                                    // Replace special characters
+                                    changelog = changelog.replace(/%0A/g, '\n'); // Replace '%0A' with '\n' (newline)
+                                    changelog = changelog.replace(/%0D/g, ''); // Remove '%0D' (carriage return)
+                                    $('#changelogContent').html(changelog);
+                                } else {
+                                    $('#changelogContent').html('Changelog Tidak Tersedia');
+                                }
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        // Jika koneksi gagal atau ada kesalahan lain dalam memeriksa pembaruan
+                        console.error('Failed to check for update:', error);
+                    });
             }
 
             // Panggil fungsi untuk memeriksa pembaruan ketika dokumen selesai dimuat
