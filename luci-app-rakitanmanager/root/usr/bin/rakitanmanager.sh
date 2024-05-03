@@ -238,8 +238,8 @@ case $action in
     "bot_test")
         test_bot
         ;;
-    *)
-        log "Usage: $0 [bot_test]"
-        exit 1
-        ;;
+#    *)
+#        log "Usage: $0 [bot_test]"
+#        exit 1
+#        ;;
 esac

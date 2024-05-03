@@ -1,5 +1,10 @@
 # What's New!
 
+**Changelog** (v0.00.06-beta 03-05-2024):
+- Fixed Script
+- Fixed Bot Telegram
+- Fixed Reset Modem Rakitan
+
 **Changelog** (v0.0.5-beta 03-05-2024):
 - Add Bot Telegram
 - Fixed Reset Modem Rakitan
