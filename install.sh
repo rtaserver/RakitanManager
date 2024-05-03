@@ -278,6 +278,14 @@ clear
 uninstaller
  ;;
 
+4) clear ;
+echo -e Update Script
+echo -e
+sleep 3
+clear
+bash -c "$(wget -qO - 'https://raw.githubusercontent.com/rtaserver/RakitanManager/main/install.sh')"
+ ;;
+
 x) exit ;;
 *) echo "Anda salah tekan " ; sleep 1 ; bash -c "$(wget -qO - 'https://raw.githubusercontent.com/rtaserver/RakitanManager/main/install.sh')" ;;
 esac
