@@ -30,11 +30,6 @@ if [ -z "$currentVersion" ]; then
     currentVersion="Versi Tidak Ada / Tidak Terinstall"
 fi
 
-FRAKITAN="https://raw.githubusercontent.com/rtaserver/RakitanManager/main/install.sh"
-ORAKITAN="/usr/bin/rakitanmanager"
-curl -o "$ORAKITAN" "$FRAKITAN"
-chmod 0755 /usr/bin/rakitanmanager
-
 sleep 2
 
 finish(){
@@ -55,8 +50,8 @@ finish(){
     bash -c "$(wget -qO - 'https://raw.githubusercontent.com/rtaserver/RakitanManager/main/install.sh')"
 }
 
-install_upgrade_main()
-{
+
+download_packages() {
     if pidof rakitanmanager.sh > /dev/null; then
         killall -9 rakitanmanager.sh
         echo "RakitanManager Berhasil Di Hentikan."
@@ -116,17 +111,21 @@ install_upgrade_main()
         echo -e "${R}Setup Gagal | Mohon Coba Kembali${W}"
         exit  # Keluar dari skrip dengan status error
     fi
+}
+
+install_upgrade_main()
+{
+    download_packages
     sleep 1
     clear
     echo "Downloading files from repo Main..."
-    version_info=$(curl -s https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/version)
-    latest_version=$(echo "$version_info" | grep -o 'New Release-v[^"]*' | cut -d 'v' -f 2 | cut -d '-' -f1)
-    file_url="https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/luci-app-rakitanmanager_${latest_version}-beta_all.ipk"
-    echo $file_url
+    local version_info_main=$(curl -s https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/version)
+    local latest_version_main=$(echo "$version_info_main" | grep -o 'New Release-v[^"]*' | cut -d 'v' -f 2 | cut -d '-' -f1)
+    local file_url_main="https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/luci-app-rakitanmanager_${latest_version_main}-beta_all.ipk"
     if [ -f "$DIR/rakitanmanager.ipk" ]; then
         rm -f $DIR/rakitanmanager.ipk
     fi
-    wget -O $DIR/rakitanmanager.ipk ${file_url}
+    wget -O $DIR/rakitanmanager.ipk ${file_url_main}
     opkg install $DIR/rakitanmanager.ipk --force-reinstall
     sleep 3
     rm -f $DIR/rakitanmanager.ipk
@@ -136,76 +135,17 @@ install_upgrade_main()
 
 install_upgrade_dev()
 {
-    if pidof rakitanmanager.sh > /dev/null; then
-        killall -9 rakitanmanager.sh
-        echo "RakitanManager Berhasil Di Hentikan."
-    else
-        echo "RakitanManager is not running."
-    fi
-    echo "Update dan instal prerequisites"
-    clear
-    opkg update
-    sleep 1
-    clear
-    uci set uhttpd.main.index_page='index.php'
-    uci set uhttpd.main.interpreter='.php=/usr/bin/php-cgi'
-    uci commit uhttpd
-    /etc/init.d/uhttpd restart
-    sleep 1
-    clear
-    opkg install modemmanager
-    sleep 1
-    clear
-    opkg install python3-pip
-    sleep 1
-    clear
-    opkg install jq
-    sleep 1
-    clear
-    opkg install adb
-    sleep 1
-    clear
-    echo "Setup Package For Python3"
-    if which pip3 >/dev/null; then
-        # Instal paket 'requests' jika belum terinstal
-        if ! pip3 show requests >/dev/null; then
-            echo "Installing package 'requests'"
-            if ! pip3 install requests; then
-                echo -e "${R}Error installing package 'requests'${W}"
-                echo -e "${R}Setup Gagal | Mohon Coba Kembali${W}"
-                exit  # Keluar dari skrip dengan status error
-            fi
-        else
-            echo -e "${G}Package 'requests' sudah terinstal${W}"
-        fi
-
-        # Instal paket 'huawei-lte-api' jika belum terinstal
-        if ! pip3 show huawei-lte-api >/dev/null; then
-            echo "Installing package 'huawei-lte-api'"
-            if ! pip3 install huawei-lte-api; then
-                echo -e "${R}Error installing package 'huawei-lte-api'${W}"
-                echo -e "${R}Setup Gagal | Mohon Coba Kembali${W}"
-                exit  # Keluar dari skrip dengan status error
-            fi
-        else
-            echo -e "${G}Package 'huawei-lte-api' sudah terinstal${W}"
-        fi
-    else
-        echo -e "${R}Error: 'pip3' command tidak ditemukan${W}"
-        echo -e "${R}Setup Gagal | Mohon Coba Kembali${W}"
-        exit  # Keluar dari skrip dengan status error
-    fi
+    download_packages
     sleep 1
     clear
     echo "Downloading files from repo Dev..."
-    version_info=$(curl -s https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/version)
-    latest_version=$(echo "$version_info" | grep -o 'New Release-v[^"]*' | cut -d 'v' -f 2 | cut -d '-' -f1)
-    file_url="https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/luci-app-rakitanmanager_${latest_version}-beta_all.ipk"
-    echo $file_url
+    local version_info_dev=$(curl -s https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/version)
+    local latest_version_dev=$(echo "$version_info_dev" | grep -o 'New Release-v[^"]*' | cut -d 'v' -f 2 | cut -d '-' -f1)
+    local file_url_dev="https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/luci-app-rakitanmanager_${latest_version_dev}-beta_all.ipk"
     if [ -f "$DIR/rakitanmanager.ipk" ]; then
         rm -f $DIR/rakitanmanager.ipk
     fi
-    wget -O $DIR/rakitanmanager.ipk ${file_url}
+    wget -O $DIR/rakitanmanager.ipk ${file_url_dev}
     opkg install $DIR/rakitanmanager.ipk --force-reinstall
     sleep 3
     rm -f $DIR/rakitanmanager.ipk
@@ -225,7 +165,7 @@ uninstaller() {
 	clear
 	echo "Menghapus Rakitan Manager Selesai"
 	read -n 1 -s -r -p "${Y}Ketik Apapun Untuk Kembali Ke Menu${W}"
-	bash -c "$(wget -qO - 'https://raw.githubusercontent.com/rtaserver/RakitanManager/main/install.sh')"
+	bash -c "$(wget -qO - 'https://raw.githubusercontent.com/rtaserver/RakitanManager/dev/install.sh')"
 }
 
 clear
@@ -244,7 +184,6 @@ echo -e "${LB} DAFTAR MENU :                                     "
 echo -e "${LB} [\e[36m1\e[0m${LB}] Install / Upgrade Rakitan Manager | ${G}Branch Main"
 echo -e "${LB} [\e[36m2\e[0m${LB}] Install / Upgrade Rakitan Manager | ${G}Branch Dev"
 echo -e "${LB} [\e[36m3\e[0m${LB}] Uninstall Rakitan Manager"
-echo -e "${LB} [\e[36m4\e[0m${LB}] Update Script"
 echo -e "${DB} =================================================="
 echo -e "${W}"
 echo -e   ""
@@ -255,7 +194,7 @@ echo -e   ""
 
 case $opt in
 1) clear ;
-echo -e Proses Install / Upgrade Akan Di Jalankan, mohon ditunggu
+echo -e Proses Install / Upgrade Branch Main Akan Di Jalankan, mohon ditunggu
 echo -e
 sleep 3
 clear
@@ -263,7 +202,7 @@ install_upgrade_main
  ;;
 
 2) clear ;
-echo -e Proses Install / Upgrade Akan Di Jalankan, mohon ditunggu
+echo -e Proses Install / Upgrade Branch Dev Akan Di Jalankan, mohon ditunggu
 echo -e
 sleep 3
 clear
@@ -276,14 +215,6 @@ echo -e
 sleep 3
 clear
 uninstaller
- ;;
-
-4) clear ;
-echo -e Update Script
-echo -e
-sleep 3
-clear
-bash -c "$(wget -qO - 'https://raw.githubusercontent.com/rtaserver/RakitanManager/main/install.sh')"
  ;;
 
 x) exit ;;
