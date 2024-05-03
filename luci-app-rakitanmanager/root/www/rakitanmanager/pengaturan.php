@@ -48,7 +48,7 @@ $startup_status = exec("uci -q get rakitanmanager.cfg.startup");
                         <div class="card">
                             <div class="card-header">
                                 <div class="text-center">
-                                    <h4><i class="fa fa-home"></i> PENGATURAN</h4>
+                                    <h4><i class="fa fa-gear"></i> PENGATURAN</h4>
                                 </div>
                             </div>
                             <div class="card-body">

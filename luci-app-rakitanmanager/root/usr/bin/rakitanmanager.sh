@@ -7,7 +7,32 @@ log() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - $1"
 }
 
-modem_status="Disabled"
+DEVICE_PROCESSOR=$(ubus call system board | grep '\"system\"' | sed 's/ \+/ /g' | awk -F'\"' '{print $4}')
+DEVICE_MODEL=$(ubus call system board | grep '\"model\"' | sed 's/ \+/ /g' | awk -F'\"' '{print $4}')
+DEVICE_BOARD=$(ubus call system board | grep '\"board_name\"' | sed 's/ \+/ /g' | awk -F'\"' '{print $4}')
+
+# TELEGRAM
+TOKEN_ID=$(grep '^token_id=' /www/rakitanmanager/telegram_config.txt | cut -d '=' -f 2)
+CHAT_ID=$(grep '^chat_id=' /www/rakitanmanager/telegram_config.txt | cut -d '=' -f 2)
+CUSTOM_MESSAGE=$(cat /www/rakitanmanager/bot_message.txt)
+CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[DEVICE_PROCESSOR\]/$DEVICE_PROCESSOR/g")
+CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[DEVICE_MODEL\]/$DEVICE_MODEL/g")
+CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[DEVICE_BOARD\]/$DEVICE_BOARD/g")
+
+send_message() {
+    local message="$1"
+    curl -s -X POST https://api.telegram.org/bot$TOKEN_ID/sendMessage -d chat_id=$CHAT_ID -d text="$message" > /dev/null
+}
+
+test_bot() {
+    # Kirim pesan uji
+    send_message "===============
+$DEVICE_PROCESSOR
+$DEVICE_MODEL
+$DEVICE_BOARD
+==============="
+}
+
 
 # Baca file JSON
 json_file="/www/rakitanmanager/data_modem.json"
@@ -139,10 +164,15 @@ perform_ping() {
                 
                 if [ $attempt -ge $max_attempts ]; then
                     log "[$jenis - $nama] Upaya maksimal tercapai. Internet masih mati. Restart modem akan dijalankan"
-                    echo AT^RESET | atinout - "$portmodem" - && sleep 20 && ifdown "$interface" && ifup "$interface"
+                    echo AT^RESET | atinout - "$portmodem" - || echo AT+CFUN=1,1 | atinout - "$portmodem" -
+                    sleep 20 && ifdown "$interface" && ifup "$interface"
                     attempt=1
                 fi
                 log "[$jenis - $nama] New IP: $(ip address | awk '/$devicemodem/ {print $2}' | sed "s/$devicemodem://")"
+                CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/$(ip address | awk '/$devicemodem/ {print $2}' | sed "s/$devicemodem://")/g")
+                if [ "$(uci get rakitanmanager.telegram.status)" = "1" ]; then
+                    send_message "$CUSTOM_MESSAGE"
+                fi
             elif [ "$jenis" = "hp" ]; then
                 log "[$jenis - $nama] Mencoba Menghubungkan Kembali"
                 log "[$jenis - $nama] Mengaktifkan Mode Pesawat"
@@ -153,10 +183,18 @@ perform_ping() {
                 sleep 7
                 new_ip_hp=$(adb shell ip addr show rmnet_data0 | grep 'inet ' | awk '{print $2}' | cut -d / -f 1)
                 Log "[$jenis - $nama] New IP = $new_ip_hp"
+                CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/$new_ip_hp/g")
+                if [ "$(uci get rakitanmanager.telegram.status)" = "1" ]; then
+                    send_message "$CUSTOM_MESSAGE"
+                fi
             elif [ "$jenis" = "orbit" ]; then
                 log "[$jenis - $nama] Mencoba Menghubungkan Kembali Modem Orbit / Huawei"
                 python3 /usr/bin/modem-orbit.py $iporbit $usernameorbit $passwordorbit
                 log "[$jenis - $nama] New IP $(cat /tmp/ip_orbit.txt)"
+                CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/$(cat /tmp/ip_orbit.txt)/g")
+                if [ "$(uci get rakitanmanager.telegram.status)" = "1" ]; then
+                    send_message "$CUSTOM_MESSAGE"
+                fi
             fi
         fi
         sleep "$delayping"
@@ -175,7 +213,6 @@ main() {
 rakitanmanager_stop() {
     # Hentikan skrip jika sedang berjalan
     if pidof rakitanmanager.sh > /dev/null; then
-        modem_status="Disabled"
         killall -9 rakitanmanager.sh
         log "RakitanManager Berhasil Di Hentikan."
     else
@@ -193,3 +230,16 @@ while getopts ":skrpcvh" rakitanmanager ; do
             ;;
     esac
 done
+
+action="$1"
+
+# Evaluasi aksi yang diterima
+case $action in
+    "bot_test")
+        test_bot
+        ;;
+    *)
+        log "Usage: $0 [bot_test]"
+        exit 1
+        ;;
+esac

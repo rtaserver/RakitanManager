@@ -100,27 +100,15 @@ if ($modem_count == 0) {
 if (isset($_POST['enable'])) {
     $log_message = shell_exec("date '+%Y-%m-%d %H:%M:%S'") . " - Script Telah Di Aktifkan\n";
     file_put_contents('/var/log/rakitanmanager.log', $log_message, FILE_APPEND);
-    $variables['modem_status'] = 'Enabled';
     shell_exec('/usr/bin/rakitanmanager.sh -s');
-    $updated_content = $bash_content;
-    foreach ($variables as $key => $value) {
-        $updated_content = preg_replace('/' . $key . '=".*"/', $key . '="' . $value . '"', $updated_content);
-    }
-    file_put_contents($bash_file, $updated_content);
+    exec("uci set rakitanmanager.cfg.enabled='1' && uci commit rakitanmanager");
 } elseif (isset($_POST['disable'])) {
     exec('killall -9 rakitanmanager.sh');
+    exec("uci set rakitanmanager.cfg.enabled='0' && uci commit rakitanmanager");
     exec('rm /var/log/rakitanmanager.log');
     $log_message = shell_exec("date '+%Y-%m-%d %H:%M:%S'") . " - Script Telah Di Nonaktifkan\n";
     file_put_contents('/var/log/rakitanmanager.log', $log_message, FILE_APPEND);
-    $variables['modem_status'] = 'Disabled';
-    // Update variabel dalam file bash
-    $updated_content = $bash_content;
-    foreach ($variables as $key => $value) {
-        $updated_content = preg_replace('/' . $key . '=".*"/', $key . '="' . $value . '"', $updated_content);
-    }
-    file_put_contents($bash_file, $updated_content);
 }
-
 
 
 $contnetwork = file_get_contents('/etc/config/network'); // Membaca isi file
@@ -135,6 +123,9 @@ foreach ($linesnetwork as $linenetwork) {
         $interface_modem[] = $interface; // Menambahkan nama interface ke array
     }
 }
+
+$rakitanmanager_status = exec("uci -q get rakitanmanager.cfg.enabled") ? 1 : 0;
+$branch_select = exec("uci -q get rakitanmanager.cfg.branch") ? "main" : "dev";
 ?>
 
 <!DOCTYPE html>
@@ -178,45 +169,87 @@ foreach ($linesnetwork as $linenetwork) {
                     return;
                 }
 
-                var latestVersionUrl = 'https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/version';
+                <?php if ($branch_select == "main"): ?>
+                    var latestVersionUrl = 'https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/version';
 
-                fetch(latestVersionUrl)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
-                        }
-                        return response.text();
-                    })
-                    .then(data => {
-                        var latestVersion = data.split('\n')[0].trim().toLowerCase();
-                        var currentVersion = '<?php echo trim(file_get_contents("version.txt")); ?>';
+                    fetch(latestVersionUrl)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.text();
+                        })
+                        .then(data => {
+                            var latestVersion = data.split('\n')[0].trim().toLowerCase();
+                            var currentVersion = '<?php echo trim(file_get_contents("versionmain.txt")); ?>';
 
-                        // Periksa jika versi terbaru berbeda dari versi saat ini
-                        if (latestVersion && latestVersion !== currentVersion) {
-                            // Tampilkan modal
-                            $('#updateModal').modal('show');
+                            // Periksa jika versi terbaru berbeda dari versi saat ini
+                            if (latestVersion && latestVersion !== currentVersion) {
+                                // Tampilkan modal
+                                $('#updateModal').modal('show');
 
-                            // Load Changelog
-                            $.get('https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/changelog.txt', function (changelogData) {
-                                // Find the version in Changelog
-                                var versionIndex = changelogData.indexOf('**Changelog**');
-                                if (versionIndex !== -1) {
-                                    // Get Changelog entries starting from the found version
-                                    var changelog = changelogData.substring(versionIndex);
-                                    // Replace special characters
-                                    changelog = changelog.replace(/%0A/g, '\n'); // Replace '%0A' with '\n' (newline)
-                                    changelog = changelog.replace(/%0D/g, ''); // Remove '%0D' (carriage return)
-                                    $('#changelogContent').html(changelog);
-                                } else {
-                                    $('#changelogContent').html('Changelog Tidak Tersedia');
-                                }
-                            });
-                        }
-                    })
-                    .catch(error => {
-                        // Jika koneksi gagal atau ada kesalahan lain dalam memeriksa pembaruan
-                        console.error('Failed to check for update:', error);
-                    });
+                                // Load Changelog
+                                $.get('https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/changelog.txt', function (changelogData) {
+                                    // Find the version in Changelog
+                                    var versionIndex = changelogData.indexOf('**Changelog**');
+                                    if (versionIndex !== -1) {
+                                        // Get Changelog entries starting from the found version
+                                        var changelog = changelogData.substring(versionIndex);
+                                        // Replace special characters
+                                        changelog = changelog.replace(/%0A/g, '\n'); // Replace '%0A' with '\n' (newline)
+                                        changelog = changelog.replace(/%0D/g, ''); // Remove '%0D' (carriage return)
+                                        $('#changelogContent').html(changelog);
+                                    } else {
+                                        $('#changelogContent').html('Changelog Tidak Tersedia');
+                                    }
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            // Jika koneksi gagal atau ada kesalahan lain dalam memeriksa pembaruan
+                            console.error('Failed to check for update:', error);
+                        });
+                <?php else: ?>
+                    var latestVersionUrl = 'https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/version';
+
+                    fetch(latestVersionUrl)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.text();
+                        })
+                        .then(data => {
+                            var latestVersion = data.split('\n')[0].trim().toLowerCase();
+                            var currentVersion = '<?php echo trim(file_get_contents("versiondev.txt")); ?>';
+
+                            // Periksa jika versi terbaru berbeda dari versi saat ini
+                            if (latestVersion && latestVersion !== currentVersion) {
+                                // Tampilkan modal
+                                $('#updateModal').modal('show');
+
+                                // Load Changelog
+                                $.get('https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/changelog.txt', function (changelogData) {
+                                    // Find the version in Changelog
+                                    var versionIndex = changelogData.indexOf('**Changelog**');
+                                    if (versionIndex !== -1) {
+                                        // Get Changelog entries starting from the found version
+                                        var changelog = changelogData.substring(versionIndex);
+                                        // Replace special characters
+                                        changelog = changelog.replace(/%0A/g, '\n'); // Replace '%0A' with '\n' (newline)
+                                        changelog = changelog.replace(/%0D/g, ''); // Remove '%0D' (carriage return)
+                                        $('#changelogContent').html(changelog);
+                                    } else {
+                                        $('#changelogContent').html('Changelog Tidak Tersedia');
+                                    }
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            // Jika koneksi gagal atau ada kesalahan lain dalam memeriksa pembaruan
+                            console.error('Failed to check for update:', error);
+                        });
+                <?php endif; ?>
             }
 
             // Panggil fungsi untuk memeriksa pembaruan ketika dokumen selesai dimuat
@@ -278,12 +311,12 @@ foreach ($linesnetwork as $linenetwork) {
                                                 <div class="row">
                                                     <div class="col-md-6">
                                                         <button type="button" class="btn btn-primary btn-block mb-3"
-                                                            data-toggle="modal" data-target="#tambahModemModal" <?php if ($variables['modem_status'] == 'Enabled')
+                                                            data-toggle="modal" data-target="#tambahModemModal" <?php if ($rakitanmanager_status == 1)
                                                                 echo 'disabled'; ?>>Tambah Modem</button>
                                                     </div>
                                                     <div class="col-md-6">
                                                         <form method="POST">
-                                                            <?php if ($variables['modem_status'] == 'Enabled'): ?>
+                                                            <?php if ($rakitanmanager_status == 1): ?>
                                                                 <button type="submit" class="btn btn-danger btn-block mb-3"
                                                                     name="disable">Stop Modem</button>
                                                             <?php else: ?>
@@ -311,10 +344,10 @@ foreach ($linesnetwork as $linenetwork) {
                                                             <td><?= $modem["hostbug"] ?></td>
                                                             <td>
                                                                 <button type="button" class="btn btn-primary btn-sm"
-                                                                    onclick="editModem(<?= $index ?>)" <?php if ($variables['modem_status'] == 'Enabled')
+                                                                    onclick="editModem(<?= $index ?>)" <?php if ($rakitanmanager_status == 1)
                                                                           echo 'disabled'; ?>>Edit</button>
                                                                 <button type="button" class="btn btn-danger btn-sm"
-                                                                    onclick="hapusModem(<?= $index ?>)" <?php if ($variables['modem_status'] == 'Enabled')
+                                                                    onclick="hapusModem(<?= $index ?>)" <?php if ($rakitanmanager_status == 1)
                                                                           echo 'disabled'; ?>>Hapus</button>
                                                             </td>
                                                         </tr>
