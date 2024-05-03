@@ -30,6 +30,11 @@ if [ -z "$currentVersion" ]; then
     currentVersion="Versi Tidak Ada / Tidak Terinstall"
 fi
 
+FRAKITAN="https://raw.githubusercontent.com/rtaserver/RakitanManager/main/install.sh"
+ORAKITAN="/usr/bin/rakitanmanager"
+curl -o "$ORAKITAN" "$FRAKITAN"
+chmod 0755 /usr/bin/rakitanmanager
+
 sleep 2
 
 finish(){
@@ -230,7 +235,7 @@ echo -e "${DB} =================================================="
 echo -e "${R} Versi Terinstall: ${LB}${currentVersion}  "
 echo -e "${R} Versi Terbaru: ${G}${latestVersion} | Branch Main"
 echo -e "${R} Versi Terbaru: ${G}${latestVersionDev} | Branch Dev"
-echo "=================================================="
+echo -e "${DB} =================================================="
 echo -e "${G} Processor: ${LB}$(ubus call system board | grep '\"system\"' | sed 's/ \+/ /g' | awk -F'\"' '{print $4}')"
 echo -e "${G} Device Model: ${LB}$(ubus call system board | grep '\"model\"' | sed 's/ \+/ /g' | awk -F'\"' '{print $4}')"
 echo -e "${G} Device Board: ${LB}$(ubus call system board | grep '\"board_name\"' | sed 's/ \+/ /g' | awk -F'\"' '{print $4}')"
@@ -239,10 +244,12 @@ echo -e "${LB} DAFTAR MENU :                                     "
 echo -e "${LB} [\e[36m1\e[0m${LB}] Install / Upgrade Rakitan Manager | ${G}Branch Main"
 echo -e "${LB} [\e[36m2\e[0m${LB}] Install / Upgrade Rakitan Manager | ${G}Branch Dev"
 echo -e "${LB} [\e[36m3\e[0m${LB}] Uninstall Rakitan Manager"
+echo -e "${LB} [\e[36m4\e[0m${LB}] Update Script"
 echo -e "${DB} =================================================="
 echo -e "${W}"
 echo -e   ""
 echo -e   " Ketik [ x ] Atau [ Ctrl+C ] Untuk Keluar Dari Script"
+echo -e   " Jika Ingin Menjalankan Ulang ketik rakitanmanager di Terminal Kemudian Enter"
 read -p " Pilih Menu :  "  opt
 echo -e   ""
 
