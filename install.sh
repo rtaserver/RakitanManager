@@ -25,7 +25,14 @@ if [ -z "$latestVersionDev" ]; then
     latestVersionDev="Versi Tidak Ada / Tidak Terinstall"
 fi
 
-currentVersion=$(head -n 1 /www/rakitanmanager/version.txt 2>/dev/null | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]' | sed 's/bt/beta/g')
+if [ "$(uci get rakitanmanager.cfg.branch)" = "main" ]; then
+    currentVersion=$(head -n 1 /www/rakitanmanager/versionmain.txt 2>/dev/null | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]' | sed 's/bt/beta/g')
+fi
+
+if [ "$(uci get rakitanmanager.cfg.branch)" = "dev" ]; then
+    currentVersion=$(head -n 1 /www/rakitanmanager/versiondev.txt 2>/dev/null | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]' | sed 's/bt/beta/g')
+fi
+
 if [ -z "$currentVersion" ]; then
     currentVersion="Versi Tidak Ada / Tidak Terinstall"
 fi
