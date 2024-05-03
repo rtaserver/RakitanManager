@@ -30,11 +30,6 @@ if [ -z "$currentVersion" ]; then
     currentVersion="Versi Tidak Ada / Tidak Terinstall"
 fi
 
-FRAKITAN="https://raw.githubusercontent.com/rtaserver/RakitanManager/main/install.sh"
-ORAKITAN="/usr/bin/rakitanmanager"
-curl -o "$ORAKITAN" "$FRAKITAN"
-chmod 0755 /usr/bin/rakitanmanager
-
 sleep 2
 
 finish(){
@@ -244,7 +239,6 @@ echo -e "${LB} DAFTAR MENU :                                     "
 echo -e "${LB} [\e[36m1\e[0m${LB}] Install / Upgrade Rakitan Manager | ${G}Branch Main"
 echo -e "${LB} [\e[36m2\e[0m${LB}] Install / Upgrade Rakitan Manager | ${G}Branch Dev"
 echo -e "${LB} [\e[36m3\e[0m${LB}] Uninstall Rakitan Manager"
-echo -e "${LB} [\e[36m4\e[0m${LB}] Update Script"
 echo -e "${DB} =================================================="
 echo -e "${W}"
 echo -e   ""
@@ -255,7 +249,7 @@ echo -e   ""
 
 case $opt in
 1) clear ;
-echo -e Proses Install / Upgrade Akan Di Jalankan, mohon ditunggu
+echo -e Proses Install / Upgrade Branch Main Akan Di Jalankan, mohon ditunggu
 echo -e
 sleep 3
 clear
@@ -263,7 +257,7 @@ install_upgrade_main
  ;;
 
 2) clear ;
-echo -e Proses Install / Upgrade Akan Di Jalankan, mohon ditunggu
+echo -e Proses Install / Upgrade Branch Dev Akan Di Jalankan, mohon ditunggu
 echo -e
 sleep 3
 clear
@@ -276,14 +270,6 @@ echo -e
 sleep 3
 clear
 uninstaller
- ;;
-
-4) clear ;
-echo -e Update Script
-echo -e
-sleep 3
-clear
-bash -c "$(wget -qO - 'https://raw.githubusercontent.com/rtaserver/RakitanManager/main/install.sh')"
  ;;
 
 x) exit ;;
