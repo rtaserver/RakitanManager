@@ -1,5 +1,8 @@
 # What's New!
 
+**Changelog** (v0.00.10-beta 05-05-2024):
+- Fixed Get Ip Modem Rakitan
+
 **Changelog** (v0.00.09-beta 04-05-2024):
 - Fixed File Bot Not Found
 

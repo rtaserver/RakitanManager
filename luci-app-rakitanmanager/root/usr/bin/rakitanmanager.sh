@@ -182,7 +182,7 @@ perform_ping() {
                     attempt=1
                 fi
                 log "[$jenis - $nama] New IP: $(ip address | awk -v devicemodem="$devicemodem" '/devicemodem/{print $2}' | sed "s/$devicemodem://")"
-                CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/$(ip address | awk -v devicemodem="$devicemodem" '/devicemodem/{print $2}' | sed "s/$devicemodem://")/g")
+                CUSTOM_MESSAGE=$(ifconfig $devicemodem | grep inet | grep -v inet6 | awk '{print $2}' | awk -F : '{print $2}')
                 if [ "$(uci get rakitanmanager.telegram.enabled)" = "1" ]; then
                     send_message "$CUSTOM_MESSAGE"
                 fi
