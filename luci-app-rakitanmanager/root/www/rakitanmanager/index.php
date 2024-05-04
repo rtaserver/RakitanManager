@@ -1,21 +1,5 @@
 <?php
 
-// Lokasi file bash
-$bash_file = '/usr/bin/rakitanmanager.sh';
-
-// Baca file bash
-$bash_content = file_get_contents($bash_file);
-
-// Ekstrak variabel dari file bash
-preg_match_all('/(\w+)="(.*)"/', $bash_content, $matches);
-
-// Buat array untuk menyimpan variabel
-$variables = array();
-for ($i = 0; $i < count($matches[1]); $i++) {
-    if ($matches[1][$i] !== 'connect') {
-        $variables[$matches[1][$i]] = $matches[2][$i];
-    }
-}
 // Fungsi untuk membaca data modem dari file JSON
 function bacaDataModem()
 {
@@ -122,6 +106,17 @@ foreach ($linesnetwork as $linenetwork) {
         $interface = trim(end($parts), "'"); // Menghapus tanda petik
         $interface_modem[] = $interface; // Menambahkan nama interface ke array
     }
+}
+
+$interfaces = []; // Inisialisasi array interface
+$outputinterface = shell_exec('ip address');
+preg_match_all('/^\d+: (\S+):/m', $outputinterface, $matchesinterface);
+if (!empty($matchesinterface[1])) {
+    // Mengonversi daftar interface menjadi array asosiatif untuk diproses lebih lanjut
+    $getinterface = array_combine($matchesinterface[1], $matchesinterface[1]);
+    $interfaces = $getinterface; // Memperbarui array interfaces dengan hasil yang baru ditemukan
+} else {
+    $interfaces = []; // Atur kembali interfaces sebagai array kosong jika tidak ada interface yang ditemukan
 }
 
 $rakitanmanager_status = exec("uci -q get rakitanmanager.cfg.enabled") ? 1 : 0;
@@ -442,9 +437,15 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
                                                                     value="google.com facebook.com">
                                                                 <label for="devicemodem">Device Modem Untuk Cek
                                                                     PING:</label>
-                                                                <input type="text" id="devicemodem" name="devicemodem"
-                                                                    class="form-control" placeholder="eth1"
-                                                                    value="eth1">
+                                                                <select name="devicemodem" id="devicemodem"
+                                                                    class="form-control">
+                                                                    <?php
+                                                                    foreach ($interfaces as $devicemodem) {
+                                                                        echo "<option value=\"$devicemodem\"";
+                                                                        echo ">$devicemodem</option>";
+                                                                    }
+                                                                    ?>
+                                                                </select>
                                                                 <label for="delayping">Jeda Waktu Detik | Sebelum
                                                                     Melanjutkan Cek PING:</label>
                                                                 <input type="text" id="delayping" name="delayping"
@@ -558,9 +559,15 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
                                                                     placeholder="1.1.1.1 8.8.8.8 google.com">
                                                                 <label for="edit_devicemodem">Device Modem Untuk Cek
                                                                     PING:</label>
-                                                                <input type="text" id="edit_devicemodem"
-                                                                    name="edit_devicemodem" class="form-control"
-                                                                    placeholder="eth1">
+                                                                <select name="edit_devicemodem" id="edit_devicemodem"
+                                                                    class="form-control">
+                                                                    <?php
+                                                                    foreach ($interfaces as $devicemodem) {
+                                                                        echo "<option value=\"$devicemodem\"";
+                                                                        echo ">$devicemodem</option>";
+                                                                    }
+                                                                    ?>
+                                                                </select>
                                                                 <label for="edit_delayping">Jeda Waktu Detik | Sebelum
                                                                     Melanjutkan Cek PING:</label>
                                                                 <input type="text" id="edit_delayping"
@@ -718,10 +725,6 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
                 alert("Host / Bug untuk ping harus diisi!");
                 return false;
             }
-            if (devicemodem === "") {
-                alert("Device modem untuk cek PING harus diisi!");
-                return false;
-            }
             if (delayping === "") {
                 alert("Jeda waktu detik sebelum melanjutkan cek PING harus diisi!");
                 return false;
@@ -761,10 +764,6 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
             }
             if (hostbug === "") {
                 alert("Host / Bug untuk ping harus diisi!");
-                return false;
-            }
-            if (devicemodem === "") {
-                alert("Device modem untuk cek PING harus diisi!");
                 return false;
             }
             if (delayping === "") {

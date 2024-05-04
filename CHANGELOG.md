@@ -1,5 +1,8 @@
 # What's New!
 
+**Changelog** (v0.00.08-beta 04-05-2024):
+- Change Device Check PING To ComboBox
+
 **Changelog** (v0.00.07-beta 04-05-2024):
 - Fixed Typo For Telegram
 - Fixed Get IP
