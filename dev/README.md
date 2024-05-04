@@ -19,9 +19,29 @@ Installasi
 Menggunakan Terminal OpenWrt / TTYD / PuTTY
 ```bash
 # Copy Script Di Bawah Dan Paste Di Terminal
-bash -c "$(wget -qO - --no-cache 'https://raw.githubusercontent.com/rtaserver/RakitanManager/dev/install.sh')"
+bash -c "$(wget -qO - 'https://raw.githubusercontent.com/rtaserver/RakitanManager/dev/install.sh')"
 ```
 
+Manual Installasi
+```
+1. Download File IPK
+2. Install Beberapa Paket Yang Di Butuhkan Di Menu Software
+   Jangan Lupa Update List
+   - modemmanager
+   - python3-pip
+   - jq
+   - curl
+   - adb
+3. Install Paket Python di Terminal OpenWrt / TTYD / PuTTY
+   - pip3 install requests
+   - pip3 install huawei-lte-api
+   Paste Satu Satu Di Atas Ke Terminal
+4. Upload IPK Yang Sudah Di Download Ke Menu Software
+   Upload Packages. Kemudian Upload Dan Install
+5. Atau Upload IPK Ke Folder Root OpeWrt
+   Kemudian Jalankan Perintah Ini Di Terminal
+   - opkg install /luci-app-rakitanmanager_*.ipk --force-reinstall
+```
 
 lisensi
 ---
