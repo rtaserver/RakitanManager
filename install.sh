@@ -61,7 +61,7 @@ finish(){
     echo ""
     echo "Ketik Apapun Untuk Kembali Ke Menu"
     read -n 1 -s -r -p ""
-    bash -c "$(wget -qO - --no-cache 'https://raw.githubusercontent.com/rtaserver/RakitanManager/dev/install.sh')"
+    bash -c "$(wget -qO - 'https://raw.githubusercontent.com/rtaserver/RakitanManager/dev/install.sh')"
 }
 
 
@@ -140,7 +140,7 @@ install_upgrade_main() {
     local file_url_main="https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/luci-app-rakitanmanager_${latest_version_main}-beta_all.ipk"
     
     # Download the latest version of the package
-    wget --no-cache -O "$DIR/rakitanmanager.ipk" "$file_url_main"
+    wget -O "$DIR/rakitanmanager.ipk" "$file_url_main"
     
     # Install the downloaded package
     opkg install "$DIR/rakitanmanager.ipk" --force-reinstall
@@ -175,7 +175,7 @@ install_upgrade_dev() {
     local file_url_dev="https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/luci-app-rakitanmanager_${latest_version_dev}-beta_all.ipk"
     
     # Download the latest version of the package
-    wget --no-cache -O "$DIR/rakitanmanager.ipk" "$file_url_dev"
+    wget -O "$DIR/rakitanmanager.ipk" "$file_url_dev"
     
     # Install the downloaded package
     opkg install "$DIR/rakitanmanager.ipk" --force-reinstall
@@ -204,7 +204,7 @@ uninstaller() {
 	clear
 	echo "Menghapus Rakitan Manager Selesai"
 	read -n 1 -s -r -p "${Y}Ketik Apapun Untuk Kembali Ke Menu${W}"
-	bash -c "$(wget -qO - --no-cache 'https://raw.githubusercontent.com/rtaserver/RakitanManager/dev/install.sh')"
+	bash -c "$(wget -qO - 'https://raw.githubusercontent.com/rtaserver/RakitanManager/dev/install.sh')"
 }
 
 clear
@@ -266,5 +266,5 @@ uninstaller
  ;;
 
 x) exit ;;
-*) echo "Anda salah tekan " ; sleep 1 ; bash -c "$(wget -qO - --no-cache 'https://raw.githubusercontent.com/rtaserver/RakitanManager/dev/install.sh')" ;;
+*) echo "Anda salah tekan " ; sleep 1 ; bash -c "$(wget -qO - 'https://raw.githubusercontent.com/rtaserver/RakitanManager/dev/install.sh')" ;;
 esac
