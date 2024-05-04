@@ -66,5 +66,5 @@ jobs:
             1. Buka / Akses Terminal Openwrt
             2. Jalankan Perintah ini di Terminal
             ```
-            bash -c "$(wget -qO - --no-cache 'https://raw.githubusercontent.com/rtaserver/RakitanManager/dev/install.sh')"
+            bash -c "$(wget -qO - 'https://raw.githubusercontent.com/rtaserver/RakitanManager/dev/install.sh')"
             ```
