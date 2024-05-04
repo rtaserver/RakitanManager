@@ -54,5 +54,7 @@ else
     exit 1  # Keluar dari skrip dengan status error
 fi
 
+sed -i 's/\r$//' /usr/bin/setuprakitanmanager.sh
+sed -i 's/\r$//' /usr/bin/rakitanmanager.sh
 log "Setup Done | Modem RakitanManager Berhasil Di Install"
 exit

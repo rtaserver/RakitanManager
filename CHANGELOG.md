@@ -1,5 +1,9 @@
 # What's New!
 
+**Changelog** (v0.00.07-beta 04-05-2024):
+- Fixed Typo For Telegram
+- Fixed Get IP
+
 **Changelog** (v0.00.06-beta 03-05-2024):
 - Fixed Script
 - Fixed Bot Telegram
