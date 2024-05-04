@@ -5,6 +5,9 @@ clear
 if [ -f "$DIR/rakitanmanager.ipk" ]; then
     rm -rf "$DIR/rakitanmanager.ipk"
 fi
+if [ -f "/usr/bin/rakitanmanager" ]; then
+    rm -rf "/usr/bin/rakitanmanager"
+fi
 
 #===================
 W='\e[1;37m' # Putih
