@@ -1,5 +1,8 @@
 # What's New!
 
+**Changelog** (v0.00.09-beta 04-05-2024):
+- Fixed File Bot Not Found
+
 **Changelog** (v0.00.08-beta 04-05-2024):
 - Change Device Check PING To ComboBox
 
