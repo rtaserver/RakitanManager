@@ -24,12 +24,12 @@ echo -e "${LB} Pastikan Koneksi Internet Lancar"
 
 latestVersion=$(curl -s 'https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/version' | head -n 1 | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]' | sed 's/bt/beta/g')
 if [ -z "$latestVersion" ]; then
-    latestVersion="Versi Tidak Ada / Tidak Terinstall"
+    latestVersion="Versi Tidak Ada / Gagal Koneksi"
 fi
 
 latestVersionDev=$(curl -s 'https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/version' | head -n 1 | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]' | sed 's/bt/beta/g')
 if [ -z "$latestVersionDev" ]; then
-    latestVersionDev="Versi Tidak Ada / Tidak Terinstall"
+    latestVersionDev="Versi Tidak Ada / Gagal Koneksi"
 fi
 
 if [ "$(uci get rakitanmanager.cfg.branch)" = "main" ]; then
@@ -61,7 +61,7 @@ finish(){
     echo ""
     echo "Ketik Apapun Untuk Kembali Ke Menu"
     read -n 1 -s -r -p ""
-    bash -c "$(wget -qO - --no-cache 'https://raw.githubusercontent.com/rtaserver/RakitanManager/main/install.sh')"
+    bash -c "$(wget -qO - --no-cache 'https://raw.githubusercontent.com/rtaserver/RakitanManager/dev/install.sh')"
 }
 
 
@@ -197,7 +197,7 @@ uninstaller() {
 	clear
 	echo "Menghapus Rakitan Manager Selesai"
 	read -n 1 -s -r -p "${Y}Ketik Apapun Untuk Kembali Ke Menu${W}"
-	bash -c "$(wget -qO - --no-cache 'https://raw.githubusercontent.com/rtaserver/RakitanManager/main/install.sh')"
+	bash -c "$(wget -qO - --no-cache 'https://raw.githubusercontent.com/rtaserver/RakitanManager/dev/install.sh')"
 }
 
 clear
@@ -250,5 +250,5 @@ uninstaller
  ;;
 
 x) exit ;;
-*) echo "Anda salah tekan " ; sleep 1 ; bash -c "$(wget -qO - --no-cache 'https://raw.githubusercontent.com/rtaserver/RakitanManager/main/install.sh')" ;;
+*) echo "Anda salah tekan " ; sleep 1 ; bash -c "$(wget -qO - --no-cache 'https://raw.githubusercontent.com/rtaserver/RakitanManager/dev/install.sh')" ;;
 esac

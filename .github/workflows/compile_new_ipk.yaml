@@ -157,3 +157,21 @@ jobs:
           git add .
           git commit -m "Auto Release: v${{ needs.Get-Version.outputs.version }}-beta"
           git push
+
+      - name: Generate new tag & release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          prerelease: true
+          tag_name: "v${{ needs.Get-Version.outputs.version }}-beta"
+          body: |
+            ## :mega:Update content
+            ---
+            INSTALL & UPGRADE
+            ---
+            1. Buka / Akses Terminal Openwrt
+            2. Jalankan Perintah ini di Terminal
+            ```
+            bash -c "$(wget -qO - --no-cache 'https://raw.githubusercontent.com/rtaserver/RakitanManager/dev/install.sh')"
+            ```
