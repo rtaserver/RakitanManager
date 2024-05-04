@@ -61,7 +61,7 @@ finish(){
     echo ""
     echo "Ketik Apapun Untuk Kembali Ke Menu"
     read -n 1 -s -r -p ""
-    bash -c "$(wget -qO - --no-cache 'https://raw.githubusercontent.com/rtaserver/RakitanManager/dev/install.sh')"
+    bash -c "$(wget -qO - 'https://raw.githubusercontent.com/rtaserver/RakitanManager/dev/install.sh')"
 }
 
 
@@ -204,7 +204,7 @@ uninstaller() {
 	clear
 	echo "Menghapus Rakitan Manager Selesai"
 	read -n 1 -s -r -p "${Y}Ketik Apapun Untuk Kembali Ke Menu${W}"
-	bash -c "$(wget -qO - --no-cache 'https://raw.githubusercontent.com/rtaserver/RakitanManager/dev/install.sh')"
+	bash -c "$(wget -qO - 'https://raw.githubusercontent.com/rtaserver/RakitanManager/dev/install.sh')"
 }
 
 clear
@@ -266,5 +266,5 @@ uninstaller
  ;;
 
 x) exit ;;
-*) echo "Anda salah tekan " ; sleep 1 ; bash -c "$(wget -qO - --no-cache 'https://raw.githubusercontent.com/rtaserver/RakitanManager/dev/install.sh')" ;;
+*) echo "Anda salah tekan " ; sleep 1 ; bash -c "$(wget -qO - 'https://raw.githubusercontent.com/rtaserver/RakitanManager/dev/install.sh')" ;;
 esac
