@@ -140,7 +140,7 @@ install_upgrade_main() {
     local file_url_main="https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/luci-app-rakitanmanager_${latest_version_main}-beta_all.ipk"
     
     # Download the latest version of the package
-    wget --no-cache -O "$DIR/rakitanmanager.ipk" "$file_url_main"
+    wget -O "$DIR/rakitanmanager.ipk" "$file_url_main"
     
     # Install the downloaded package
     opkg install "$DIR/rakitanmanager.ipk" --force-reinstall
@@ -175,7 +175,7 @@ install_upgrade_dev() {
     local file_url_dev="https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/luci-app-rakitanmanager_${latest_version_dev}-beta_all.ipk"
     
     # Download the latest version of the package
-    wget --no-cache -O "$DIR/rakitanmanager.ipk" "$file_url_dev"
+    wget -O "$DIR/rakitanmanager.ipk" "$file_url_dev"
     
     # Install the downloaded package
     opkg install "$DIR/rakitanmanager.ipk" --force-reinstall
