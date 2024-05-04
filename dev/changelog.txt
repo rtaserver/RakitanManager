@@ -1,1 +1,1 @@
-**Changelog** (v0.00.08-beta 04-05-2024):%0A- Change Device Check PING To ComboBox
+**Changelog** (v0.00.09-beta 04-05-2024):%0A- Fixed File Bot Not Found
