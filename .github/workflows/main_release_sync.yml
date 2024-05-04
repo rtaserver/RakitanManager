@@ -55,6 +55,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          make_latest: "true"
           prerelease: false
           tag_name: "v${{ steps.current_version.outputs.version }}-beta"
           body: |
