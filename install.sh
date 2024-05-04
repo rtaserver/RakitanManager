@@ -2,6 +2,10 @@
 DIR="/tmp"
 clear
 
+if [ -f "$DIR/rakitanmanager.ipk" ]; then
+    rm -rf "$DIR/rakitanmanager.ipk"
+fi
+
 #===================
 W='\e[1;37m' # Putih
 R='\e[31;1m' # Merah
@@ -54,7 +58,7 @@ finish(){
     echo ""
     echo "Ketik Apapun Untuk Kembali Ke Menu"
     read -n 1 -s -r -p ""
-    bash -c "$(wget -qO - 'https://raw.githubusercontent.com/rtaserver/RakitanManager/main/install.sh')"
+    bash -c "$(wget -qO - --no-cache 'https://raw.githubusercontent.com/rtaserver/RakitanManager/main/install.sh')"
 }
 
 
@@ -120,22 +124,28 @@ download_packages() {
     fi
 }
 
-install_upgrade_main()
-{
+install_upgrade_main() {
     download_packages
     sleep 1
     clear
     echo "Downloading files from repo Main..."
     local version_info_main=$(curl -s https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/version)
     local latest_version_main=$(echo "$version_info_main" | grep -o 'New Release-v[^"]*' | cut -d 'v' -f 2 | cut -d '-' -f1)
+    
+    # Define the file URL with the latest version
     local file_url_main="https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/luci-app-rakitanmanager_${latest_version_main}-beta_all.ipk"
-    if [ -f "$DIR/rakitanmanager.ipk" ]; then
-        rm -f $DIR/rakitanmanager.ipk
-    fi
-    wget -O $DIR/rakitanmanager.ipk ${file_url_main}
-    opkg install $DIR/rakitanmanager.ipk --force-reinstall
+    
+    # Download the latest version of the package
+    wget --no-cache -O "$DIR/rakitanmanager.ipk" "$file_url_main"
+    
+    # Install the downloaded package
+    opkg install "$DIR/rakitanmanager.ipk" --force-reinstall
     sleep 3
-    rm -f $DIR/rakitanmanager.ipk
+    
+    # Remove the downloaded package file
+    rm -rf "$DIR/rakitanmanager.ipk"
+    
+    # Set the branch to 'main' in configuration
     uci set rakitanmanager.cfg.branch='main'
     uci commit rakitanmanager
     clear
@@ -143,22 +153,28 @@ install_upgrade_main()
     finish
 }
 
-install_upgrade_dev()
-{
+install_upgrade_dev() {
     download_packages
     sleep 1
     clear
-    echo "Downloading files from repo Dev..."
+    echo "Downloading files from repo Main..."
     local version_info_dev=$(curl -s https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/version)
     local latest_version_dev=$(echo "$version_info_dev" | grep -o 'New Release-v[^"]*' | cut -d 'v' -f 2 | cut -d '-' -f1)
+    
+    # Define the file URL with the latest version
     local file_url_dev="https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/luci-app-rakitanmanager_${latest_version_dev}-beta_all.ipk"
-    if [ -f "$DIR/rakitanmanager.ipk" ]; then
-        rm -f $DIR/rakitanmanager.ipk
-    fi
-    wget -O $DIR/rakitanmanager.ipk ${file_url_dev}
-    opkg install $DIR/rakitanmanager.ipk --force-reinstall
+    
+    # Download the latest version of the package
+    wget --no-cache -O "$DIR/rakitanmanager.ipk" "$file_url_dev"
+    
+    # Install the downloaded package
+    opkg install "$DIR/rakitanmanager.ipk" --force-reinstall
     sleep 3
-    rm -f $DIR/rakitanmanager.ipk
+    
+    # Remove the downloaded package file
+    rm -rf "$DIR/rakitanmanager.ipk"
+    
+    # Set the branch to 'dev' in configuration
     uci set rakitanmanager.cfg.branch='dev'
     uci commit rakitanmanager
     clear
@@ -178,7 +194,7 @@ uninstaller() {
 	clear
 	echo "Menghapus Rakitan Manager Selesai"
 	read -n 1 -s -r -p "${Y}Ketik Apapun Untuk Kembali Ke Menu${W}"
-	bash -c "$(wget -qO - 'https://raw.githubusercontent.com/rtaserver/RakitanManager/dev/install.sh')"
+	bash -c "$(wget -qO - --no-cache 'https://raw.githubusercontent.com/rtaserver/RakitanManager/main/install.sh')"
 }
 
 clear
@@ -231,5 +247,5 @@ uninstaller
  ;;
 
 x) exit ;;
-*) echo "Anda salah tekan " ; sleep 1 ; bash -c "$(wget -qO - 'https://raw.githubusercontent.com/rtaserver/RakitanManager/main/install.sh')" ;;
+*) echo "Anda salah tekan " ; sleep 1 ; bash -c "$(wget -qO - --no-cache 'https://raw.githubusercontent.com/rtaserver/RakitanManager/main/install.sh')" ;;
 esac
