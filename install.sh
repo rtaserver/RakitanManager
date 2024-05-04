@@ -9,6 +9,10 @@ if [ -f "/usr/bin/rakitanmanager" ]; then
     rm -rf "/usr/bin/rakitanmanager"
 fi
 
+if [ ! -d "$DIR/rakitanmanager" ]; then
+    mkdir "$DIR/rakitanmanager"
+fi
+
 #===================
 W='\e[1;37m' # Putih
 R='\e[31;1m' # Merah
@@ -22,14 +26,29 @@ LB='\e[36;1m' # Biru Terang
 echo -e "${LB} Sedang Menjalankan Script. Mohon Tunggu.."
 echo -e "${LB} Pastikan Koneksi Internet Lancar"
 
-latestVersion=$(curl -s 'https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/version' | head -n 1 | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]' | sed 's/bt/beta/g')
-if [ -z "$latestVersion" ]; then
-    latestVersion="Versi Tidak Ada / Gagal Koneksi"
+LatestMain() {
+    local url="https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/version"
+    wget -q -O "$DIR/rakitanmanager/LatestMain.txt" "$url"
+    local ver=$(head -n 1 "$DIR/rakitanmanager/LatestMain.txt" 2>/dev/null | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]' | sed 's/bt/beta/g')
+    echo "$ver"
+}
+
+LatestDev() {
+    local url="https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/version"
+    wget -q -O "$DIR/rakitanmanager/LatestDev.txt" "$url"
+    local ver=$(head -n 1 "$DIR/rakitanmanager/LatestDev.txt" 2>/dev/null | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]' | sed 's/bt/beta/g')
+    echo "$ver"
+}
+
+LatestVerMain=$(LatestMain)
+LatestVerDev=$(LatestDev)
+
+if [ -z "$LatestVerMain" ]; then
+    LatestVerMain="Versi Tidak Ada / Gagal Koneksi"
 fi
 
-latestVersionDev=$(curl -s 'https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/version' | head -n 1 | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]' | sed 's/bt/beta/g')
-if [ -z "$latestVersionDev" ]; then
-    latestVersionDev="Versi Tidak Ada / Gagal Koneksi"
+if [ -z "$LatestVerDev" ]; then
+    LatestVerDev="Versi Tidak Ada / Gagal Koneksi"
 fi
 
 if [ "$(uci get rakitanmanager.cfg.branch)" = "main" ]; then
@@ -140,14 +159,14 @@ install_upgrade_main() {
     local file_url_main="https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/luci-app-rakitanmanager_${latest_version_main}-beta_all.ipk"
     
     # Download the latest version of the package
-    wget -O "$DIR/rakitanmanager.ipk" "$file_url_main"
+    wget -O "$DIR/rakitanmanager/rakitanmanager.ipk" "$file_url_main"
     
     # Install the downloaded package
-    opkg install "$DIR/rakitanmanager.ipk" --force-reinstall
+    opkg install "$DIR/rakitanmanager/rakitanmanager.ipk" --force-reinstall
     sleep 3
     
     # Remove the downloaded package file
-    rm -rf "$DIR/rakitanmanager.ipk"
+    rm -rf "$DIR/rakitanmanager/rakitanmanager.ipk"
     
     # Set the branch to 'main' in configuration
     uci set rakitanmanager.cfg.branch='main'
@@ -175,14 +194,14 @@ install_upgrade_dev() {
     local file_url_dev="https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/luci-app-rakitanmanager_${latest_version_dev}-beta_all.ipk"
     
     # Download the latest version of the package
-    wget -O "$DIR/rakitanmanager.ipk" "$file_url_dev"
+    wget -O "$DIR/rakitanmanager/rakitanmanager.ipk" "$file_url_dev"
     
     # Install the downloaded package
-    opkg install "$DIR/rakitanmanager.ipk" --force-reinstall
+    opkg install "$DIR/rakitanmanager/rakitanmanager.ipk" --force-reinstall
     sleep 3
     
     # Remove the downloaded package file
-    rm -rf "$DIR/rakitanmanager.ipk"
+    rm -rf "$DIR/rakitanmanager/rakitanmanager.ipk"
     
     # Set the branch to 'dev' in configuration
     uci set rakitanmanager.cfg.branch='dev'
@@ -212,8 +231,8 @@ echo -e "${DB} =================================================="
 echo -e "${R}          RAKITAN MANAGER AUTO INSTALLER           "
 echo -e "${DB} =================================================="
 echo -e "${R} Versi Terinstall: ${LB}${currentVersion}  "
-echo -e "${R} Versi Terbaru: ${G}${latestVersion} | Branch Main"
-echo -e "${R} Versi Terbaru: ${G}${latestVersionDev} | Branch Dev"
+echo -e "${R} Versi Terbaru: ${G}${LatestVerMain} | Branch Main"
+echo -e "${R} Versi Terbaru: ${G}${LatestVerDev} | Branch Dev"
 echo -e "${DB} =================================================="
 echo -e "${G} Processor: ${LB}$(ubus call system board | grep '\"system\"' | sed 's/ \+/ /g' | awk -F'\"' '{print $4}')"
 echo -e "${G} Device Model: ${LB}$(ubus call system board | grep '\"model\"' | sed 's/ \+/ /g' | awk -F'\"' '{print $4}')"
