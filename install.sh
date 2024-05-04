@@ -157,7 +157,7 @@ install_upgrade_dev() {
     download_packages
     sleep 1
     clear
-    echo "Downloading files from repo Main..."
+    echo "Downloading files from repo Dev..."
     local version_info_dev=$(curl -s https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/version)
     local latest_version_dev=$(echo "$version_info_dev" | grep -o 'New Release-v[^"]*' | cut -d 'v' -f 2 | cut -d '-' -f1)
     
