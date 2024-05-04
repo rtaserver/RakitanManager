@@ -66,12 +66,6 @@ finish(){
 
 
 download_packages() {
-    if pidof rakitanmanager.sh > /dev/null; then
-        killall -9 rakitanmanager.sh
-        echo "RakitanManager Berhasil Di Hentikan."
-    else
-        echo "RakitanManager is not running."
-    fi
     echo "Update dan instal prerequisites"
     clear
     opkg update
@@ -125,9 +119,16 @@ download_packages() {
         echo -e "${R}Setup Gagal | Mohon Coba Kembali${W}"
         exit  # Keluar dari skrip dengan status error
     fi
+    echo "Setup Package Sukses"
 }
 
 install_upgrade_main() {
+    if pidof rakitanmanager.sh > /dev/null; then
+        killall -9 rakitanmanager.sh
+        echo "RakitanManager Berhasil Di Hentikan."
+    else
+        echo "RakitanManager is not running."
+    fi
     download_packages
     sleep 1
     clear
@@ -157,6 +158,12 @@ install_upgrade_main() {
 }
 
 install_upgrade_dev() {
+    if pidof rakitanmanager.sh > /dev/null; then
+        killall -9 rakitanmanager.sh
+        echo "RakitanManager Berhasil Di Hentikan."
+    else
+        echo "RakitanManager is not running."
+    fi
     download_packages
     sleep 1
     clear
@@ -215,7 +222,8 @@ echo -e "${DB} =================================================="
 echo -e "${LB} DAFTAR MENU :                                     "
 echo -e "${LB} [\e[36m1\e[0m${LB}] Install / Upgrade Rakitan Manager | ${G}Branch Main"
 echo -e "${LB} [\e[36m2\e[0m${LB}] Install / Upgrade Rakitan Manager | ${G}Branch Dev"
-echo -e "${LB} [\e[36m3\e[0m${LB}] Uninstall Rakitan Manager"
+echo -e "${LB} [\e[36m3\e[0m${LB}] Update Packages Saja"
+echo -e "${LB} [\e[36m4\e[0m${LB}] Uninstall Rakitan Manager"
 echo -e "${DB} =================================================="
 echo -e "${W}"
 echo -e   ""
@@ -242,6 +250,14 @@ install_upgrade_dev
  ;;
 
 3) clear ;
+echo -e Proses Install / Upgrade Packages, mohon ditunggu
+echo -e
+sleep 3
+clear
+download_packages
+ ;;
+
+4) clear ;
 echo -e Proses Uninstall Rakitan Manager, mohon ditunggu
 echo -e
 sleep 3
