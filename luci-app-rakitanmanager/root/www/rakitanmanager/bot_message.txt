@@ -4,4 +4,5 @@
    - Device: [DEVICE_BOARD]
 ============================
 Status : Kembali Aktif | [IP]
+Modem : [NAMAMODEM]
 ============================

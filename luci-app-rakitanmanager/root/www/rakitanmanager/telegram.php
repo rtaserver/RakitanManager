@@ -193,6 +193,7 @@ $bot_status = exec("uci -q get rakitanmanager.telegram.enabled") ? 1 : 0;
                                                         placeholder="Custom Message"><?php echo $custom_message; ?></textarea>
                                                     <small class="form-text text-muted">Filter Text :<br>
                                                         [IP] = Memunculkan Alamat IP<br>
+                                                        [NAMAMODEM] = Memuculkan Nama Modem<br>
                                                         [DEVICE_PROCESSOR] = Memunculkan Nama Processor<br>
                                                         [DEVICE_MODEL] = Memunculkan Nama Model OpenWrt<br>
                                                         [DEVICE_BOARD] = Memunculkan Nama Board OpenWrt

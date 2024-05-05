@@ -181,8 +181,10 @@ perform_ping() {
                     sleep 20 && ifdown "$interface" && ifup "$interface"
                     attempt=1
                 fi
-                log "[$jenis - $nama] New IP: $(ip address | awk -v devicemodem="$devicemodem" '/devicemodem/{print $2}' | sed "s/$devicemodem://")"
-                CUSTOM_MESSAGE=$(ifconfig $devicemodem | grep inet | grep -v inet6 | awk '{print $2}' | awk -F : '{print $2}')
+                new_rakitan_ip=$(ifconfig $devicemodem | grep inet | grep -v inet6 | awk '{print $2}' | awk -F : '{print $2}')
+                log "[$jenis - $nama] New IP: $new_rakitan_ip"
+                CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/$new_rakitan_ip/g")
+                CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[NAMAMODEM\]/$nama/g")
                 if [ "$(uci get rakitanmanager.telegram.enabled)" = "1" ]; then
                     send_message "$CUSTOM_MESSAGE"
                 fi
@@ -197,6 +199,7 @@ perform_ping() {
                 new_ip_hp=$(adb shell ip addr show rmnet_data0 | grep 'inet ' | awk '{print $2}' | cut -d / -f 1)
                 log "[$jenis - $nama] New IP = $new_ip_hp"
                 CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/$new_ip_hp/g")
+                CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[NAMAMODEM\]/$nama/g")
                 if [ "$(uci get rakitanmanager.telegram.enabled)" = "1" ]; then
                     send_message "$CUSTOM_MESSAGE"
                 fi
@@ -205,6 +208,7 @@ perform_ping() {
                 python3 /usr/bin/modem-orbit.py $iporbit $usernameorbit $passwordorbit
                 log "[$jenis - $nama] New IP $(cat /tmp/ip_orbit.txt)"
                 CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/$(< /tmp/ip_orbit.txt)/g")
+                CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[NAMAMODEM\]/$nama/g")
                 if [ "$(uci get rakitanmanager.telegram.enabled)" = "1" ]; then
                     send_message "$CUSTOM_MESSAGE"
                 fi
@@ -224,7 +228,6 @@ main() {
 }
 
 rakitanmanager_stop() {
-    # Hentikan skrip jika sedang berjalan
     if pidof rakitanmanager.sh > /dev/null; then
         killall -9 rakitanmanager.sh
         log "RakitanManager Berhasil Di Hentikan."
