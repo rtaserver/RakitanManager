@@ -42,9 +42,7 @@ def main():
             print("Waiting for the IP to be changed...")
             wan_ip_address_after_plmn, _ = fetch_wan_info(client)
             print_result("New IP", wan_ip_address_after_plmn)
-
-            with open(f"/tmp/{nama}ip_orbit.txt", "w") as file:  # Menggunakan f-string untuk penamaan file
-                # Menulis teks ke dalam file
+            with open("/tmp/{nama}ip_orbit.txt", "w") as file:
                 file.write(wan_ip_address_after_plmn)
             
             print_success("IP has been successfully changed.")
