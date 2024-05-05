@@ -25,8 +25,8 @@ DEVICE_MODEL=$(ubus call system board | grep '\"model\"' | sed 's/ \+/ /g' | awk
 DEVICE_BOARD=$(ubus call system board | grep '\"board_name\"' | sed 's/ \+/ /g' | awk -F'\"' '{print $4}')
 
 # TELEGRAM
-TOKEN_ID=$(grep '^token_id=' /www/rakitanmanager/telegram_config.txt | cut -d '=' -f 2)
-CHAT_ID=$(grep '^chat_id=' /www/rakitanmanager/telegram_config.txt | cut -d '=' -f 2)
+TOKEN_ID=$(uci -q get rakitanmanager.telegram.token)
+CHAT_ID=$(uci -q get rakitanmanager.telegram.chatid)
 CUSTOM_MESSAGE=$(cat /www/rakitanmanager/bot_message.txt)
 CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[DEVICE_PROCESSOR\]/$DEVICE_PROCESSOR/g")
 CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[DEVICE_MODEL\]/$DEVICE_MODEL/g")
@@ -40,9 +40,7 @@ send_message() {
 test_bot() {
     # Kirim pesan uji
     send_message "===============
-$DEVICE_PROCESSOR
-$DEVICE_MODEL
-$DEVICE_BOARD
+$(bash /usr/share/rakitanmanager/plugins/systeminfo.sh)
 ==============="
 }
 
@@ -205,9 +203,9 @@ perform_ping() {
                 fi
             elif [ "$jenis" = "orbit" ]; then
                 log "[$jenis - $nama] Mencoba Menghubungkan Kembali Modem Orbit / Huawei"
-                python3 /usr/bin/modem-orbit.py $iporbit $usernameorbit $passwordorbit
+                python3 /usr/bin/modem-orbit.py $nama $iporbit $usernameorbit $passwordorbit
                 log "[$jenis - $nama] New IP $(cat /tmp/ip_orbit.txt)"
-                CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/$(< /tmp/ip_orbit.txt)/g")
+                CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/$(< /tmp/{$nama}ip_orbit.txt)/g")
                 CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[NAMAMODEM\]/$nama/g")
                 if [ "$(uci get rakitanmanager.telegram.enabled)" = "1" ]; then
                     send_message "$CUSTOM_MESSAGE"

@@ -1,11 +1,7 @@
 <?php
 // Fungsi untuk menyimpan konfigurasi ke dalam berkas
-function save_config($token_id, $chat_id)
+function save_config()
 {
-    $config_data = "token_id=$token_id\n";
-    $config_data .= "chat_id=$chat_id\n";
-    file_put_contents("telegram_config.txt", $config_data);
-
     // Simpan pesan kustom ke dalam berkas terpisah
     file_put_contents("bot_message.txt", $_POST['message']);
 }
@@ -13,23 +9,9 @@ function save_config($token_id, $chat_id)
 // Fungsi untuk memuat konfigurasi dari berkas
 function load_config()
 {
-    $config_file = "telegram_config.txt";
     $message_file = "bot_message.txt";
 
     $config = array();
-
-    if (file_exists($config_file)) {
-        $config_data = file_get_contents($config_file);
-        $lines = explode("\n", $config_data);
-        foreach ($lines as $line) {
-            $parts = explode("=", $line, 2);
-            if (count($parts) == 2) {
-                $key = trim($parts[0]);
-                $value = trim($parts[1]);
-                $config[$key] = $value;
-            }
-        }
-    }
 
     // Load pesan kustom dari berkas terpisah
     if (file_exists($message_file)) {
@@ -42,8 +24,8 @@ function load_config()
 
 // Memuat konfigurasi saat halaman dimuat
 $config = load_config();
-$token_id = isset($config['token_id']) ? $config['token_id'] : '';
-$chat_id = isset($config['chat_id']) ? $config['chat_id'] : '';
+$token_id = exec("uci -q get rakitanmanager.telegram.token");
+$chat_id = exec("uci -q get rakitanmanager.telegram.chatid");
 $custom_message = isset($config['custom_message']) ? $config['custom_message'] : '';
 
 // Memproses form ketika disubmit
@@ -54,23 +36,25 @@ if (isset($_POST['rakitanmanager'])) {
         $token_id = $_POST['tokenid'];
         $chat_id = $_POST['chatid'];
         $custom_message = $_POST['message'];
-        save_config($token_id, $chat_id, $custom_message);
+        exec("uci set rakitanmanager.telegram.token='$token_id' && uci commit rakitanmanager");
+        exec("uci set rakitanmanager.telegram.chatid='$chat_id' && uci commit rakitanmanager");
+        save_config();
         // Aktifkan bot Telegram
         exec("uci set rakitanmanager.telegram.enabled='1' && uci commit rakitanmanager");
-        //exec("/usr/bin/rakitanmanager.sh bot_enable");
     } elseif ($dt == 'disable') {
         // Nonaktifkan bot Telegram
         exec("uci set rakitanmanager.telegram.enabled='0' && uci commit rakitanmanager");
-        //exec("/usr/bin/rakitanmanager.sh bot_disable");
     } elseif ($dt == 'test') {
-        // Nonaktifkan bot Telegram
+        // Mengirim pesan uji bot Telegram
         exec("/usr/bin/rakitanmanager.sh bot_test");
     } elseif ($dt == 'save') {
         // Simpan konfigurasi tanpa mengaktifkan bot Telegram
         $token_id = $_POST['tokenid'];
         $chat_id = $_POST['chatid'];
         $custom_message = $_POST['message'];
-        save_config($token_id, $chat_id, $custom_message);
+        exec("uci set rakitanmanager.telegram.token='$token_id' && uci commit rakitanmanager");
+        exec("uci set rakitanmanager.telegram.chatid='$chat_id' && uci commit rakitanmanager");
+        save_config();
     }
 }
 
@@ -106,9 +90,7 @@ $bot_status = exec("uci -q get rakitanmanager.telegram.enabled") ? 1 : 0;
     <script>
         $(document).ready(function () {
             <?php if ($bot_status == 1): ?>
-                $("input[name='tokenid']").prop('disabled', true);
-                $("input[name='chatid']").prop('disabled', true);
-                $("textarea[name='message']").prop('disabled', true);
+                $("input[name='tokenid'], input[name='chatid'], textarea[name='message']").prop('disabled', true);
             <?php endif; ?>
 
             $("button[name='rakitanmanager'][value='test']").click(function () {
@@ -122,10 +104,7 @@ $bot_status = exec("uci -q get rakitanmanager.telegram.enabled") ? 1 : 0;
                 }
 
                 // Nonaktifkan semua tombol dan input
-                $("button[name='rakitanmanager']").prop('disabled', true);
-                $("input[name='tokenid']").prop('disabled', true);
-                $("input[name='chatid']").prop('disabled', true);
-                $("textarea[name='message']").prop('disabled', true);
+                $("button[name='rakitanmanager'], input[name='tokenid'], input[name='chatid'], textarea[name='message']").prop('disabled', true);
 
                 $.ajax({
                     type: "POST",
@@ -134,10 +113,7 @@ $bot_status = exec("uci -q get rakitanmanager.telegram.enabled") ? 1 : 0;
                         rakitanmanager: 'test'
                     },
                     success: function (response) {
-                        $("button[name='rakitanmanager']").prop('disabled', false);
-                        $("input[name='tokenid']").prop('disabled', false);
-                        $("input[name='chatid']").prop('disabled', false);
-                        $("textarea[name='message']").prop('disabled', false);
+                        $("button[name='rakitanmanager'], input[name='tokenid'], input[name='chatid'], textarea[name='message']").prop('disabled', false);
                         alert("Test message sent!");
                     }
                 });

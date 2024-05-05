@@ -13,13 +13,14 @@ def get_wan_info(client):
 
 def main():
     """Main function."""
-    if len(sys.argv) != 4:
-        print("Usage: python script.py <router_ip> <username> <password>")
+    if len(sys.argv) != 5:  # Mengubah jumlah argumen yang diharapkan menjadi 5
+        print("Usage: python script.py <nama> <router_ip> <username> <password>")
         sys.exit(1)
     
-    router_ip = sys.argv[1]
-    username = sys.argv[2]
-    password = sys.argv[3]
+    nama = sys.argv[1]
+    router_ip = sys.argv[2]
+    username = sys.argv[3]
+    password = sys.argv[4]
 
     connection_url = f'http://{username}:{password}@{router_ip}/'
 
@@ -42,7 +43,7 @@ def main():
             wan_ip_address_after_plmn, _ = fetch_wan_info(client)
             print_result("New IP", wan_ip_address_after_plmn)
 
-            with open("/tmp/ip_orbit.txt", "w") as file:
+            with open(f"/tmp/{nama}ip_orbit.txt", "w") as file:  # Menggunakan f-string untuk penamaan file
                 # Menulis teks ke dalam file
                 file.write(wan_ip_address_after_plmn)
             

@@ -27,5 +27,26 @@ chmod 0755 /usr/bin/setuprakitanmanager.sh
 chmod 0755 /usr/bin/modem-orbit.py
 chmod 0755 /etc/init.d/rakitanmanager
 
+set_permissions() {
+    local directory="$1"
+
+    # Cek apakah direktori ada
+    if [ -d "$directory" ]; then
+        # Gunakan perintah find untuk mencari semua file di dalam direktori dan sub-direktori
+        # Lalu berikan izin 0755 dengan perintah chmod
+        find "$directory" -type f -exec chmod 0755 {} +
+        echo "Izin file di $directory berhasil diubah menjadi 0755."
+
+        # Rekursif untuk setiap sub-direktori
+        local subdirs=$(find "$directory" -type d)
+        for subdir in $subdirs; do
+            set_permissions "$subdir"
+        done
+    else
+        echo "Direktori $directory tidak ditemukan."
+    fi
+}
+set_permissions "/usr/share/rakitanmanager"
+
 /usr/bin/setuprakitanmanager.sh
 exit
