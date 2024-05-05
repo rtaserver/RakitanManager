@@ -13,8 +13,8 @@ def get_wan_info(client):
 
 def main():
     """Main function."""
-    if len(sys.argv) != 5:  # Mengubah jumlah argumen yang diharapkan menjadi 5
-        print("Usage: python script.py <nama> <router_ip> <username> <password>")
+    if len(sys.argv) != 5:
+        print("Usage: python modem-orbit.py <nama> <router_ip> <username> <password>")
         sys.exit(1)
     
     nama = sys.argv[1]
@@ -42,7 +42,9 @@ def main():
             print("Waiting for the IP to be changed...")
             wan_ip_address_after_plmn, _ = fetch_wan_info(client)
             print_result("New IP", wan_ip_address_after_plmn)
-            with open("/tmp/{nama}ip_orbit.txt", "w") as file:
+
+            with open("/tmp/{nama}_ip_orbit.txt", "w") as file:
+                # Menulis teks ke dalam file
                 file.write(wan_ip_address_after_plmn)
             
             print_success("IP has been successfully changed.")
