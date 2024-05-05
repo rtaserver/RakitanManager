@@ -1,1 +1,1 @@
-**Changelog** (v0.00.09-beta 04-05-2024):%0A- Fixed File Bot Not Found
+**Changelog** (v0.00.10-beta 05-05-2024):%0A- Fixed Get Ip Modem Rakitan%0A- Add Nama Modem For Log Telegram%0A- Fix Typo
