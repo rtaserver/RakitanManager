@@ -68,7 +68,10 @@ endef
 
 define Package/$(PKG_NAME)/prerm
 #!/bin/sh
-	/usr/bin/rakitanmanager -k
+	PID1=$(pgrep -f /usr/bin/rakitanmanager.sh)
+    if [ "$PID1" ]  ; then
+        /usr/bin/rakitanmanager.sh -k
+    fi
 	exit 0
 endef
 
