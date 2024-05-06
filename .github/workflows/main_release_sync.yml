@@ -57,6 +57,7 @@ jobs:
         with:
           make_latest: "true"
           prerelease: false
+          files: "./main/luci-app-rakitanmanager_*.ipk"
           tag_name: "v${{ steps.current_version.outputs.version }}-beta"
           body: |
             <h1 align="center">

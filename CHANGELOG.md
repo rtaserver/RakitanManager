@@ -1,5 +1,19 @@
 # What's New!
 
+**Changelog** (v0.00.11-beta 06-05-2024):
+- Fixed Get Ip Modem Rakitan
+- Fixed Get Ip HP And Huawei / Orbit
+- improvement script
+- Fixed bug
+- Change Method
+- Add Another Script By @helmiau
+- Bot WRT By @helmiau
+
+**Changelog** (v0.00.10-beta 05-05-2024):
+- Fixed Get Ip Modem Rakitan
+- Add Nama Modem For Log Telegram
+- Fix Typo
+
 **Changelog** (v0.00.09-beta 04-05-2024):
 - Fixed File Bot Not Found
 

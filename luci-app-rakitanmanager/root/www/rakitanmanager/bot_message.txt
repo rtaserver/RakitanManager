@@ -1,6 +1,8 @@
-===== RAKITAN MANAGER =====
-Filter Text :
-[IP] = Memunculkan Alamat IP
-[DEVICE_PROCESSOR] = Memunculkan Nama Processor
-[DEVICE_MODEL] = Memunculkan Nama Model OpenWrt
-[DEVICE_BOARD] = Memunculkan Nama Board OpenWrt
+======= RAKITAN MANAGER =======
+   - Processor : [DEVICE_PROCESSOR]
+   - Model : [DEVICE_MODEL]
+   - Device: [DEVICE_BOARD]
+============================
+Status : Kembali Aktif | [IP]
+Modem : [NAMAMODEM]
+============================

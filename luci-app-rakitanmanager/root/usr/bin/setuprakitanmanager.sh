@@ -48,6 +48,30 @@ if which pip3 >/dev/null; then
     else
         log "Package 'huawei-lte-api' already installed"
     fi
+
+    # Instal paket 'datetime' jika belum terinstal
+    if ! pip3 show datetime >/dev/null; then
+        log "Installing package 'datetime'"
+        if ! pip3 install datetime >>"$log_file" 2>&1; then
+            log "Error installing package 'datetime'"
+            log "Setup Gagal | Mohon Coba Kembali"
+            exit 1  # Keluar dari skrip dengan status error
+        fi
+    else
+        log "Package 'datetime' already installed"
+    fi
+
+    # Instal paket 'logging' jika belum terinstal
+    if ! pip3 show logging >/dev/null; then
+        log "Installing package 'logging'"
+        if ! pip3 install logging >>"$log_file" 2>&1; then
+            log "Error installing package 'logging'"
+            log "Setup Gagal | Mohon Coba Kembali"
+            exit 1  # Keluar dari skrip dengan status error
+        fi
+    else
+        log "Package 'logging' already installed"
+    fi
 else
     log "Error: 'pip3' command not found"
     log "Setup Gagal | Mohon Coba Kembali"
@@ -56,5 +80,10 @@ fi
 
 sed -i 's/\r$//' /usr/bin/setuprakitanmanager.sh
 sed -i 's/\r$//' /usr/bin/rakitanmanager.sh
+sed -i 's/\r$//' /usr/share/rakitanmanager/plugins/adb-deviceinfo.sh
+sed -i 's/\r$//' /usr/share/rakitanmanager/plugins/adb-refresh-network.sh
+sed -i 's/\r$//' /usr/share/rakitanmanager/plugins/adb-sms.sh
+sed -i 's/\r$//' /usr/share/rakitanmanager/plugins/service-openclash.sh
+sed -i 's/\r$//' /usr/share/rakitanmanager/plugins/systeminfo.sh
 log "Setup Done | Modem RakitanManager Berhasil Di Install"
 exit

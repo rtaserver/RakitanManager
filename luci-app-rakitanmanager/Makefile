@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-rakitanmanager
-PKG_VERSION:=0.00.09
+PKG_VERSION:=0.00.11
 PKG_RELEASE:=beta
 PKG_MAINTAINER:=rtaserver <https://github.com/rtaserver/RakitanManager>
 
@@ -68,7 +68,10 @@ endef
 
 define Package/$(PKG_NAME)/prerm
 #!/bin/sh
-	/usr/bin/rakitanmanager -k
+	PID1=$(pgrep -f /usr/bin/rakitanmanager.sh)
+    if [ "$PID1" ]  ; then
+        /usr/bin/rakitanmanager.sh -k
+    fi
 	exit 0
 endef
 

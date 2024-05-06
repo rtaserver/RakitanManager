@@ -3,6 +3,11 @@
 
 sed -i 's/\r$//' /usr/bin/setuprakitanmanager.sh
 sed -i 's/\r$//' /usr/bin/rakitanmanager.sh
+sed -i 's/\r$//' /usr/share/rakitanmanager/plugins/adb-deviceinfo.sh
+sed -i 's/\r$//' /usr/share/rakitanmanager/plugins/adb-refresh-network.sh
+sed -i 's/\r$//' /usr/share/rakitanmanager/plugins/adb-sms.sh
+sed -i 's/\r$//' /usr/share/rakitanmanager/plugins/service-openclash.sh
+sed -i 's/\r$//' /usr/share/rakitanmanager/plugins/systeminfo.sh
 
 echo "Setup ModemManager"
 mm1="/usr/lib/ModemManager/connection.d/10-report-down"
@@ -26,6 +31,20 @@ chmod 0755 /usr/bin/rakitanmanager.sh
 chmod 0755 /usr/bin/setuprakitanmanager.sh
 chmod 0755 /usr/bin/modem-orbit.py
 chmod 0755 /etc/init.d/rakitanmanager
+
+set_permissions() {
+    local directory="$1"
+    if [ -d "$directory" ]; then
+        find "$directory" -type f -exec chmod 0755 {} +
+        local subdirs=$(find "$directory" -type d)
+        for subdir in $subdirs; do
+            set_permissions "$subdir"
+        done
+    else
+        echo "Direktori $directory tidak ditemukan."
+    fi
+}
+set_permissions "/usr/share/rakitanmanager"
 
 /usr/bin/setuprakitanmanager.sh
 exit

@@ -8,12 +8,6 @@ log() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - $1"
 }
 
-# Pemeriksaan apakah file konfigurasi Telegram ada
-if [ ! -f "/www/rakitanmanager/telegram_config.txt" ]; then
-    log "File konfigurasi Telegram tidak ditemukan."
-    exit 1
-fi
-
 # Pemeriksaan apakah file pesan bot ada
 if [ ! -f "/www/rakitanmanager/bot_message.txt" ]; then
     log "File pesan bot tidak ditemukan."
@@ -25,8 +19,8 @@ DEVICE_MODEL=$(ubus call system board | grep '\"model\"' | sed 's/ \+/ /g' | awk
 DEVICE_BOARD=$(ubus call system board | grep '\"board_name\"' | sed 's/ \+/ /g' | awk -F'\"' '{print $4}')
 
 # TELEGRAM
-TOKEN_ID=$(grep '^token_id=' /www/rakitanmanager/telegram_config.txt | cut -d '=' -f 2)
-CHAT_ID=$(grep '^chat_id=' /www/rakitanmanager/telegram_config.txt | cut -d '=' -f 2)
+TOKEN_ID=$(uci -q get rakitanmanager.telegram.token)
+CHAT_ID=$(uci -q get rakitanmanager.telegram.chatid)
 CUSTOM_MESSAGE=$(cat /www/rakitanmanager/bot_message.txt)
 CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[DEVICE_PROCESSOR\]/$DEVICE_PROCESSOR/g")
 CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[DEVICE_MODEL\]/$DEVICE_MODEL/g")
@@ -37,12 +31,11 @@ send_message() {
     curl -s -X POST https://api.telegram.org/bot$TOKEN_ID/sendMessage -d chat_id=$CHAT_ID -d text="$message" > /dev/null
 }
 
+RAKITANPLUGINS="/usr/share/rakitanmanager/plugins"
 test_bot() {
     # Kirim pesan uji
     send_message "===============
-$DEVICE_PROCESSOR
-$DEVICE_MODEL
-$DEVICE_BOARD
+$(bash $RAKITANPLUGINS/systeminfo.sh)
 ==============="
 }
 
@@ -181,30 +174,33 @@ perform_ping() {
                     sleep 20 && ifdown "$interface" && ifup "$interface"
                     attempt=1
                 fi
-                log "[$jenis - $nama] New IP: $(ip address | awk -v devicemodem="$devicemodem" '/devicemodem/{print $2}' | sed "s/$devicemodem://")"
-                CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/$(ip address | awk -v devicemodem="$devicemodem" '/devicemodem/{print $2}' | sed "s/$devicemodem://")/g")
+                new_rakitan_ip=$(ifconfig $devicemodem | grep inet | grep -v inet6 | awk '{print $2}' | awk -F : '{print $2}')
+                log "[$jenis - $nama] New IP: $new_rakitan_ip"
+                CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/$new_rakitan_ip/g")
+                CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[NAMAMODEM\]/$nama/g")
                 if [ "$(uci get rakitanmanager.telegram.enabled)" = "1" ]; then
                     send_message "$CUSTOM_MESSAGE"
                 fi
             elif [ "$jenis" = "hp" ]; then
-                log "[$jenis - $nama] Mencoba Menghubungkan Kembali"
-                log "[$jenis - $nama] Mengaktifkan Mode Pesawat"
-                adb shell cmd connectivity airplane-mode enable
-                sleep 2
-                log "[$jenis - $nama] Menonaktifkan Mode Pesawat"
-                adb shell cmd connectivity airplane-mode disable
-                sleep 7
+                log "[$jenis - $nama] $(bash $RAKITANPLUGINS/adb-refresh-network.sh)"
+                # log "[$jenis - $nama] Mengaktifkan Mode Pesawat"
+                # adb shell cmd connectivity airplane-mode enable
+                # sleep 2
+                # log "[$jenis - $nama] Menonaktifkan Mode Pesawat"
+                # adb shell cmd connectivity airplane-mode disable
+                # sleep 7
                 new_ip_hp=$(adb shell ip addr show rmnet_data0 | grep 'inet ' | awk '{print $2}' | cut -d / -f 1)
                 log "[$jenis - $nama] New IP = $new_ip_hp"
                 CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/$new_ip_hp/g")
+                CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[NAMAMODEM\]/$nama/g")
                 if [ "$(uci get rakitanmanager.telegram.enabled)" = "1" ]; then
                     send_message "$CUSTOM_MESSAGE"
                 fi
             elif [ "$jenis" = "orbit" ]; then
-                log "[$jenis - $nama] Mencoba Menghubungkan Kembali Modem Orbit / Huawei"
-                python3 /usr/bin/modem-orbit.py $iporbit $usernameorbit $passwordorbit
-                log "[$jenis - $nama] New IP $(cat /tmp/ip_orbit.txt)"
-                CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/$(< /tmp/ip_orbit.txt)/g")
+                log "[$jenis - $nama] $(python3 /usr/bin/modem-orbit.py $iporbit $usernameorbit $passwordorbit)"
+                log "[$jenis - $nama] New IP SUKSES"
+                CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/SUKSES/g")
+                CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[NAMAMODEM\]/$nama/g")
                 if [ "$(uci get rakitanmanager.telegram.enabled)" = "1" ]; then
                     send_message "$CUSTOM_MESSAGE"
                 fi
@@ -224,7 +220,6 @@ main() {
 }
 
 rakitanmanager_stop() {
-    # Hentikan skrip jika sedang berjalan
     if pidof rakitanmanager.sh > /dev/null; then
         killall -9 rakitanmanager.sh
         log "RakitanManager Berhasil Di Hentikan."

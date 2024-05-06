@@ -40,12 +40,7 @@ def main():
             
             print("Waiting for the IP to be changed...")
             wan_ip_address_after_plmn, _ = fetch_wan_info(client)
-            print_result("New IP", wan_ip_address_after_plmn)
-
-            with open("/tmp/ip_orbit.txt", "w") as file:
-                # Menulis teks ke dalam file
-                file.write(wan_ip_address_after_plmn)
-            
+            print_result("New IP", wan_ip_address_after_plmn) 
             print_success("IP has been successfully changed.")
         
         except Exception as e:

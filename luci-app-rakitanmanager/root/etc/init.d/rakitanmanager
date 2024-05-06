@@ -2,19 +2,16 @@
 # (C) 2024 rtaserver
 
 START=99
+STOP=15
 
-BIN="/usr/bin/rakitanmanager.sh"
+PROGMAIN="/usr/bin/rakitanmanager.sh"
+PROGBOT="/usr/bin/rakitanmanagerbot.sh"
 
-start() {
-    if [ "$(uci get rakitanmanager.cfg.startup)" = "1" ]; then
-        sleep 1 && $BIN -s
+start_service () {
+    PID1=$(pgrep -f ${PROGMAIN})
+    if [ -z "$PID1" ]  ; then
+        if [ "$(uci get rakitanmanager.cfg.startup)" = "1" ]; then
+            sleep 1 && $PROGMAIN -s
+        fi
     fi
-}
-
-stop_service() {
-    $BIN -k
-}
-
-stop() {
-    $BIN -k
 }

@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+
 DIR="/tmp"
 clear
 
@@ -13,9 +15,24 @@ if [ ! -d "$DIR/rakitanmanager" ]; then
     mkdir "$DIR/rakitanmanager"
 fi
 
-#===================
-colors=( "\e[31;1m" "\e[32;1m" "\e[33;1m" "\e[34;1m" "\e[35;1m" "\e[36;1m" ) # Array of rainbow colors
-#=====================
+
+CLBlack="\e[0;30m"
+CLRed="\e[0;31m"
+CLGreen="\e[0;32m"
+CLYellow="\e[0;33m"
+CLBlue="\e[0;34m"
+CLPurple="\e[0;35m"
+CLCyan="\e[0;36m"
+CLWhite="\e[0;37m"
+
+BGBlack="\e[40m"
+BGRed="\e[41m"
+BGGreen="\e[42m"
+BGYellow="\e[43m"
+BGBlue="\e[44m"
+BGPurple="\e[45m"
+BGCyan="\e[46m"
+BGWhite="\e[47m"
 
 trap ctrl_c INT
 
@@ -25,8 +42,8 @@ ctrl_c() {
     exit 1
 }
 
-echo -e "${colors[0]} Sedang Menjalankan Script. Mohon Tunggu.."
-echo -e "${colors[0]} Pastikan Koneksi Internet Lancar"
+echo -e "${CLWhite} Sedang Menjalankan Script. Mohon Tunggu.."
+echo -e "${CLWhite} Pastikan Koneksi Internet Lancar"
 
 LatestMain() {
     local url="https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/version"
@@ -70,15 +87,15 @@ sleep 2
 finish(){
     clear
     echo ""
-    echo -e "${colors[0]}===================================="
-    echo -e "${colors[0]}========= INSTALL BERHASIL ========="
-    echo -e "${colors[0]}===================================="
+    echo -e "${CLCyan}===================================="
+    echo -e "${BGRed}========= INSTALL BERHASIL ========="
+    echo -e "${CLCyan}===================================="
     echo ""
-    echo -e "${colors[1]}Silahkan Cek Di Tab Modem Dan Pilih Rakitan Manager"
-    echo -e "${colors[2]}Jika Tidak Ada Silahkan Clear Cache Kemudian Logout Dan Login Kembali"
-    echo -e "${colors[3]}Atau Membuka Manual Di Tab Baru : 192.168.1.1/rakitanmanager"
+    echo -e "${CLWhite}Silahkan Cek Di Tab Modem Dan Pilih Rakitan Manager"
+    echo -e "${CLWhite}Jika Tidak Ada Silahkan Clear Cache Kemudian Logout Dan Login Kembali"
+    echo -e "${CLWhite}Atau Membuka Manual Di Tab Baru : 192.168.1.1/rakitanmanager"
     echo ""
-    echo -e "${colors[4]}Ulangi Instalasi Jika Ada Yang Gagal :)"
+    echo -e "${CLWhite}Ulangi Instalasi Jika Ada Yang Gagal :)"
     echo ""
     echo "Ketik Apapun Untuk Kembali Ke Menu"
     read -n 1 -s -r -p ""
@@ -89,25 +106,61 @@ finish(){
 download_packages() {
     echo "Update dan instal prerequisites"
     clear
+
+    # Update package lists
     opkg update
     sleep 1
     clear
+
+    # Configure uhttpd
     uci set uhttpd.main.index_page='index.php'
     uci set uhttpd.main.interpreter='.php=/usr/bin/php-cgi'
     uci commit uhttpd
     /etc/init.d/uhttpd restart
     sleep 1
     clear
-    opkg install modemmanager
+
+    # Install ModemManager package
+    echo "Installing ModemManager..."
+    if opkg install modemmanager; then
+        echo "ModemManager installed successfully."
+    else
+        echo "Error: Failed to install ModemManager. Exiting."
+        exit 1
+    fi
     sleep 1
     clear
-    opkg install python3-pip
+
+    # Install Python 3 pip
+    echo "Installing python3-pip..."
+    if opkg install python3-pip; then
+        echo "python3-pip installed successfully."
+    else
+        echo "Error: Failed to install python3-pip. Exiting."
+        exit 1
+    fi
     sleep 1
     clear
-    opkg install jq
+
+    # Install jq
+    echo "Installing jq..."
+    if opkg install jq; then
+        echo "jq installed successfully."
+    else
+        echo "Error: Failed to install jq. Exiting."
+        exit 1
+    fi
     sleep 1
     clear
-    opkg install adb
+
+    # Install adb
+    echo "Installing adb..."
+    if opkg install adb; then
+        echo "adb installed successfully."
+    else
+        echo "Error: Failed to install adb. Exiting."
+        exit 1
+    fi
     sleep 1
     clear
     echo "Setup Package For Python3"
@@ -116,31 +169,55 @@ download_packages() {
         if ! pip3 show requests >/dev/null; then
             echo "Installing package 'requests'"
             if ! pip3 install requests; then
-                echo -e "${colors[0]}Error installing package 'requests'"
-                echo -e "${colors[0]}Setup Gagal | Mohon Coba Kembali"
+                echo -e "${CLRed}Error installing package 'requests'"
+                echo -e "${CLRed}Setup Gagal | Mohon Coba Kembali"
                 exit  # Keluar dari skrip dengan status error
             fi
         else
-            echo -e "${colors[0]}Package 'requests' sudah terinstal"
+            echo -e "${CLGreen}Package 'requests' sudah terinstal"
         fi
 
         # Instal paket 'huawei-lte-api' jika belum terinstal
         if ! pip3 show huawei-lte-api >/dev/null; then
             echo "Installing package 'huawei-lte-api'"
             if ! pip3 install huawei-lte-api; then
-                echo -e "${colors[0]}Error installing package 'huawei-lte-api'"
-                echo -e "${colors[0]}Setup Gagal | Mohon Coba Kembali"
+                echo -e "${CLRed}Error installing package 'huawei-lte-api'"
+                echo -e "${CLRed}Setup Gagal | Mohon Coba Kembali"
                 exit  # Keluar dari skrip dengan status error
             fi
         else
-            echo -e "${colors[0]}Package 'huawei-lte-api' sudah terinstal"
+            echo -e "${CLGreen}Package 'huawei-lte-api' sudah terinstal"
+        fi
+
+        # Instal paket 'datetime' jika belum terinstal
+        if ! pip3 show datetime >/dev/null; then
+            echo "Installing package 'datetime'"
+            if ! pip3 install datetime; then
+                echo -e "${CLRed}Error installing package 'datetime'"
+                echo -e "${CLRed}Setup Gagal | Mohon Coba Kembali"
+                exit 1  # Keluar dari skrip dengan status error
+            fi
+        else
+            echo -e "${CLGreen}Package 'datetime' already installed"
+        fi
+
+        # Instal paket 'logging' jika belum terinstal
+        if ! pip3 show logging >/dev/null; then
+            echo "Installing package 'logging'"
+            if ! pip3 install logging; then
+                echo -e "${CLRed}Error installing package 'logging'"
+                echo -e "${CLRed}Setup Gagal | Mohon Coba Kembali"
+                exit 1  # Keluar dari skrip dengan status error
+            fi
+        else
+            echo -e "${CLGreen}Package 'logging' already installed"
         fi
     else
-        echo -e "${colors[0]}Error: 'pip3' command tidak ditemukan"
-        echo -e "${colors[0]}Setup Gagal | Mohon Coba Kembali"
+        echo -e "${CLRed}Error: 'pip3' command tidak ditemukan"
+        echo -e "${CLRed}Setup Gagal | Mohon Coba Kembali"
         exit  # Keluar dari skrip dengan status error
     fi
-    echo -e "${colors[0]}Setup Package Sukses"
+    echo -e "${CLGreen}Setup Package Sukses"
 }
 
 install_upgrade_main() {
@@ -161,12 +238,14 @@ install_upgrade_main() {
     local file_url_main="https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/luci-app-rakitanmanager_${latest_version_main}-beta_all.ipk"
     
     # Download the latest version of the package
-    wget -O "$DIR/rakitanmanager/rakitanmanager.ipk" "$file_url_main"
-    
-    # Install the downloaded package
-    opkg install "$DIR/rakitanmanager/rakitanmanager.ipk" --force-reinstall
-    sleep 3
-    
+    if wget -O "$DIR/rakitanmanager/rakitanmanager.ipk" "$file_url_main"; then
+        # Install the downloaded package
+        opkg install "$DIR/rakitanmanager/rakitanmanager.ipk" --force-reinstall
+    else
+        echo "Error: Failed to download or install the package. Exiting."
+        exit 1
+    fi
+
     # Remove the downloaded package file
     rm -rf "$DIR/rakitanmanager/rakitanmanager.ipk"
     
@@ -196,12 +275,14 @@ install_upgrade_dev() {
     local file_url_dev="https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/luci-app-rakitanmanager_${latest_version_dev}-beta_all.ipk"
     
     # Download the latest version of the package
-    wget -O "$DIR/rakitanmanager/rakitanmanager.ipk" "$file_url_dev"
-    
-    # Install the downloaded package
-    opkg install "$DIR/rakitanmanager/rakitanmanager.ipk" --force-reinstall
-    sleep 3
-    
+    if wget -O "$DIR/rakitanmanager/rakitanmanager.ipk" "$file_url_dev"; then
+        # Install the downloaded package
+        opkg install "$DIR/rakitanmanager/rakitanmanager.ipk" --force-reinstall
+    else
+        echo "Error: Failed to download or install the package. Exiting."
+        exit 1
+    fi
+
     # Remove the downloaded package file
     rm -rf "$DIR/rakitanmanager/rakitanmanager.ipk"
     
@@ -224,31 +305,33 @@ uninstaller() {
 	opkg remove luci-app-rakitanmanager
 	clear
 	echo "Menghapus Rakitan Manager Selesai"
-	read -n 1 -s -r -p "${colors[3]}Ketik Apapun Untuk Kembali Ke Menu${colors[0]}"
+	read -n 1 -s -r -p "${CLWhite}Ketik Apapun Untuk Kembali Ke Menu"
 	bash -c "$(wget -qO - 'https://raw.githubusercontent.com/rtaserver/RakitanManager/dev/install.sh')"
 }
 
 clear
 while true; do
-    for color in "${colors[@]}"; do
-        echo -e "${color}==================================================="
-        echo -e "${color}          RAKITAN MANAGER AUTO INSTALLER           "
-        echo -e "${color}==================================================="
-        echo -e "${color} Versi Terinstall: ${colors[5]}${currentVersion}  "
-        echo -e "${color} Versi Terbaru: ${colors[1]}${LatestVerMain} | Branch Main"
-        echo -e "${color} Versi Terbaru: ${colors[1]}${LatestVerDev} | Branch Dev"
-        echo -e "${color}==================================================="
-        echo -e "${color} Processor: ${colors[5]}$(ubus call system board | grep '\"system\"' | sed 's/ \+/ /g' | awk -F'\"' '{print $4}')"
-        echo -e "${color} Device Model: ${colors[5]}$(ubus call system board | grep '\"model\"' | sed 's/ \+/ /g' | awk -F'\"' '{print $4}')"
-        echo -e "${color} Device Board: ${colors[5]}$(ubus call system board | grep '\"board_name\"' | sed 's/ \+/ /g' | awk -F'\"' '{print $4}')"
-        echo -e "${color}==================================================="
-        echo -e "${colors[5]} DAFTAR MENU :                                     "
-        echo -e "${colors[5]} [\e[36m1\e[0m${colors[5]}] Install / Upgrade Rakitan Manager | ${colors[1]}Branch Main"
-        echo -e "${colors[5]} [\e[36m2\e[0m${colors[5]}] Install / Upgrade Rakitan Manager | ${colors[1]}Branch Dev"
-        echo -e "${colors[5]} [\e[36m3\e[0m${colors[5]}] Update Packages Saja"
-        echo -e "${colors[5]} [\e[36m4\e[0m${colors[5]}] Uninstall Rakitan Manager"
-        echo -e "${colors[5]}==================================================="
-        echo -e "${colors[0]}"
+        echo -e "${CLCyan}╔════════════════════════════════════════════════════════╗"
+        echo -e "${BGRed}              RAKITAN MANAGER AUTO INSTALLER              "
+        echo -e "${CLCyan}╚════════════════════════════════════════════════════════╝"
+        echo -e "${CLCyan}╔════════════════════════════════════════════════════════╗"
+        echo -e "${CLWhite} Versi Terinstall: ${CLBlue}${currentVersion}  "
+        echo -e "${CLWhite} Versi Terbaru: ${CLGreen}${LatestVerMain} | Branch Main | Utama"
+        echo -e "${CLWhite} Versi Terbaru: ${CLYellow}${LatestVerDev} | Branch Dev | Pengembangan"
+        echo -e "${CLCyan}╚════════════════════════════════════════════════════════╝"
+        echo -e "${CLCyan}╔════════════════════════════════════════════════════════╗"
+        echo -e "${CLWhite} Processor: ${CLYellow}$(ubus call system board | grep '\"system\"' | sed 's/ \+/ /g' | awk -F'\"' '{print $4}')"
+        echo -e "${CLWhite} Device Model: ${CLYellow}$(ubus call system board | grep '\"model\"' | sed 's/ \+/ /g' | awk -F'\"' '{print $4}')"
+        echo -e "${CLWhite} Device Board: ${CLYellow}$(ubus call system board | grep '\"board_name\"' | sed 's/ \+/ /g' | awk -F'\"' '{print $4}')"
+        echo -e "${CLCyan}╚════════════════════════════════════════════════════════╝"
+        echo -e "${CLCyan}╔════════════════════════════════════════════════════════╗"
+        echo -e "${CLCyan}║ ${CLBlue}DAFTAR MENU :                                          ${CLCyan}║"
+        echo -e "${CLCyan}║ ${CLWhite}[${CLCyan}◦1${CLWhite}] Install / Upgrade Rakitan Manager | ${CLGreen}Branch Main   ${CLCyan}║"
+        echo -e "${CLCyan}║ ${CLWhite}[${CLCyan}◦2${CLWhite}] Install / Upgrade Rakitan Manager | ${CLYellow}Branch Dev    ${CLCyan}║"
+        echo -e "${CLCyan}║ ${CLWhite}[${CLCyan}◦3${CLWhite}] Update Packages Saja                              ${CLCyan}║"
+        echo -e "${CLCyan}║ ${CLWhite}[${CLCyan}◦4${CLWhite}] Uninstall Rakitan Manager                         ${CLCyan}║"
+        echo -e "${CLCyan}╚════════════════════════════════════════════════════════╝"
+        echo -e "${CLWhite}"
         echo -e   ""
         echo -e   " Ketik [ x ] Atau [ Ctrl+C ] Untuk Keluar Dari Script"
         echo -e   " Jika Ingin Menjalankan Ulang ketik rakitanmanager di Terminal Kemudian Enter"
@@ -300,5 +383,4 @@ while true; do
         sleep 2
         ;;
         esac
-    done
 done
