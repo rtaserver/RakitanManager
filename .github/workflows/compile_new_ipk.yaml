@@ -24,6 +24,8 @@ env:
 jobs:
   Get-Version:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     outputs:
       version: ${{ steps.version.outputs.version }}
       current_version: ${{ steps.current_version.outputs.version }}

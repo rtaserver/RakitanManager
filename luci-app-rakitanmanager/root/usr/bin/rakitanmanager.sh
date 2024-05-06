@@ -40,7 +40,7 @@ send_message() {
 test_bot() {
     # Kirim pesan uji
     send_message "===============
-$(bash /usr/share/rakitanmanager/plugins/systeminfo.sh)
+$(bash /usr/share/rakitanmanager/plugins/syteminfo.sh)
 ==============="
 }
 
