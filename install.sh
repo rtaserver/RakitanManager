@@ -85,15 +85,15 @@ sleep 2
 finish(){
     clear
     echo ""
-    echo -e "${CLWhite}===================================="
-    echo -e "${CLWhite}========= INSTALL BERHASIL ========="
-    echo -e "${CLWhite}===================================="
+    echo -e "${CLCyan}===================================="
+    echo -e "${BGRed}========= INSTALL BERHASIL ========="
+    echo -e "${CLCyan}===================================="
     echo ""
-    echo -e "${CLCyan[1]}Silahkan Cek Di Tab Modem Dan Pilih Rakitan Manager"
-    echo -e "${CLCyan[2]}Jika Tidak Ada Silahkan Clear Cache Kemudian Logout Dan Login Kembali"
-    echo -e "${CLCyan[3]}Atau Membuka Manual Di Tab Baru : 192.168.1.1/rakitanmanager"
+    echo -e "${CLWhite}Silahkan Cek Di Tab Modem Dan Pilih Rakitan Manager"
+    echo -e "${CLWhite}Jika Tidak Ada Silahkan Clear Cache Kemudian Logout Dan Login Kembali"
+    echo -e "${CLWhite}Atau Membuka Manual Di Tab Baru : 192.168.1.1/rakitanmanager"
     echo ""
-    echo -e "${CLCyan[4]}Ulangi Instalasi Jika Ada Yang Gagal :)"
+    echo -e "${CLWhite}Ulangi Instalasi Jika Ada Yang Gagal :)"
     echo ""
     echo "Ketik Apapun Untuk Kembali Ke Menu"
     read -n 1 -s -r -p ""
@@ -131,31 +131,55 @@ download_packages() {
         if ! pip3 show requests >/dev/null; then
             echo "Installing package 'requests'"
             if ! pip3 install requests; then
-                echo -e "${CLWhite}Error installing package 'requests'"
-                echo -e "${CLWhite}Setup Gagal | Mohon Coba Kembali"
+                echo -e "${CLRed}Error installing package 'requests'"
+                echo -e "${CLRed}Setup Gagal | Mohon Coba Kembali"
                 exit  # Keluar dari skrip dengan status error
             fi
         else
-            echo -e "${CLWhite}Package 'requests' sudah terinstal"
+            echo -e "${CLGreen}Package 'requests' sudah terinstal"
         fi
 
         # Instal paket 'huawei-lte-api' jika belum terinstal
         if ! pip3 show huawei-lte-api >/dev/null; then
             echo "Installing package 'huawei-lte-api'"
             if ! pip3 install huawei-lte-api; then
-                echo -e "${CLWhite}Error installing package 'huawei-lte-api'"
-                echo -e "${CLWhite}Setup Gagal | Mohon Coba Kembali"
+                echo -e "${CLRed}Error installing package 'huawei-lte-api'"
+                echo -e "${CLRed}Setup Gagal | Mohon Coba Kembali"
                 exit  # Keluar dari skrip dengan status error
             fi
         else
-            echo -e "${CLWhite}Package 'huawei-lte-api' sudah terinstal"
+            echo -e "${CLGreen}Package 'huawei-lte-api' sudah terinstal"
+        fi
+
+        # Instal paket 'datetime' jika belum terinstal
+        if ! pip3 show datetime >/dev/null; then
+            echo "Installing package 'datetime'"
+            if ! pip3 install datetime; then
+                echo -e "${CLRed}Error installing package 'datetime'"
+                echo -e "${CLRed}Setup Gagal | Mohon Coba Kembali"
+                exit 1  # Keluar dari skrip dengan status error
+            fi
+        else
+            echo -e "${CLGreen}Package 'datetime' already installed"
+        fi
+
+        # Instal paket 'logging' jika belum terinstal
+        if ! pip3 show logging >/dev/null; then
+            echo "Installing package 'logging'"
+            if ! pip3 install logging; then
+                echo -e "${CLRed}Error installing package 'logging'"
+                echo -e "${CLRed}Setup Gagal | Mohon Coba Kembali"
+                exit 1  # Keluar dari skrip dengan status error
+            fi
+        else
+            echo -e "${CLGreen}Package 'logging' already installed"
         fi
     else
-        echo -e "${CLWhite}Error: 'pip3' command tidak ditemukan"
-        echo -e "${CLWhite}Setup Gagal | Mohon Coba Kembali"
+        echo -e "${CLRed}Error: 'pip3' command tidak ditemukan"
+        echo -e "${CLRed}Setup Gagal | Mohon Coba Kembali"
         exit  # Keluar dari skrip dengan status error
     fi
-    echo -e "${CLWhite}Setup Package Sukses"
+    echo -e "${CLGreen}Setup Package Sukses"
 }
 
 install_upgrade_main() {
@@ -239,36 +263,31 @@ uninstaller() {
 	opkg remove luci-app-rakitanmanager
 	clear
 	echo "Menghapus Rakitan Manager Selesai"
-	read -n 1 -s -r -p "${CLCyan[3]}Ketik Apapun Untuk Kembali Ke Menu${CLWhite}"
+	read -n 1 -s -r -p "${CLWhite}Ketik Apapun Untuk Kembali Ke Menu"
 	bash -c "$(wget -qO - 'https://raw.githubusercontent.com/rtaserver/RakitanManager/dev/install.sh')"
 }
 
 clear
 while true; do
         echo -e "${CLCyan}╔════════════════════════════════════════════════════════╗"
-        echo -e "${CLCyan}${BGRed}              RAKITAN MANAGER AUTO INSTALLER              "
+        echo -e "${BGRed}              RAKITAN MANAGER AUTO INSTALLER              "
         echo -e "${CLCyan}╚════════════════════════════════════════════════════════╝"
-        echo -e "${CLCyan[2]} Versi Terinstall: ${CLCyan[5]}${currentVersion}  "
-        echo -e "${CLCyan[2]} Versi Terbaru: ${CLCyan[1]}${LatestVerMain} | Branch Main | Utama"
-        echo -e "${CLCyan[2]} Versi Terbaru: ${CLCyan[1]}${LatestVerDev} | Branch Dev | Pengembangan"
         echo -e "${CLCyan}╔════════════════════════════════════════════════════════╗"
-        echo -e "${CLCyan[3]} Processor: ${CLCyan[5]}$(ubus call system board | grep '\"system\"' | sed 's/ \+/ /g' | awk -F'\"' '{print $4}')"
-        echo -e "${CLCyan[3]} Device Model: ${CLCyan[5]}$(ubus call system board | grep '\"model\"' | sed 's/ \+/ /g' | awk -F'\"' '{print $4}')"
-        echo -e "${CLCyan[3]} Device Board: ${CLCyan[5]}$(ubus call system board | grep '\"board_name\"' | sed 's/ \+/ /g' | awk -F'\"' '{print $4}')"
+        echo -e "${CLWhite} Versi Terinstall: ${CLBlue}${currentVersion}  "
+        echo -e "${CLWhite} Versi Terbaru: ${CLGreen}${LatestVerMain} | Branch Main | Utama"
+        echo -e "${CLWhite} Versi Terbaru: ${CLYellow}${LatestVerDev} | Branch Dev | Pengembangan"
         echo -e "${CLCyan}╚════════════════════════════════════════════════════════╝"
-        echo -e "${CLCyan[4]} Sekedar Informasi"
-        echo -e "${CLCyan[4]}  - Branch Main : Build Yang Sudah Sekiranya Lancar"
-        echo -e "${CLCyan[4]}  - Branch Dev  : Build Yang Masih Pengembangan"
-        echo -e "${CLCyan[4]}                  Sebelum Di Alihkan Ke Branch Main"
-        echo -e "${CLCyan[4]} Maka Dari Itu Jika Ada Yang Error / Bug"
-        echo -e "${CLCyan[4]} Bisa Langsung Hubungi Saya Agar Bisa Di Perbaiki"
-        echo -e "${CLCyan[4]} Terimakasih Atas Partisipasinya :)"
         echo -e "${CLCyan}╔════════════════════════════════════════════════════════╗"
-        echo -e "${CLCyan}║ ${CLCyan[5]}DAFTAR MENU :                                          ${CLCyan}║"
-        echo -e "${CLCyan}║ [◦1] ${CLCyan[5]}Install / Upgrade Rakitan Manager | ${CLCyan[1]}Branch Main   ${CLCyan}║"
-        echo -e "${CLCyan}║ [◦2] ${CLCyan[5]}Install / Upgrade Rakitan Manager | ${CLCyan[1]}Branch Dev    ${CLCyan}║"
-        echo -e "${CLCyan}║ [◦3] ${CLCyan[5]}Update Packages Saja                              ${CLCyan}║"
-        echo -e "${CLCyan}║ [◦4] ${CLCyan[5]}Uninstall Rakitan Manager                         ${CLCyan}║"
+        echo -e "${CLWhite} Processor: ${CLYellow}$(ubus call system board | grep '\"system\"' | sed 's/ \+/ /g' | awk -F'\"' '{print $4}')"
+        echo -e "${CLWhite} Device Model: ${CLYellow}$(ubus call system board | grep '\"model\"' | sed 's/ \+/ /g' | awk -F'\"' '{print $4}')"
+        echo -e "${CLWhite} Device Board: ${CLYellow}$(ubus call system board | grep '\"board_name\"' | sed 's/ \+/ /g' | awk -F'\"' '{print $4}')"
+        echo -e "${CLCyan}╚════════════════════════════════════════════════════════╝"
+        echo -e "${CLCyan}╔════════════════════════════════════════════════════════╗"
+        echo -e "${CLCyan}║ ${CLBlue}DAFTAR MENU :                                          ${CLCyan}║"
+        echo -e "${CLCyan}║ ${CLWhite}[${CLCyan}◦1${CLWhite}] Install / Upgrade Rakitan Manager | ${CLGreen}Branch Main   ${CLCyan}║"
+        echo -e "${CLCyan}║ ${CLWhite}[${CLCyan}◦2${CLWhite}] Install / Upgrade Rakitan Manager | ${CLYellow}Branch Dev    ${CLCyan}║"
+        echo -e "${CLCyan}║ ${CLWhite}[${CLCyan}◦3${CLWhite}] Update Packages Saja                              ${CLCyan}║"
+        echo -e "${CLCyan}║ ${CLWhite}[${CLCyan}◦4${CLWhite}] Uninstall Rakitan Manager                         ${CLCyan}║"
         echo -e "${CLCyan}╚════════════════════════════════════════════════════════╝"
         echo -e "${CLWhite}"
         echo -e   ""
