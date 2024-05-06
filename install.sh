@@ -13,9 +13,24 @@ if [ ! -d "$DIR/rakitanmanager" ]; then
     mkdir "$DIR/rakitanmanager"
 fi
 
-#===================
-colors=( "\e[31;1m" "\e[32;1m" "\e[33;1m" "\e[34;1m" "\e[35;1m" "\e[36;1m" ) # Array of rainbow colors
-#=====================
+
+CLBlack="\e[0;30m"
+CLRed="\e[0;31m"
+CLGreen="\e[0;32m"
+CLYellow="\e[0;33m"
+CLBlue="\e[0;34m"
+CLPurple="\e[0;35m"
+CLCyan="\e[0;36m"
+CLWhite="\e[0;37m"
+
+BGBlack="\e[40m"
+BGRed="\e[41m"
+BGGreen="\e[42m"
+BGYellow="\e[43m"
+BGBlue="\e[44m"
+BGPurple="\e[45m"
+BGCyan="\e[46m"
+BGWhite="\e[47m"
 
 trap ctrl_c INT
 
@@ -25,8 +40,8 @@ ctrl_c() {
     exit 1
 }
 
-echo -e "${colors[0]} Sedang Menjalankan Script. Mohon Tunggu.."
-echo -e "${colors[0]} Pastikan Koneksi Internet Lancar"
+echo -e "${CLWhite} Sedang Menjalankan Script. Mohon Tunggu.."
+echo -e "${CLWhite} Pastikan Koneksi Internet Lancar"
 
 LatestMain() {
     local url="https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/version"
@@ -70,15 +85,15 @@ sleep 2
 finish(){
     clear
     echo ""
-    echo -e "${colors[0]}===================================="
-    echo -e "${colors[0]}========= INSTALL BERHASIL ========="
-    echo -e "${colors[0]}===================================="
+    echo -e "${CLWhite}===================================="
+    echo -e "${CLWhite}========= INSTALL BERHASIL ========="
+    echo -e "${CLWhite}===================================="
     echo ""
-    echo -e "${colors[1]}Silahkan Cek Di Tab Modem Dan Pilih Rakitan Manager"
-    echo -e "${colors[2]}Jika Tidak Ada Silahkan Clear Cache Kemudian Logout Dan Login Kembali"
-    echo -e "${colors[3]}Atau Membuka Manual Di Tab Baru : 192.168.1.1/rakitanmanager"
+    echo -e "${CLCyan[1]}Silahkan Cek Di Tab Modem Dan Pilih Rakitan Manager"
+    echo -e "${CLCyan[2]}Jika Tidak Ada Silahkan Clear Cache Kemudian Logout Dan Login Kembali"
+    echo -e "${CLCyan[3]}Atau Membuka Manual Di Tab Baru : 192.168.1.1/rakitanmanager"
     echo ""
-    echo -e "${colors[4]}Ulangi Instalasi Jika Ada Yang Gagal :)"
+    echo -e "${CLCyan[4]}Ulangi Instalasi Jika Ada Yang Gagal :)"
     echo ""
     echo "Ketik Apapun Untuk Kembali Ke Menu"
     read -n 1 -s -r -p ""
@@ -116,31 +131,31 @@ download_packages() {
         if ! pip3 show requests >/dev/null; then
             echo "Installing package 'requests'"
             if ! pip3 install requests; then
-                echo -e "${colors[0]}Error installing package 'requests'"
-                echo -e "${colors[0]}Setup Gagal | Mohon Coba Kembali"
+                echo -e "${CLWhite}Error installing package 'requests'"
+                echo -e "${CLWhite}Setup Gagal | Mohon Coba Kembali"
                 exit  # Keluar dari skrip dengan status error
             fi
         else
-            echo -e "${colors[0]}Package 'requests' sudah terinstal"
+            echo -e "${CLWhite}Package 'requests' sudah terinstal"
         fi
 
         # Instal paket 'huawei-lte-api' jika belum terinstal
         if ! pip3 show huawei-lte-api >/dev/null; then
             echo "Installing package 'huawei-lte-api'"
             if ! pip3 install huawei-lte-api; then
-                echo -e "${colors[0]}Error installing package 'huawei-lte-api'"
-                echo -e "${colors[0]}Setup Gagal | Mohon Coba Kembali"
+                echo -e "${CLWhite}Error installing package 'huawei-lte-api'"
+                echo -e "${CLWhite}Setup Gagal | Mohon Coba Kembali"
                 exit  # Keluar dari skrip dengan status error
             fi
         else
-            echo -e "${colors[0]}Package 'huawei-lte-api' sudah terinstal"
+            echo -e "${CLWhite}Package 'huawei-lte-api' sudah terinstal"
         fi
     else
-        echo -e "${colors[0]}Error: 'pip3' command tidak ditemukan"
-        echo -e "${colors[0]}Setup Gagal | Mohon Coba Kembali"
+        echo -e "${CLWhite}Error: 'pip3' command tidak ditemukan"
+        echo -e "${CLWhite}Setup Gagal | Mohon Coba Kembali"
         exit  # Keluar dari skrip dengan status error
     fi
-    echo -e "${colors[0]}Setup Package Sukses"
+    echo -e "${CLWhite}Setup Package Sukses"
 }
 
 install_upgrade_main() {
@@ -224,39 +239,38 @@ uninstaller() {
 	opkg remove luci-app-rakitanmanager
 	clear
 	echo "Menghapus Rakitan Manager Selesai"
-	read -n 1 -s -r -p "${colors[3]}Ketik Apapun Untuk Kembali Ke Menu${colors[0]}"
+	read -n 1 -s -r -p "${CLCyan[3]}Ketik Apapun Untuk Kembali Ke Menu${CLWhite}"
 	bash -c "$(wget -qO - 'https://raw.githubusercontent.com/rtaserver/RakitanManager/dev/install.sh')"
 }
 
 clear
 while true; do
-    for color in "${colors[@]}"; do
-        echo -e "${color}==================================================="
-        echo -e "${colors[5]}          RAKITAN MANAGER AUTO INSTALLER           "
-        echo -e "${color}==================================================="
-        echo -e "${colors[2]} Versi Terinstall: ${colors[5]}${currentVersion}  "
-        echo -e "${colors[2]} Versi Terbaru: ${colors[1]}${LatestVerMain} | Branch Main | Utama"
-        echo -e "${colors[2]} Versi Terbaru: ${colors[1]}${LatestVerDev} | Branch Dev | Pengembangan"
-        echo -e "${color}==================================================="
-        echo -e "${colors[3]} Processor: ${colors[5]}$(ubus call system board | grep '\"system\"' | sed 's/ \+/ /g' | awk -F'\"' '{print $4}')"
-        echo -e "${colors[3]} Device Model: ${colors[5]}$(ubus call system board | grep '\"model\"' | sed 's/ \+/ /g' | awk -F'\"' '{print $4}')"
-        echo -e "${colors[3]} Device Board: ${colors[5]}$(ubus call system board | grep '\"board_name\"' | sed 's/ \+/ /g' | awk -F'\"' '{print $4}')"
-        echo -e "${color}==================================================="
-        echo -e "${colors[4]} Sekedar Informasi"
-        echo -e "${colors[4]}  - Branch Main : Build Yang Sudah Sekiranya Lancar"
-        echo -e "${colors[4]}  - Branch Dev  : Build Yang Masih Pengembangan"
-        echo -e "${colors[4]}                  Sebelum Di Alihkan Ke Branch Main"
-        echo -e "${colors[4]} Maka Dari Itu Jika Ada Yang Error / Bug"
-        echo -e "${colors[4]} Bisa Langsung Hubungi Saya Agar Bisa Di Perbaiki"
-        echo -e "${colors[4]} Terimakasih Atas Partisipasinya :)"
-        echo -e "${color}==================================================="
-        echo -e "${colors[5]} DAFTAR MENU :                                     "
-        echo -e "${colors[5]} [\e[36m1\e[0m${colors[5]}] Install / Upgrade Rakitan Manager | ${colors[1]}Branch Main"
-        echo -e "${colors[5]} [\e[36m2\e[0m${colors[5]}] Install / Upgrade Rakitan Manager | ${colors[1]}Branch Dev"
-        echo -e "${colors[5]} [\e[36m3\e[0m${colors[5]}] Update Packages Saja"
-        echo -e "${colors[5]} [\e[36m4\e[0m${colors[5]}] Uninstall Rakitan Manager"
-        echo -e "${colors}==================================================="
-        echo -e "${colors[0]}"
+        echo -e "${CLCyan}╔════════════════════════════════════════════════════════╗"
+        echo -e "${CLCyan}${BGRed}              RAKITAN MANAGER AUTO INSTALLER              "
+        echo -e "${CLCyan}╚════════════════════════════════════════════════════════╝"
+        echo -e "${CLCyan[2]} Versi Terinstall: ${CLCyan[5]}${currentVersion}  "
+        echo -e "${CLCyan[2]} Versi Terbaru: ${CLCyan[1]}${LatestVerMain} | Branch Main | Utama"
+        echo -e "${CLCyan[2]} Versi Terbaru: ${CLCyan[1]}${LatestVerDev} | Branch Dev | Pengembangan"
+        echo -e "${CLCyan}╔════════════════════════════════════════════════════════╗"
+        echo -e "${CLCyan[3]} Processor: ${CLCyan[5]}$(ubus call system board | grep '\"system\"' | sed 's/ \+/ /g' | awk -F'\"' '{print $4}')"
+        echo -e "${CLCyan[3]} Device Model: ${CLCyan[5]}$(ubus call system board | grep '\"model\"' | sed 's/ \+/ /g' | awk -F'\"' '{print $4}')"
+        echo -e "${CLCyan[3]} Device Board: ${CLCyan[5]}$(ubus call system board | grep '\"board_name\"' | sed 's/ \+/ /g' | awk -F'\"' '{print $4}')"
+        echo -e "${CLCyan}╚════════════════════════════════════════════════════════╝"
+        echo -e "${CLCyan[4]} Sekedar Informasi"
+        echo -e "${CLCyan[4]}  - Branch Main : Build Yang Sudah Sekiranya Lancar"
+        echo -e "${CLCyan[4]}  - Branch Dev  : Build Yang Masih Pengembangan"
+        echo -e "${CLCyan[4]}                  Sebelum Di Alihkan Ke Branch Main"
+        echo -e "${CLCyan[4]} Maka Dari Itu Jika Ada Yang Error / Bug"
+        echo -e "${CLCyan[4]} Bisa Langsung Hubungi Saya Agar Bisa Di Perbaiki"
+        echo -e "${CLCyan[4]} Terimakasih Atas Partisipasinya :)"
+        echo -e "${CLCyan}╔════════════════════════════════════════════════════════╗"
+        echo -e "${CLCyan}║ ${CLCyan[5]}DAFTAR MENU :                                          ${CLCyan}║"
+        echo -e "${CLCyan}║ [◦1] ${CLCyan[5]}Install / Upgrade Rakitan Manager | ${CLCyan[1]}Branch Main   ${CLCyan}║"
+        echo -e "${CLCyan}║ [◦2] ${CLCyan[5]}Install / Upgrade Rakitan Manager | ${CLCyan[1]}Branch Dev    ${CLCyan}║"
+        echo -e "${CLCyan}║ [◦3] ${CLCyan[5]}Update Packages Saja                              ${CLCyan}║"
+        echo -e "${CLCyan}║ [◦4] ${CLCyan[5]}Uninstall Rakitan Manager                         ${CLCyan}║"
+        echo -e "${CLCyan}╚════════════════════════════════════════════════════════╝"
+        echo -e "${CLWhite}"
         echo -e   ""
         echo -e   " Ketik [ x ] Atau [ Ctrl+C ] Untuk Keluar Dari Script"
         echo -e   " Jika Ingin Menjalankan Ulang ketik rakitanmanager di Terminal Kemudian Enter"
@@ -308,5 +322,4 @@ while true; do
         sleep 2
         ;;
         esac
-    done
 done

@@ -203,9 +203,9 @@ perform_ping() {
                 fi
             elif [ "$jenis" = "orbit" ]; then
                 log "[$jenis - $nama] Mencoba Menghubungkan Kembali Modem Orbit / Huawei"
-                python3 /usr/bin/modem-orbit.py $nama $iporbit $usernameorbit $passwordorbit
-                log "[$jenis - $nama] New IP $(cat /tmp/ip_orbit.txt)"
-                CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/$(< /tmp/{$nama}ip_orbit.txt)/g")
+                new_ip_orbit=$(python3 /usr/bin/modem-orbit.py $iporbit $usernameorbit $passwordorbit)
+                log "[$jenis - $nama] New IP $new_ip_orbit"
+                CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/$new_ip_orbit/g")
                 CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[NAMAMODEM\]/$nama/g")
                 if [ "$(uci get rakitanmanager.telegram.enabled)" = "1" ]; then
                     send_message "$CUSTOM_MESSAGE"
