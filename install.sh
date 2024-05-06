@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+
 DIR="/tmp"
 clear
 
@@ -104,25 +106,61 @@ finish(){
 download_packages() {
     echo "Update dan instal prerequisites"
     clear
+
+    # Update package lists
     opkg update
     sleep 1
     clear
+
+    # Configure uhttpd
     uci set uhttpd.main.index_page='index.php'
     uci set uhttpd.main.interpreter='.php=/usr/bin/php-cgi'
     uci commit uhttpd
     /etc/init.d/uhttpd restart
     sleep 1
     clear
-    opkg install modemmanager
+
+    # Install ModemManager package
+    echo "Installing ModemManager..."
+    if opkg install modemmanager; then
+        echo "ModemManager installed successfully."
+    else
+        echo "Error: Failed to install ModemManager. Exiting."
+        exit 1
+    fi
     sleep 1
     clear
-    opkg install python3-pip
+
+    # Install Python 3 pip
+    echo "Installing python3-pip..."
+    if opkg install python3-pip; then
+        echo "python3-pip installed successfully."
+    else
+        echo "Error: Failed to install python3-pip. Exiting."
+        exit 1
+    fi
     sleep 1
     clear
-    opkg install jq
+
+    # Install jq
+    echo "Installing jq..."
+    if opkg install jq; then
+        echo "jq installed successfully."
+    else
+        echo "Error: Failed to install jq. Exiting."
+        exit 1
+    fi
     sleep 1
     clear
-    opkg install adb
+
+    # Install adb
+    echo "Installing adb..."
+    if opkg install adb; then
+        echo "adb installed successfully."
+    else
+        echo "Error: Failed to install adb. Exiting."
+        exit 1
+    fi
     sleep 1
     clear
     echo "Setup Package For Python3"
@@ -200,12 +238,14 @@ install_upgrade_main() {
     local file_url_main="https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/luci-app-rakitanmanager_${latest_version_main}-beta_all.ipk"
     
     # Download the latest version of the package
-    wget -O "$DIR/rakitanmanager/rakitanmanager.ipk" "$file_url_main"
-    
-    # Install the downloaded package
-    opkg install "$DIR/rakitanmanager/rakitanmanager.ipk" --force-reinstall
-    sleep 3
-    
+    if wget -O "$DIR/rakitanmanager/rakitanmanager.ipk" "$file_url_main"; then
+        # Install the downloaded package
+        opkg install "$DIR/rakitanmanager/rakitanmanager.ipk" --force-reinstall
+    else
+        echo "Error: Failed to download or install the package. Exiting."
+        exit 1
+    fi
+
     # Remove the downloaded package file
     rm -rf "$DIR/rakitanmanager/rakitanmanager.ipk"
     
@@ -235,12 +275,14 @@ install_upgrade_dev() {
     local file_url_dev="https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/luci-app-rakitanmanager_${latest_version_dev}-beta_all.ipk"
     
     # Download the latest version of the package
-    wget -O "$DIR/rakitanmanager/rakitanmanager.ipk" "$file_url_dev"
-    
-    # Install the downloaded package
-    opkg install "$DIR/rakitanmanager/rakitanmanager.ipk" --force-reinstall
-    sleep 3
-    
+    if wget -O "$DIR/rakitanmanager/rakitanmanager.ipk" "$file_url_dev"; then
+        # Install the downloaded package
+        opkg install "$DIR/rakitanmanager/rakitanmanager.ipk" --force-reinstall
+    else
+        echo "Error: Failed to download or install the package. Exiting."
+        exit 1
+    fi
+
     # Remove the downloaded package file
     rm -rf "$DIR/rakitanmanager/rakitanmanager.ipk"
     
