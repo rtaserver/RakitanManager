@@ -31,10 +31,11 @@ send_message() {
     curl -s -X POST https://api.telegram.org/bot$TOKEN_ID/sendMessage -d chat_id=$CHAT_ID -d text="$message" > /dev/null
 }
 
+RAKITANPLUGINS="/usr/share/rakitanmanager/plugins"
 test_bot() {
     # Kirim pesan uji
     send_message "===============
-$(bash /usr/share/rakitanmanager/plugins/syteminfo.sh)
+$(bash $RAKITANPLUGINS/systeminfo.sh)
 ==============="
 }
 
@@ -181,7 +182,7 @@ perform_ping() {
                     send_message "$CUSTOM_MESSAGE"
                 fi
             elif [ "$jenis" = "hp" ]; then
-                log "[$jenis - $nama] $(bash /usr/share/rakitanmanager/plugins/adb-refresh-network.sh)"
+                log "[$jenis - $nama] $(bash $RAKITANPLUGINS/adb-refresh-network.sh)"
                 # log "[$jenis - $nama] Mengaktifkan Mode Pesawat"
                 # adb shell cmd connectivity airplane-mode enable
                 # sleep 2
