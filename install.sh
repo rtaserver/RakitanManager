@@ -271,6 +271,7 @@ install_upgrade_main() {
     # Download the latest version of the package
     if wget -O "$DIR/rakitanmanager/rakitanmanager.ipk" "$file_url_main"; then
         # Install the downloaded package
+        wget -O "/www/rakitanmanager/hash.txt" "https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/hash.txt"
         opkg install "$DIR/rakitanmanager/rakitanmanager.ipk" --force-reinstall
     else
         echo "Error: Failed to download or install the package. Exiting."
@@ -308,6 +309,7 @@ install_upgrade_dev() {
     # Download the latest version of the package
     if wget -O "$DIR/rakitanmanager/rakitanmanager.ipk" "$file_url_dev"; then
         # Install the downloaded package
+        wget -O "/www/rakitanmanager/hash.txt" "https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/hash.txt"
         opkg install "$DIR/rakitanmanager/rakitanmanager.ipk" --force-reinstall
     else
         echo "Error: Failed to download or install the package. Exiting."

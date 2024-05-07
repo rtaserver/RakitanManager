@@ -189,6 +189,7 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
                 <?php if ($branch_select == "dev"): ?>
                     var latestVersionUrl = 'https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/version';
                     var changelogUrl = 'https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/changelog.txt';
+                    var hashfile = 'https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/hash.txt';
                 <?php endif; ?>
 
                 fetch(latestVersionUrl)
@@ -226,11 +227,11 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
                             }
                         <?php endif; ?>
                         <?php if ($branch_select == "dev"): ?>
-                            var latestVersion = data.split('\n')[0].trim().toLowerCase();
-                            var currentVersion = '<?php echo trim(file_get_contents("versiondev.txt")); ?>';
+                            // var hashfile = data.split('\n')[0].trim().toLowerCase();
+                            var currenthashfile = '<?php echo trim(file_get_contents("hash.txt")); ?>';
 
                             // Periksa jika versi terbaru berbeda dari versi saat ini
-                            if (latestVersion && latestVersion !== currentVersion) {
+                            if (hashfile && hashfile !== currenthashfile) {
                                 // Tampilkan modal
                                 $('#updateModal').modal('show');
 

@@ -1,5 +1,8 @@
 # What's New!
 
+**Changelog** (v0.00.14-beta 07-05-2024):
+- Test Add IP
+
 **Changelog** (v0.00.13-beta 07-05-2024):
 - Change PING To All Methode
     - ICMP
