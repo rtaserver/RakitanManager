@@ -1,1 +1,1 @@
-**Changelog** (v0.00.14-beta 07-05-2024):%0A- Test Add IP
+**Changelog** (v0.00.14-beta 08-05-2024):%0A- Test Add IP%0A- Fix Logic
