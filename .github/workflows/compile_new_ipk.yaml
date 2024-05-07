@@ -160,7 +160,7 @@ jobs:
           sed -i -E "s/source code-v(.*)--beta-green/source code-v${{ needs.Get-Version.outputs.version }}--beta-green/g" ./RakitanManager/${{ github.ref_name }}/README.md
           sed -i -E "s/New Release-v(.*)--beta-orange/New Release-v${{ needs.Get-Version.outputs.version }}--beta-orange/g" ./RakitanManager/${{ github.ref_name }}/README.md
           cd \RakitanManager
-          HASH=$(sha256sum "./dev/luci-app-rakitanmanager_*.ipk" | awk '{print $1}')
+          HASH=$(sha256sum "./dev/luci-app-rakitanmanager_${{ needs.Get-Version.outputs.version }}-beta_all.ipk" | awk '{print $1}')
           echo "$HASH" > ./dev/hash.txt
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
