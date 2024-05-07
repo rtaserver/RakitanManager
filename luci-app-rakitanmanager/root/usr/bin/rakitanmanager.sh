@@ -103,7 +103,7 @@ perform_ping() {
     androidid="${5:-}"
     devicemodem="${6:-}"
     delayping="${7:-}"
-    if [ -z "$2" ]; then
+    if [ -z "$delayping" ]; then
 	    delayping="10"
     fi
     apn="${8:-}"
