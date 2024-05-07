@@ -1,6 +1,6 @@
 # What's New!
 
-**Changelog** (v0.00.14-beta 07-05-2024):
+**Changelog** (v0.00.14-beta 08-05-2024):
 - Test Add IP
 - Fix Logic
 
