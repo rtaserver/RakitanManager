@@ -1,5 +1,15 @@
 # What's New!
 
+**Changelog** (v0.00.13-beta 07-05-2024):
+- Change PING To All Methode
+    - ICMP
+    - TCP
+    - HTTP
+    - HTTPS
+- Fix Logic
+- Fix Modem Orbit / Huawei
+- Add Android Device Select
+
 **Changelog** (v0.00.12-beta 07-05-2024):
 - Fixed StartUp
 

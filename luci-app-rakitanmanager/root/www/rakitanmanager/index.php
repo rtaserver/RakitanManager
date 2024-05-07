@@ -34,7 +34,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["tambah_modem"])) {
         "iporbit" => $_POST["iporbit"],
         "usernameorbit" => $_POST["usernameorbit"],
         "passwordorbit" => $_POST["passwordorbit"],
+        "metodeping" => $_POST["metodeping"],
         "hostbug" => $_POST["hostbug"],
+        "androidid" => $_POST["androidid"],
         "devicemodem" => $_POST["devicemodem"],
         "delayping" => $_POST["delayping"]
     ];
@@ -53,7 +55,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["edit_modem"])) {
         $modems[$index]["iporbit"] = $_POST["edit_iporbit"];
         $modems[$index]["usernameorbit"] = $_POST["edit_usernameorbit"];
         $modems[$index]["passwordorbit"] = $_POST["edit_passwordorbit"];
+        $modems[$index]["metodeping"] = $_POST["edit_metodeping"];
         $modems[$index]["hostbug"] = $_POST["edit_hostbug"];
+        $modems[$index]["androidid"] = $_POST["edit_androidid"];
         $modems[$index]["devicemodem"] = $_POST["edit_devicemodem"];
         $modems[$index]["delayping"] = $_POST["edit_delayping"];
         simpanDataModem($modems);
@@ -119,6 +123,20 @@ if (!empty($matchesinterface[1])) {
     $interfaces = []; // Atur kembali interfaces sebagai array kosong jika tidak ada interface yang ditemukan
 }
 
+/* $androidid = []; // Inisialisasi array androidid
+$outputandroidid = shell_exec("adb devices | grep 'device' | grep -v 'List of' | awk {'print $1'}");
+preg_match_all('/^\d+: (\S+):/m', $outputandroidid, $matchesandroidid);
+if (!empty($matchesandroidid[1])) {
+    // Mengonversi daftar androidid menjadi array asosiatif untuk diproses lebih lanjut
+    $getandroidid = array_combine($matchesandroidid[1], $matchesandroidid[1]);
+    $androidid = $getandroidid; // Memperbarui array androidid dengan hasil yang baru ditemukan
+} else {
+    $androidid = []; // Atur kembali androidid sebagai array kosong jika tidak ada androidid yang ditemukan
+} */
+
+$androididdevices = shell_exec("adb devices | grep 'device' | grep -v 'List of' | awk {'print $1'}");
+$androidid = explode("\n", trim($androididdevices)); // Memisahkan daftar perangkat menjadi array
+
 $rakitanmanager_status = exec("uci -q get rakitanmanager.cfg.enabled") ? 1 : 0;
 $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
 ?>
@@ -182,56 +200,56 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
                     })
                     .then(data => {
                         <?php if ($branch_select == "main"): ?>
-                        var latestVersion = data.split('\n')[0].trim().toLowerCase();
-                        var currentVersion = '<?php echo trim(file_get_contents("versionmain.txt")); ?>';
+                            var latestVersion = data.split('\n')[0].trim().toLowerCase();
+                            var currentVersion = '<?php echo trim(file_get_contents("versionmain.txt")); ?>';
 
-                        // Periksa jika versi terbaru berbeda dari versi saat ini
-                        if (latestVersion && latestVersion !== currentVersion) {
-                            // Tampilkan modal
-                            $('#updateModal').modal('show');
+                            // Periksa jika versi terbaru berbeda dari versi saat ini
+                            if (latestVersion && latestVersion !== currentVersion) {
+                                // Tampilkan modal
+                                $('#updateModal').modal('show');
 
-                            // Load Changelog
-                            $.get(changelogUrl, function (changelogData) {
-                                // Find the version in Changelog
-                                var versionIndex = changelogData.indexOf('**Changelog**');
-                                if (versionIndex !== -1) {
-                                    // Get Changelog entries starting from the found version
-                                    var changelog = changelogData.substring(versionIndex);
-                                    // Replace special characters
-                                    changelog = changelog.replace(/%0A/g, '\n'); // Replace '%0A' with '\n' (newline)
-                                    changelog = changelog.replace(/%0D/g, ''); // Remove '%0D' (carriage return)
-                                    $('#changelogContent').html(changelog);
-                                } else {
-                                    $('#changelogContent').html('Changelog Tidak Tersedia');
-                                }
-                            });
-                        }
+                                // Load Changelog
+                                $.get(changelogUrl, function (changelogData) {
+                                    // Find the version in Changelog
+                                    var versionIndex = changelogData.indexOf('**Changelog**');
+                                    if (versionIndex !== -1) {
+                                        // Get Changelog entries starting from the found version
+                                        var changelog = changelogData.substring(versionIndex);
+                                        // Replace special characters
+                                        changelog = changelog.replace(/%0A/g, '\n'); // Replace '%0A' with '\n' (newline)
+                                        changelog = changelog.replace(/%0D/g, ''); // Remove '%0D' (carriage return)
+                                        $('#changelogContent').html(changelog);
+                                    } else {
+                                        $('#changelogContent').html('Changelog Tidak Tersedia');
+                                    }
+                                });
+                            }
                         <?php endif; ?>
                         <?php if ($branch_select == "dev"): ?>
-                        var latestVersion = data.split('\n')[0].trim().toLowerCase();
-                        var currentVersion = '<?php echo trim(file_get_contents("versiondev.txt")); ?>';
+                            var latestVersion = data.split('\n')[0].trim().toLowerCase();
+                            var currentVersion = '<?php echo trim(file_get_contents("versiondev.txt")); ?>';
 
-                        // Periksa jika versi terbaru berbeda dari versi saat ini
-                        if (latestVersion && latestVersion !== currentVersion) {
-                            // Tampilkan modal
-                            $('#updateModal').modal('show');
+                            // Periksa jika versi terbaru berbeda dari versi saat ini
+                            if (latestVersion && latestVersion !== currentVersion) {
+                                // Tampilkan modal
+                                $('#updateModal').modal('show');
 
-                            // Load Changelog
-                            $.get(changelogUrl, function (changelogData) {
-                                // Find the version in Changelog
-                                var versionIndex = changelogData.indexOf('**Changelog**');
-                                if (versionIndex !== -1) {
-                                    // Get Changelog entries starting from the found version
-                                    var changelog = changelogData.substring(versionIndex);
-                                    // Replace special characters
-                                    changelog = changelog.replace(/%0A/g, '\n'); // Replace '%0A' with '\n' (newline)
-                                    changelog = changelog.replace(/%0D/g, ''); // Remove '%0D' (carriage return)
-                                    $('#changelogContent').html(changelog);
-                                } else {
-                                    $('#changelogContent').html('Changelog Tidak Tersedia');
-                                }
-                            });
-                        }
+                                // Load Changelog
+                                $.get(changelogUrl, function (changelogData) {
+                                    // Find the version in Changelog
+                                    var versionIndex = changelogData.indexOf('**Changelog**');
+                                    if (versionIndex !== -1) {
+                                        // Get Changelog entries starting from the found version
+                                        var changelog = changelogData.substring(versionIndex);
+                                        // Replace special characters
+                                        changelog = changelog.replace(/%0A/g, '\n'); // Replace '%0A' with '\n' (newline)
+                                        changelog = changelog.replace(/%0D/g, ''); // Remove '%0D' (carriage return)
+                                        $('#changelogContent').html(changelog);
+                                    } else {
+                                        $('#changelogContent').html('Changelog Tidak Tersedia');
+                                    }
+                                });
+                            }
                         <?php endif; ?>
                     })
                     .catch(error => {
@@ -252,10 +270,10 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
         <div class="modal-content">
             <div class="modal-header">
                 <?php if ($branch_select == "main"): ?>
-                <h5 class="modal-title" id="updateModalLabel">Update Available | Branch Main</h5>
+                    <h5 class="modal-title" id="updateModalLabel">Update Available | Branch Main</h5>
                 <?php endif; ?>
                 <?php if ($branch_select == "dev"): ?>
-                <h5 class="modal-title" id="updateModalLabel">Update Available | Branch Dev</h5>
+                    <h5 class="modal-title" id="updateModalLabel">Update Available | Branch Dev</h5>
                 <?php endif; ?>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -264,19 +282,24 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
             <div class="modal-body">
                 <h5>Changelog:</h5>
                 <pre id="changelogContent"></pre>
+                <p>Update Dengan Bash Script :&nbsp;</p>
+                <div class="highlight highlight-source-shell notranslate position-relative overflow-auto" dir="auto">
+                    <pre><span class="pl-c"><span class="pl-c">#</span> Copy Script Di Bawah Dan Paste Di Terminal</span>
+bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s"><span class="pl-pds">$(</span>wget -qO - <span class="pl-s"><span class="pl-pds">&apos;</span>https://raw.githubusercontent.com/rtaserver/RakitanManager/dev/install.sh<span class="pl-pds">&apos;</span></span><span class="pl-pds">)</span></span><span class="pl-pds">&quot;</span></span></pre>
+                </div>
             </div>
             <div class="modal-footer">
                 <?php if ($branch_select == "main"): ?>
-                <a href="https://github.com/rtaserver/RakitanManager/blob/main/CHANGELOG.md" target="_blank"
-                    class="btn btn-primary">Full Changelog</a>
-                <a href="https://github.com/rtaserver/RakitanManager/tree/package/main" target="_blank"
-                    class="btn btn-primary">Download Dan Update</a>
+                    <a href="https://github.com/rtaserver/RakitanManager/blob/main/CHANGELOG.md" target="_blank"
+                        class="btn btn-primary">Full Changelog</a>
+                    <a href="https://github.com/rtaserver/RakitanManager/tree/package/main" target="_blank"
+                        class="btn btn-primary">Download Dan Update</a>
                 <?php endif; ?>
                 <?php if ($branch_select == "dev"): ?>
-                <a href="https://github.com/rtaserver/RakitanManager/blob/dev/CHANGELOG.md" target="_blank"
-                    class="btn btn-primary">Full Changelog</a>
-                <a href="https://github.com/rtaserver/RakitanManager/tree/package/dev" target="_blank"
-                    class="btn btn-primary">Download Dan Update</a>
+                    <a href="https://github.com/rtaserver/RakitanManager/blob/dev/CHANGELOG.md" target="_blank"
+                        class="btn btn-primary">Full Changelog</a>
+                    <a href="https://github.com/rtaserver/RakitanManager/tree/package/dev" target="_blank"
+                        class="btn btn-primary">Download Dan Update</a>
                 <?php endif; ?>
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
             </div>
@@ -456,7 +479,30 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
                                                                     name="passwordorbit" class="form-control"
                                                                     placeholder="admin" value="admin">
                                                             </div>
+                                                            <div class="form-group" id="hp_field">
+                                                                <label for="androidid">Pilih Android Device:</label>
+                                                                <select name="androidid" id="androidid"
+                                                                    class="form-control">
+                                                                    <?php
+                                                                    if (empty($androidid)) {
+                                                                        echo "<option value=''>Tidak ada Android yang terdeteksi</option>";
+                                                                    } else {
+                                                                        foreach ($androidid as $android_id) {
+                                                                            echo "<option value='$android_id'>$android_id</option>";
+                                                                        }
+                                                                    }
+                                                                    ?>
+                                                                </select>
+                                                            </div>
                                                             <div class="form-group">
+                                                                <label for="metodeping">Pilih Metode PING:</label>
+                                                                <select id="metodeping" name="metodeping"
+                                                                    class="form-control">
+                                                                    <option value="icmp">ICMP</option>
+                                                                    <option value="tcp">TCP</option>
+                                                                    <option value="http">HTTP</option>
+                                                                    <option value="https">HTTPS</option>
+                                                                </select>
                                                                 <label for="hostbug">Host / Bug Untuk Ping | Multi
                                                                     Host:</label>
                                                                 <input type="text" id="hostbug" name="hostbug"
@@ -476,7 +522,7 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
                                                                 </select>
                                                                 <label for="delayping">Jeda Waktu Detik | Sebelum
                                                                     Melanjutkan Cek PING:</label>
-                                                                <input type="text" id="delayping" name="delayping"
+                                                                <input type="number" id="delayping" name="delayping"
                                                                     class="form-control" placeholder="15" value="20">
                                                             </div>
                                                         </div>
@@ -579,7 +625,31 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
                                                                     name="edit_passwordorbit" class="form-control"
                                                                     placeholder="admin">
                                                             </div>
+                                                            <div class="form-group" id="edit_hp_field">
+                                                                <label for="edit_androidid">Pilih Android
+                                                                    Device:</label>
+                                                                <select name="edit_androidid" id="edit_androidid"
+                                                                    class="form-control">
+                                                                    <?php
+                                                                    if (empty($androidid)) {
+                                                                        echo "<option value=''>Tidak ada Android yang terdeteksi</option>";
+                                                                    } else {
+                                                                        foreach ($androidid as $android_id) {
+                                                                            echo "<option value='$android_id'>$android_id</option>";
+                                                                        }
+                                                                    }
+                                                                    ?>
+                                                                </select>
+                                                            </div>
                                                             <div class="form-group">
+                                                                <label for="edit_metodeping">Pilih Metode PING:</label>
+                                                                <select id="edit_metodeping" name="edit_metodeping"
+                                                                    class="form-control">
+                                                                    <option value="icmp">ICMP</option>
+                                                                    <option value="tcp">TCP</option>
+                                                                    <option value="http">HTTP</option>
+                                                                    <option value="https">HTTPS</option>
+                                                                </select>
                                                                 <label for="edit_hostbug">Host / Bug Untuk Ping | Multi
                                                                     Host:</label>
                                                                 <input type="text" id="edit_hostbug" name="edit_hostbug"
@@ -598,7 +668,7 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
                                                                 </select>
                                                                 <label for="edit_delayping">Jeda Waktu Detik | Sebelum
                                                                     Melanjutkan Cek PING:</label>
-                                                                <input type="text" id="edit_delayping"
+                                                                <input type="number" id="edit_delayping"
                                                                     name="edit_delayping" class="form-control"
                                                                     placeholder="15">
                                                             </div>
@@ -635,19 +705,24 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
             $('#edit_iporbit').val(modem.iporbit);
             $('#edit_usernameorbit').val(modem.usernameorbit);
             $('#edit_passwordorbit').val(modem.passwordorbit);
+            $('#edit_metodeping').val(modem.metodeping);
             $('#edit_hostbug').val(modem.hostbug);
+            $('#edit_androidid').val(modem.androidid);
             $('#edit_devicemodem').val(modem.devicemodem);
             $('#edit_delayping').val(modem.delayping);
             $('input[name="edit_jenis"][value="' + modem.jenis + '"]').prop('checked', true);
             if (modem.jenis === 'rakitan') {
                 $('#edit_rakitan_field').show();
                 $('#edit_orbit_field').hide();
+                $('#edit_hp_field').hide();
             } else if (modem.jenis === 'orbit') {
                 $('#edit_rakitan_field').hide();
                 $('#edit_orbit_field').show();
+                $('#edit_hp_field').hide();
             } else {
                 $('#edit_rakitan_field').hide();
                 $('#edit_orbit_field').hide();
+                $('#edit_hp_field').show();
             }
             $('#editIndex').val(index);
             $('#editModemModal').modal('show');
@@ -661,7 +736,7 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
 
         $(document).ready(function () {
             // Sembunyikan bidang non-rakitan dan non-orbit secara default
-            $('#rakitan_field, #orbit_field').hide();
+            $('#rakitan_field, #orbit_field, #hp_field').hide();
 
             // Tampilkan bidang rakitan saat halaman dimuat karena itu default
             $('#rakitan_field').show();
@@ -670,12 +745,14 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
                 if ($(this).is(':checked')) {
                     $('#rakitan_field').show();
                     $('#orbit_field').hide();
+                    $('#hp_field').hide();
                 }
             });
 
             $('#hp').change(function () {
                 if ($(this).is(':checked')) {
                     $('#rakitan_field, #orbit_field').hide();
+                    $('#hp_field').show();
                 }
             });
 
@@ -683,6 +760,7 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
                 if ($(this).is(':checked')) {
                     $('#orbit_field').show();
                     $('#rakitan_field').hide();
+                    $('#hp_field').hide();
                 }
             });
 
@@ -691,11 +769,14 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
                 if ($(this).val() === 'rakitan') {
                     $('#edit_rakitan_field').show();
                     $('#edit_orbit_field').hide();
+                    $('#edit_hp_field').hide();
                 } else if ($(this).val() === 'hp') {
                     $('#edit_rakitan_field, #edit_orbit_field').hide();
+                    $('#edit_hp_field').show();
                 } else if ($(this).val() === 'orbit') {
                     $('#edit_orbit_field').show();
                     $('#edit_rakitan_field').hide();
+                    $('#edit_hp_field').hide();
                 }
             });
 
@@ -727,7 +808,9 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
             var iporbit = document.getElementById("iporbit").value.trim();
             var usernameorbit = document.getElementById("usernameorbit").value.trim();
             var passwordorbit = document.getElementById("passwordorbit").value.trim();
+            var metodeping = document.getElementById("metodeping").value.trim();
             var hostbug = document.getElementById("hostbug").value.trim();
+            var androidid = document.getElementById("androidid").value.trim();
             var devicemodem = document.getElementById("devicemodem").value.trim();
             var delayping = document.getElementById("delayping").value.trim();
 
@@ -768,7 +851,9 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
             var iporbit = document.getElementById("edit_iporbit").value.trim();
             var usernameorbit = document.getElementById("edit_usernameorbit").value.trim();
             var passwordorbit = document.getElementById("edit_passwordorbit").value.trim();
+            var metodeping = document.getElementById("edit_metodeping").value.trim();
             var hostbug = document.getElementById("edit_hostbug").value.trim();
+            var androidid = document.getElementById("edit_androidid").value.trim();
             var devicemodem = document.getElementById("edit_devicemodem").value.trim();
             var delayping = document.getElementById("edit_delayping").value.trim();
 

@@ -50,7 +50,9 @@ interface_modem=()
 iporbit_modem=()
 usernameorbit_modem=()
 passwordorbit_modem=()
+metodeping_modem=()
 hostbug_modem=()
+androidid_modem=()
 devicemodem_modem=()
 delayping_modem=()
 
@@ -85,7 +87,9 @@ parse_json() {
         iporbit_modem[$i]=$(jq -r ".modems[$i].iporbit" "$json_file")
         usernameorbit_modem[$i]=$(jq -r ".modems[$i].usernameorbit" "$json_file")
         passwordorbit_modem[$i]=$(jq -r ".modems[$i].passwordorbit" "$json_file")
+        metodeping_modem[$i]=$(jq -r ".modems[$i].metodeping" "$json_file")
         hostbug_modem[$i]=$(jq -r ".modems[$i].hostbug" "$json_file")
+        androidid_modem[$i]=$(jq -r ".modems[$i].androidid" "$json_file")
         devicemodem_modem[$i]=$(jq -r ".modems[$i].devicemodem" "$json_file")
         delayping_modem[$i]=$(jq -r ".modems[$i].delayping" "$json_file")
     done
@@ -94,15 +98,17 @@ parse_json() {
 perform_ping() {
     nama="${1:-}"
     jenis="${2:-}"
-    host="${3:-}"
-    devicemodem="${4:-}"
-    delayping="${5:-}"
-    apn="${6:-}"
-    portmodem="${7:-}"
-    interface="${8:-}"
-    iporbit="${9:-}"
-    usernameorbit="${10:-}"
-    passwordorbit="${11:-}"
+    motodeping="${3:-}"
+    host="${4:-}"
+    androidid="${5:-}"
+    devicemodem="${6:-}"
+    delayping="${7:10}"
+    apn="${8:-}"
+    portmodem="${9:-}"
+    interface="${10:-}"
+    iporbit="${11:-}"
+    usernameorbit="${12:-}"
+    passwordorbit="${13:-}"
 
     max_attempts=5
     attempt=1
@@ -119,21 +125,101 @@ perform_ping() {
         status_Internet=false
 
         for pinghost in $host; do
+            # Parsing host dan port dari pinghost
+            host=$(echo "${pinghost}" | cut -d':' -f1)
+            port=$(echo "${pinghost}" | cut -d':' -f2)
+
+            # Set port default jika tidak ada port yang diberikan
+            if [ "$port" = "" ]; then
+                port_icmp=0  # ICMP tidak menggunakan port
+                port_tcp=80
+                port_http=80
+                port_https=443
+            else
+                port_icmp=$port
+                port_tcp=$port
+                port_http=$port
+                port_https=$port
+            fi
             if [ "$devicemodem" = "" ]; then
-                if [[ $(curl -si -m 5 $pinghost | grep -c 'Date:') == "1" ]]; then
-                    log "[$jenis - $nama] $pinghost dapat dijangkau"
-                    status_Internet=true
-                    attempt=1
-                else
-                    log "[$jenis - $nama] $pinghost tidak dapat dijangkau"
+
+                if [ "$motodeping" = "icmp" ]; then
+                    # ICMP ping
+                    ping -q -c 3 -W 3 -p $port_icmp ${host} > /dev/null
+                    if [ $? -eq 0 ]; then
+                        log "[$jenis - $nama] ICMP ping to $pinghost succeeded"
+                        status_Internet=true
+                        attempt=1
+                    else
+                        log "[$jenis - $nama] ICMP ping to $pinghost failed"
+                    fi
+                elif [ "$motodeping" = "tcp" ]; then
+                     # TCP ping
+                    if nc -zvw 1 ${host} $port_tcp 2>&1 | grep -q succeeded; then
+                        log "[$jenis - $nama] TCP ping to $pinghost succeeded"
+                        status_Internet=true
+                        attempt=1
+                    else
+                        log "[$jenis - $nama] TCP ping to $pinghost failed"
+                    fi
+                elif [ "$motodeping" = "http" ]; then
+                    # HTTP ping
+                    if curl -Is http://${host}:${port_http} >/dev/null; then
+                        log "[$jenis - $nama] HTTP ping to $pinghost succeeded"
+                        status_Internet=true
+                        attempt=1
+                    else
+                        log "[$jenis - $nama] HTTP ping to $pinghost failed"
+                    fi
+                elif [ "$motodeping" = "https" ]; then
+                    # HTTPS ping
+                    if curl -Is https://${host}:${port_https} >/dev/null; then
+                        log "[$jenis - $nama] HTTPS ping to $pinghost succeeded"
+                        status_Internet=true
+                        attempt=1
+                    else
+                        log "[$jenis - $nama] HTTPS ping to $pinghost failed"
+                    fi
                 fi
             else
-                if [[ $(curl -sI -m 5 --interface "$devicemodem" "$pinghost" | grep -c 'Date:') == "1" ]]; then
-                    log "[$jenis - $nama] $pinghost dapat dijangkau Dengan Interface $devicemodem"
-                    status_Internet=true
-                    attempt=1
-                else
-                    log "[$jenis - $nama] $pinghost tidak dapat dijangkau Dengan Interface $devicemodem"
+                if [ "$motodeping" = "icmp" ]; then
+                    # ICMP ping dengan antarmuka kustom
+                    ping -q -c 3 -W 3 -I ${devicemodem} ${pinghost} > /dev/null
+                    if [ $? -eq 0 ]; then
+                        log "[$jenis - $nama] ICMP ping to $pinghost on interface $devicemodem succeeded"
+                        status_Internet=true
+                        attempt=1
+                    else
+                        log "[$jenis - $nama] ICMP ping to $pinghost on interface $devicemodem failed"
+                    fi
+                elif [ "$motodeping" = "tcp" ]; then
+                    # TCP ping dengan antarmuka kustom
+                    if nc -zvw 1 -e /bin/true -g 1 -G 1 -I ${devicemodem} ${pinghost} 2>&1 | grep -q succeeded; then
+                        log "[$jenis - $nama] TCP ping to $pinghost on interface $devicemodem succeeded"
+                        status_Internet=true
+                        attempt=1
+                    else
+                        log "[$jenis - $nama] TCP ping to $pinghost on interface $devicemodem failed"
+                        # HTTP ping dengan antarmuka kustom
+                    fi
+                elif [ "$motodeping" = "http" ]; then
+                    # HTTP ping dengan antarmuka kustom
+                    if curl -Is http://${pinghost} --interface ${devicemodem} >/dev/null; then
+                        log "[$jenis - $nama] HTTP ping to $pinghost on interface $devicemodem succeeded"
+                        status_Internet=true
+                        attempt=1
+                    else
+                        log "[$jenis - $nama] HTTP ping to $pinghost on interface $devicemodem failed"
+                    fi
+                elif [ "$motodeping" = "https" ]; then
+                    # HTTPS ping dengan antarmuka kustom
+                    if curl -Is https://${pinghost} --interface ${devicemodem} >/dev/null; then
+                        log "[$jenis - $nama] HTTPS ping to $pinghost on interface $devicemodem succeeded"
+                        status_Internet=true
+                        attempt=1
+                    else
+                        log "[$jenis - $nama] HTTPS ping to $pinghost on interface $devicemodem failed"
+                    fi
                 fi
             fi
         done
@@ -182,14 +268,12 @@ perform_ping() {
                     send_message "$CUSTOM_MESSAGE"
                 fi
             elif [ "$jenis" = "hp" ]; then
-                log "[$jenis - $nama] $(bash $RAKITANPLUGINS/adb-refresh-network.sh)"
-                # log "[$jenis - $nama] Mengaktifkan Mode Pesawat"
-                # adb shell cmd connectivity airplane-mode enable
-                # sleep 2
-                # log "[$jenis - $nama] Menonaktifkan Mode Pesawat"
-                # adb shell cmd connectivity airplane-mode disable
-                # sleep 7
+                $RAKITANPLUGINS/adb-refresh-network.sh $androidid
+                sleep 3
                 new_ip_hp=$(adb shell ip addr show rmnet_data0 | grep 'inet ' | awk '{print $2}' | cut -d / -f 1)
+                if [ -z "$new_ip_hp" ]; then
+	                new_ip_hp=$(adb shell ip addr show rmnet_data1 | grep 'inet ' | awk '{print $2}' | cut -d / -f 1)
+                fi
                 log "[$jenis - $nama] New IP = $new_ip_hp"
                 CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/$new_ip_hp/g")
                 CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[NAMAMODEM\]/$nama/g")
@@ -197,8 +281,8 @@ perform_ping() {
                     send_message "$CUSTOM_MESSAGE"
                 fi
             elif [ "$jenis" = "orbit" ]; then
-                log "[$jenis - $nama] $(python3 /usr/bin/modem-orbit.py $iporbit $usernameorbit $passwordorbit)"
-                log "[$jenis - $nama] New IP SUKSES"
+                python3 /usr/bin/modem-orbit.py $iporbit $usernameorbit $passwordorbit
+                log "[$jenis - $nama] New IP Sukses"
                 CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/SUKSES/g")
                 CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[NAMAMODEM\]/$nama/g")
                 if [ "$(uci get rakitanmanager.telegram.enabled)" = "1" ]; then
@@ -215,7 +299,7 @@ main() {
 
     # Loop through each modem and perform actions
     for ((i = 0; i < ${#jenis_modem[@]}; i++)); do
-        perform_ping "${nama_modem[$i]}" "${jenis_modem[$i]}" "${hostbug_modem[$i]}" "${devicemodem_modem[$i]}" "${delayping_modem[$i]}" "${apn_modem[$i]}" "${port_modem[$i]}" "${interface_modem[$i]}" "${iporbit_modem[$i]}" "${usernameorbit_modem[$i]}" "${passwordorbit_modem[$i]}" &
+        perform_ping "${nama_modem[$i]}" "${jenis_modem[$i]}" "${metodeping_modem[$i]}" "${hostbug_modem[$i]}" "${androidid_modem[$i]}" "${devicemodem_modem[$i]}" "${delayping_modem[$i]}" "${apn_modem[$i]}" "${port_modem[$i]}" "${interface_modem[$i]}" "${iporbit_modem[$i]}" "${usernameorbit_modem[$i]}" "${passwordorbit_modem[$i]}" &
     done
 }
 
