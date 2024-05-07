@@ -106,11 +106,11 @@ if [ -z "$LatestVerDev" ]; then
 fi
 
 if [ "$(uci get rakitanmanager.cfg.branch)" = "main" ]; then
-    currentVersion=$(head -n 1 /www/rakitanmanager/versionmain.txt 2>/dev/null | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]' | sed 's/bt/beta/g')
+    currentVersion=$(head -n 1 /www/rakitanmanager/versionmain.txt 2>/dev/null | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]' | sed 's/bt/beta | Branch Main/g')
 fi
 
 if [ "$(uci get rakitanmanager.cfg.branch)" = "dev" ]; then
-    currentVersion=$(head -n 1 /www/rakitanmanager/versiondev.txt 2>/dev/null | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]' | sed 's/bt/beta/g')
+    currentVersion=$(head -n 1 /www/rakitanmanager/versiondev.txt 2>/dev/null | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]' | sed 's/bt/beta | Brach Dev/g')
 fi
 
 if [ -z "$currentVersion" ]; then
