@@ -172,7 +172,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           prerelease: true
-          files: "./RakitanManager/${{ github.ref_name }}/luci-app-rakitanmanager_${{ needs.Get-Version.outputs.version }}-beta_all.ipk"
+          files: "./dev/luci-app-rakitanmanager_*.ipk"
           tag_name: "v${{ needs.Get-Version.outputs.version }}-beta"
           body: |
             <h1 align="center">
