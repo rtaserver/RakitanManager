@@ -185,13 +185,10 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
                 <?php if ($branch_select == "main"): ?>
                     var latestVersionUrl = 'https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/version';
                     var changelogUrl = 'https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/changelog.txt';
-                    var currentVersion = '<?php echo trim(file_get_contents("versionmain.txt")); ?>';
                 <?php endif; ?>
                 <?php if ($branch_select == "dev"): ?>
-                    var latestVersionUrl = 'https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/version';
+                    var latestVersionUrl = 'https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/hash.txt';
                     var changelogUrl = 'https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/changelog.txt';
-                    var hashfileUrl = 'https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/hash.txt';
-                    var currenthashfile = '<?php echo trim(file_get_contents("hash.txt")); ?>';
                 <?php endif; ?>
 
                 fetch(latestVersionUrl)
@@ -204,6 +201,7 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
                     .then(data => {
                         <?php if ($branch_select == "main"): ?>
                             var latestVersion = data.split('\n')[0].trim().toLowerCase();
+                            var currentVersion = '<?php echo trim(file_get_contents("versionmain.txt")); ?>';
 
                             // Periksa jika versi terbaru berbeda dari versi saat ini
                             if (latestVersion && latestVersion !== currentVersion) {
@@ -228,43 +226,31 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
                             }
                         <?php endif; ?>
                         <?php if ($branch_select == "dev"): ?>
-                            // Periksa jika hash file terbaru berbeda dari hash file saat ini
-                            fetch(hashfileUrl)
-                                .then(response => {
-                                    if (!response.ok) {
-                                        throw new Error('Network response was not ok');
-                                    }
-                                    return response.text();
-                                })
-                                .then(hashfile => {
-                                    // Periksa jika hash file terbaru berbeda dari hash file saat ini
-                                    hashfile = hashfile.trim();
-                                    currenthashfile = currenthashfile.trim();
-                                    if (hashfile !== currenthashfile) {
-                                        // Tampilkan modal
-                                        $('#updateModal').modal('show');
+                            var latestVersion = data.split('\n')[0].trim().toLowerCase();
+                            var currentVersion = '<?php echo trim(file_get_contents("hash.txt")); ?>';
+                            var currentVersion = currentVersion.trim();
 
-                                        // Load Changelog
-                                        $.get(changelogUrl, function (changelogData) {
-                                            // Find the version in Changelog
-                                            var versionIndex = changelogData.indexOf('**Changelog**');
-                                            if (versionIndex !== -1) {
-                                                // Get Changelog entries starting from the found version
-                                                var changelog = changelogData.substring(versionIndex);
-                                                // Replace special characters
-                                                changelog = changelog.replace(/%0A/g, '\n'); // Replace '%0A' with '\n' (newline)
-                                                changelog = changelog.replace(/%0D/g, ''); // Remove '%0D' (carriage return)
-                                                $('#changelogContent').html(changelog);
-                                            } else {
-                                                $('#changelogContent').html('Changelog Tidak Tersedia');
-                                            }
-                                        });
+                            // Periksa jika versi terbaru berbeda dari versi saat ini
+                            if (latestVersion && latestVersion !== currentVersion) {
+                                // Tampilkan modal
+                                $('#updateModal').modal('show');
+
+                                // Load Changelog
+                                $.get(changelogUrl, function (changelogData) {
+                                    // Find the version in Changelog
+                                    var versionIndex = changelogData.indexOf('**Changelog**');
+                                    if (versionIndex !== -1) {
+                                        // Get Changelog entries starting from the found version
+                                        var changelog = changelogData.substring(versionIndex);
+                                        // Replace special characters
+                                        changelog = changelog.replace(/%0A/g, '\n'); // Replace '%0A' with '\n' (newline)
+                                        changelog = changelog.replace(/%0D/g, ''); // Remove '%0D' (carriage return)
+                                        $('#changelogContent').html(changelog);
+                                    } else {
+                                        $('#changelogContent').html('Changelog Tidak Tersedia');
                                     }
-                                })
-                                .catch(error => {
-                                    // Jika koneksi gagal atau ada kesalahan lain dalam memeriksa pembaruan
-                                    console.error('Failed to check for update:', error);
                                 });
+                            }
                         <?php endif; ?>
                     })
                     .catch(error => {
