@@ -1,1 +1,1 @@
-**Changelog** (v0.00.11-beta 06-05-2024):%0A- Fixed Get Ip Modem Rakitan%0A- Fixed Get Ip HP And Huawei / Orbit%0A- improvement script%0A- Fixed bug%0A- Change Method%0A- Add Another Script By @helmiau%0A- Bot WRT By @helmiau
+**Changelog** (v0.00.12-beta 07-05-2024):%0A- Fixed StartUp
