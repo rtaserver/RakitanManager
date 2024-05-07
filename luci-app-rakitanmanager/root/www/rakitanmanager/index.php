@@ -181,6 +181,7 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
                         return response.text();
                     })
                     .then(data => {
+                        <?php if ($branch_select == "main"): ?>
                         var latestVersion = data.split('\n')[0].trim().toLowerCase();
                         var currentVersion = '<?php echo trim(file_get_contents("versionmain.txt")); ?>';
 
@@ -205,6 +206,33 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
                                 }
                             });
                         }
+                        <?php endif; ?>
+                        <?php if ($branch_select == "dev"): ?>
+                        var latestVersion = data.split('\n')[0].trim().toLowerCase();
+                        var currentVersion = '<?php echo trim(file_get_contents("versiondev.txt")); ?>';
+
+                        // Periksa jika versi terbaru berbeda dari versi saat ini
+                        if (latestVersion && latestVersion !== currentVersion) {
+                            // Tampilkan modal
+                            $('#updateModal').modal('show');
+
+                            // Load Changelog
+                            $.get(changelogUrl, function (changelogData) {
+                                // Find the version in Changelog
+                                var versionIndex = changelogData.indexOf('**Changelog**');
+                                if (versionIndex !== -1) {
+                                    // Get Changelog entries starting from the found version
+                                    var changelog = changelogData.substring(versionIndex);
+                                    // Replace special characters
+                                    changelog = changelog.replace(/%0A/g, '\n'); // Replace '%0A' with '\n' (newline)
+                                    changelog = changelog.replace(/%0D/g, ''); // Remove '%0D' (carriage return)
+                                    $('#changelogContent').html(changelog);
+                                } else {
+                                    $('#changelogContent').html('Changelog Tidak Tersedia');
+                                }
+                            });
+                        }
+                        <?php endif; ?>
                     })
                     .catch(error => {
                         // Jika koneksi gagal atau ada kesalahan lain dalam memeriksa pembaruan
