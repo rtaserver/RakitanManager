@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-rakitanmanager
-PKG_VERSION:=0.00.11
+PKG_VERSION:=0.00.12
 PKG_RELEASE:=beta
 PKG_MAINTAINER:=rtaserver <https://github.com/rtaserver/RakitanManager>
 

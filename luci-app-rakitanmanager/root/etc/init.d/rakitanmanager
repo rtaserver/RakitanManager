@@ -4,14 +4,26 @@
 START=99
 STOP=15
 
-PROGMAIN="/usr/bin/rakitanmanager.sh"
-PROGBOT="/usr/bin/rakitanmanagerbot.sh"
-
-start_service () {
-    PID1=$(pgrep -f ${PROGMAIN})
-    if [ -z "$PID1" ]  ; then
+start_service() {
+    if pidof rakitanmanager.sh > /dev/null; then
+        echo "RakitanManager is already running."
+    else
         if [ "$(uci get rakitanmanager.cfg.startup)" = "1" ]; then
-            sleep 1 && $PROGMAIN -s
-        fi
+            /usr/bin/rakitanmanager.sh -s
+        fi        
     fi
+}
+
+start() {
+    start_service
+}
+
+stop() {
+    # If you have a stop function, you can define it here.
+    :
+}
+
+restart() {
+    # If you want to implement restart functionality, you can define it here.
+    :
 }
