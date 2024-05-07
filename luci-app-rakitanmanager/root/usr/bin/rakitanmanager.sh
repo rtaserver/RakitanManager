@@ -102,7 +102,10 @@ perform_ping() {
     host="${4:-}"
     androidid="${5:-}"
     devicemodem="${6:-}"
-    delayping="${7:10}"
+    delayping="${7:-}"
+    if [ -z "$2" ]; then
+	    delayping="10"
+    fi
     apn="${8:-}"
     portmodem="${9:-}"
     interface="${10:-}"
