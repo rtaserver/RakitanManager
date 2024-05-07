@@ -1,1 +1,1 @@
-**Changelog** (v0.00.13-beta 07-05-2024):%0A- Change PING To All Methode%0A    - ICMP%0A    - TCP%0A    - HTTP%0A    - HTTPS%0A- Fix Logic%0A- Fix Modem Orbit / Huawei%0A- Add Android Device Select
+**Changelog** (v0.00.14-beta 07-05-2024):%0A- Test Add IP
