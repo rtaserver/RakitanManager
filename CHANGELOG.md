@@ -1,5 +1,8 @@
 # What's New!
 
+**Changelog** (v0.00.12-beta 07-05-2024):
+- Fixed StartUp
+
 **Changelog** (v0.00.11-beta 06-05-2024):
 - Fixed Get Ip Modem Rakitan
 - Fixed Get Ip HP And Huawei / Orbit
