@@ -234,18 +234,40 @@ perform_ping() {
                     log "[$jenis - $nama] Mengaktifkan Mode Pesawat"
                     echo AT+CFUN=4 | atinout - "$portmodem" -
                     sleep 5
+                    new_rakitan_ip=$(ifconfig $devicemodem | grep inet | grep -v inet6 | awk '{print $2}' | awk -F : '{print $2}')
+                    log "[$jenis - $nama] New IP: $new_rakitan_ip"
+                    CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/$new_rakitan_ip/g")
+                    CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[NAMAMODEM\]/$nama/g")
+                    if [ "$(uci get rakitanmanager.telegram.enabled)" = "1" ]; then
+                        send_message "$CUSTOM_MESSAGE"
+                    fi
                 elif [ "$attempt" = "2" ]; then
                     log "[$jenis - $nama] Mencoba Menghubungkan Kembali Modem Dengan APN : $apn"
                     modem_info=$(mmcli -L)
                     modem_number=$(echo "$modem_info" | awk -F 'Modem/' '{print $2}' | awk '{print $1}')
                     mmcli -m "$modem_number" --simple-connect="apn=$apn"
                     ifdown "$interface"
-                    sleep 5
+                    sleep 3
                     ifup "$interface"
+                    sleep 5
+                    new_rakitan_ip=$(ifconfig $devicemodem | grep inet | grep -v inet6 | awk '{print $2}' | awk -F : '{print $2}')
+                    log "[$jenis - $nama] New IP: $new_rakitan_ip"
+                    CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/$new_rakitan_ip/g")
+                    CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[NAMAMODEM\]/$nama/g")
+                    if [ "$(uci get rakitanmanager.telegram.enabled)" = "1" ]; then
+                        send_message "$CUSTOM_MESSAGE"
+                    fi
                 elif [ "$attempt" = "3" ]; then
                     log "[$jenis - $nama] Restart Modem Manager"
                     /etc/init.d/modemmanager restart
                     sleep 5
+                    new_rakitan_ip=$(ifconfig $devicemodem | grep inet | grep -v inet6 | awk '{print $2}' | awk -F : '{print $2}')
+                    log "[$jenis - $nama] New IP: $new_rakitan_ip"
+                    CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/$new_rakitan_ip/g")
+                    CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[NAMAMODEM\]/$nama/g")
+                    if [ "$(uci get rakitanmanager.telegram.enabled)" = "1" ]; then
+                        send_message "$CUSTOM_MESSAGE"
+                    fi
                 elif [ "$attempt" = "4" ]; then
                     log "[$jenis - $nama] Mencoba Menghubungkan Kembali Modem Dengan APN : $apn"
                     modem_info=$(mmcli -L)
@@ -254,6 +276,14 @@ perform_ping() {
                     ifdown "$interface"
                     sleep 5
                     ifup "$interface"
+                    sleep 5
+                    new_rakitan_ip=$(ifconfig $devicemodem | grep inet | grep -v inet6 | awk '{print $2}' | awk -F : '{print $2}')
+                    log "[$jenis - $nama] New IP: $new_rakitan_ip"
+                    CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/$new_rakitan_ip/g")
+                    CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[NAMAMODEM\]/$nama/g")
+                    if [ "$(uci get rakitanmanager.telegram.enabled)" = "1" ]; then
+                        send_message "$CUSTOM_MESSAGE"
+                    fi
                 fi
                 attempt=$((attempt + 1))
                 
@@ -262,14 +292,15 @@ perform_ping() {
                     echo AT^RESET | atinout - "$portmodem" - || echo AT+CFUN=1,1 | atinout - "$portmodem" -
                     sleep 20 && ifdown "$interface" && ifup "$interface"
                     attempt=1
-                fi
-                new_rakitan_ip=$(ifconfig $devicemodem | grep inet | grep -v inet6 | awk '{print $2}' | awk -F : '{print $2}')
-                log "[$jenis - $nama] New IP: $new_rakitan_ip"
-                CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/$new_rakitan_ip/g")
-                CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[NAMAMODEM\]/$nama/g")
-                if [ "$(uci get rakitanmanager.telegram.enabled)" = "1" ]; then
-                    send_message "$CUSTOM_MESSAGE"
-                fi
+                    sleep 5
+                    new_rakitan_ip=$(ifconfig $devicemodem | grep inet | grep -v inet6 | awk '{print $2}' | awk -F : '{print $2}')
+                    log "[$jenis - $nama] New IP: $new_rakitan_ip"
+                    CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/$new_rakitan_ip/g")
+                    CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[NAMAMODEM\]/$nama/g")
+                    if [ "$(uci get rakitanmanager.telegram.enabled)" = "1" ]; then
+                        send_message "$CUSTOM_MESSAGE"
+                    fi
+                fi                
             elif [ "$jenis" = "hp" ]; then
                 $RAKITANPLUGINS/adb-refresh-network.sh $androidid
                 sleep 3
@@ -290,7 +321,6 @@ perform_ping() {
                     /usr/bin/rakitanhilink.sh "$iporbit" "$passwordorbit" "iphunter"
                     new_ip_orbit=$(/usr/bin/rakitanhilink.sh "$iporbit" "$passwordorbit" "myip")
                 fi
-                
                 log "[$jenis - $nama] New IP $new_ip_orbit"
                 CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/$new_ip_orbit/g")
                 CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[NAMAMODEM\]/$nama/g")
