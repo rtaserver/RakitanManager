@@ -22,6 +22,27 @@ function simpanDataModem($modems)
     file_put_contents($file, $data);
 }
 
+function load_customscript()
+{
+    $script_file = "/usr/share/rakitanmanager/customscript.sh";
+
+    $configcs = array();
+
+    // Load pesan kustom dari berkas terpisah
+    if (file_exists($script_file)) {
+        $custom_script = file_get_contents($script_file);
+        $configcs['custom_script'] = $custom_script;
+    }
+
+    return $configcs;
+}
+
+function save_customscript()
+{
+    // Simpan pesan kustom ke dalam berkas terpisah
+    file_put_contents("/usr/share/rakitanmanager/customscript.sh", $_POST['custom_script']);
+}
+
 // Periksa apakah ada pengiriman formulir tambah modem
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["tambah_modem"])) {
     $modems = bacaDataModem();
@@ -40,6 +61,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["tambah_modem"])) {
         "devicemodem" => $_POST["devicemodem"],
         "delayping" => $_POST["delayping"]
     ];
+    // $custom_script = $_POST['custom_script'];
+    // save_customscript();
     simpanDataModem($modems);
 }
 
@@ -60,6 +83,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["edit_modem"])) {
         $modems[$index]["androidid"] = $_POST["edit_androidid"];
         $modems[$index]["devicemodem"] = $_POST["edit_devicemodem"];
         $modems[$index]["delayping"] = $_POST["edit_delayping"];
+        // $configcs = load_customscript();
+        // $custom_script = isset($configcs['custom_script']) ? $configcs['custom_script'] : '';
         simpanDataModem($modems);
     }
 }
@@ -428,6 +453,12 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                                                                     <label class="form-check-label" for="orbit">Modem
                                                                         Orbit</label>
                                                                 </div>
+                                                                <!-- <div class="form-check form-check-inline">
+                                                                    <input class="form-check-input" type="radio"
+                                                                        name="jenis" id="customscript" value="customscript">
+                                                                    <label class="form-check-label" for="customscript">Custom
+                                                                        Script</label>
+                                                                </div> -->
                                                             </div>
                                                             <div class="form-group">
                                                                 <label for="nama">Nama Modem:</label>
@@ -495,6 +526,12 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                                                                     ?>
                                                                 </select>
                                                             </div>
+                                                            <!-- <div class="form-group" id="customscript_field">
+                                                                <label for="myscript">Custom Script:</label>
+                                                                <textarea required type="text" id="myscript" name="myscript"
+                                                                    class="form-control"
+                                                                    placeholder="Custom Script"><?php echo $custom_script; ?></textarea>
+                                                            </div> -->
                                                             <div class="form-group">
                                                                 <label for="metodeping">Pilih Metode PING:</label>
                                                                 <select id="metodeping" name="metodeping"
@@ -575,6 +612,12 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                                                                     <label class="form-check-label"
                                                                         for="edit_orbit">Modem Orbit</label>
                                                                 </div>
+                                                                <!-- <div class="form-check form-check-inline">
+                                                                    <input class="form-check-input" type="radio"
+                                                                        name="edit_jenis" id="edit_customscript" value="customscript">
+                                                                    <label class="form-check-label" for="edit_customscript">Custom
+                                                                        Script</label>
+                                                                </div> -->
                                                             </div>
                                                             <div class="form-group">
                                                                 <label for="edit_nama">Nama Modem:</label>
@@ -642,6 +685,12 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                                                                     ?>
                                                                 </select>
                                                             </div>
+                                                            <!-- <div class="form-group" id="edit_customscript_field">
+                                                                <label for="edit_myscript">Custom Script:</label>
+                                                                <textarea required type="text" id="edit_myscript" name="edit_myscript"
+                                                                    class="form-control"
+                                                                    placeholder="Custom Script"><?php echo $custom_script; ?></textarea>
+                                                            </div> -->
                                                             <div class="form-group">
                                                                 <label for="edit_metodeping">Pilih Metode PING:</label>
                                                                 <select id="edit_metodeping" name="edit_metodeping"

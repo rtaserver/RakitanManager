@@ -295,7 +295,7 @@ perform_ping() {
                     send_message "$CUSTOM_MESSAGE"
                 fi
             elif [ "$jenis" = "orbit" ]; then
-                python3 /usr/bin/modem-orbit.py "$iporbit" "$usernameorbit" "$passwordorbit"; then
+                python3 /usr/bin/modem-orbit.py "$iporbit" "$usernameorbit" "$passwordorbit"
                 new_ip_orbit="Changed"
                 # if python3 /usr/bin/modem-orbit.py "$iporbit" "$usernameorbit" "$passwordorbit"; then
                 #     new_ip_orbit="IP Changed"
