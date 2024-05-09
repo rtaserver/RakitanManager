@@ -5,6 +5,7 @@
 - Fix Telegram
 - Fix Permission
 - Fixed Orbit
+- Error Log
 
 **Changelog** (v0.00.14-beta 08-05-2024):
 - Test Add IP
