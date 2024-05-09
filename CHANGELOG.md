@@ -3,6 +3,7 @@
 **Changelog** (v0.00.14-beta 08-05-2024):
 - Test Add IP
 - Fix Logic
+- Add IP Hunter by Aryo Brokolly
 
 **Changelog** (v0.00.13-beta 07-05-2024):
 - Change PING To All Methode

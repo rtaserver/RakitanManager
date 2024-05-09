@@ -80,6 +80,7 @@ fi
 
 sed -i 's/\r$//' /usr/bin/setuprakitanmanager.sh
 sed -i 's/\r$//' /usr/bin/rakitanmanager.sh
+sed -i 's/\r$//' /usr/bin/rakitanhilink.sh
 sed -i 's/\r$//' /usr/share/rakitanmanager/plugins/adb-deviceinfo.sh
 sed -i 's/\r$//' /usr/share/rakitanmanager/plugins/adb-refresh-network.sh
 sed -i 's/\r$//' /usr/share/rakitanmanager/plugins/adb-sms.sh
