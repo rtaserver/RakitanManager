@@ -113,8 +113,8 @@ perform_ping() {
     usernameorbit="${12:-}"
     passwordorbit="${13:-}"
 
-    max_attempts=5
-    attempt=1
+    local max_attempts=5
+    local attempt=1
 
     while true; do
         log_size=$(wc -c < "$log_file")
@@ -255,14 +255,6 @@ perform_ping() {
                 fi
 
                 attempt=$((attempt + 1))
-                sleep 5
-                new_rakitan_ip=$(ifconfig $devicemodem | grep inet | grep -v inet6 | awk '{print $2}' | awk -F : '{print $2}')
-                log "[$jenis - $nama] New IP: $new_rakitan_ip"
-                CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/$new_rakitan_ip/g")
-                CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[NAMAMODEM\]/$nama/g")
-                if [ "$(uci get rakitanmanager.telegram.enabled)" = "1" ]; then
-                    send_message "$CUSTOM_MESSAGE"
-                fi
 
                 if [ $attempt -ge $max_attempts ]; then
                     log "[$jenis - $nama] Upaya maksimal tercapai. Internet masih mati. Restart modem akan dijalankan"
@@ -277,6 +269,15 @@ perform_ping() {
                     if [ "$(uci get rakitanmanager.telegram.enabled)" = "1" ]; then
                         send_message "$CUSTOM_MESSAGE"
                     fi
+                fi
+
+                sleep 5
+                new_rakitan_ip=$(ifconfig $devicemodem | grep inet | grep -v inet6 | awk '{print $2}' | awk -F : '{print $2}')
+                log "[$jenis - $nama] New IP: $new_rakitan_ip"
+                CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/$new_rakitan_ip/g")
+                CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[NAMAMODEM\]/$nama/g")
+                if [ "$(uci get rakitanmanager.telegram.enabled)" = "1" ]; then
+                    send_message "$CUSTOM_MESSAGE"
                 fi
             elif [ "$jenis" = "hp" ]; then
                 $RAKITANPLUGINS/adb-refresh-network.sh $androidid

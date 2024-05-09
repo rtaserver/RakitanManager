@@ -3,6 +3,7 @@
 **Changelog** (v0.00.15-beta 09-05-2024):
 - Fix Logic
 - Fix Telegram
+- Fix Permission
 
 **Changelog** (v0.00.14-beta 08-05-2024):
 - Test Add IP

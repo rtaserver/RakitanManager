@@ -31,6 +31,7 @@ define Build/Prepare
 	sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-beta/g" $(PKG_BUILD_DIR)/root/www/rakitanmanager/versiondev.txt >/dev/null 2>&1
 	chmod 0755 $(PKG_BUILD_DIR)/root/etc/init.d/rakitanmanager
 	chmod 0755 $(PKG_BUILD_DIR)/root/usr/bin/rakitanmanager.sh
+	chmod 0755 $(PKG_BUILD_DIR)/root/usr/bin/rakitanhilink.sh
   	chmod 0755 $(PKG_BUILD_DIR)/root/usr/bin/modem-orbit.py
 	chmod 0755 $(PKG_BUILD_DIR)/root/usr/bin/setuprakitanmanager.sh
 	chmod 0755 $(PKG_BUILD_DIR)/root/etc/uci-defaults/99_rakitanmanager
@@ -60,6 +61,7 @@ define Package/$(PKG_NAME)/postinst
 	sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-beta/g" /www/rakitanmanager/versionmain.txt >/dev/null 2>&1
 	sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-beta/g" /www/rakitanmanager/versiondev.txt >/dev/null 2>&1
 	chmod 0755 /usr/bin/rakitanmanager.sh
+	chmod 0755 /usr/bin/rakitanhilink.sh
 	chmod 0755 /usr/bin/setuprakitanmanager.sh
     chmod 0755 /usr/bin/modem-orbit.py
 	chmod 0755 /etc/init.d/rakitanmanager
