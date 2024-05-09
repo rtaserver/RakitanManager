@@ -1,1 +1,1 @@
-**Changelog** (v0.00.14-beta 08-05-2024):%0A- Test Add IP%0A- Fix Logic%0A- Add IP Hunter by Aryo Brokolly
+**Changelog** (v0.00.15-beta 09-05-2024):%0A- Fix Logic%0A- Fix Telegram
