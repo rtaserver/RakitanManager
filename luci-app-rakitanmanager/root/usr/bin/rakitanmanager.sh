@@ -230,29 +230,31 @@ perform_ping() {
         if [ "$status_Internet" = false ]; then
             if [ "$jenis" = "rakitan" ]; then
                 log "[$jenis - $nama] Internet mati. Percobaan $attempt/$max_attempts"
-                if [ "$attempt" = "1" ]; then
-                    log "[$jenis - $nama] Mengaktifkan Mode Pesawat"
-                    echo AT+CFUN=4 | atinout - "$portmodem" -
-                elif [ "$attempt" = "2" ]; then
-                    log "[$jenis - $nama] Mencoba Menghubungkan Kembali Modem Dengan APN : $apn"
-                    modem_info=$(mmcli -L)
-                    modem_number=$(echo "$modem_info" | awk -F 'Modem/' '{print $2}' | awk '{print $1}')
-                    mmcli -m "$modem_number" --simple-connect="apn=$apn"
-                    ifdown "$interface"
-                    sleep 3
-                    ifup "$interface"
-                elif [ "$attempt" = "3" ]; then
-                    log "[$jenis - $nama] Restart Modem Manager"
-                    /etc/init.d/modemmanager restart
-                elif [ "$attempt" = "4" ]; then
-                    log "[$jenis - $nama] Mencoba Menghubungkan Kembali Modem Dengan APN : $apn"
-                    modem_info=$(mmcli -L)
-                    modem_number=$(echo "$modem_info" | awk -F 'Modem/' '{print $2}' | awk '{print $1}')
-                    mmcli -m "$modem_number" --simple-connect="apn=$apn"
-                    ifdown "$interface"
-                    sleep 5
-                    ifup "$interface"
-                fi
+                log "[$jenis - $nama] Mengaktifkan Mode Pesawat"
+                echo AT+CFUN=4 | atinout - "$portmodem" -
+                # if [ "$attempt" = "1" ]; then
+                #     log "[$jenis - $nama] Mengaktifkan Mode Pesawat"
+                #     echo AT+CFUN=4 | atinout - "$portmodem" -
+                # elif [ "$attempt" = "2" ]; then
+                #     log "[$jenis - $nama] Mencoba Menghubungkan Kembali Modem Dengan APN : $apn"
+                #     modem_info=$(mmcli -L)
+                #     modem_number=$(echo "$modem_info" | awk -F 'Modem/' '{print $2}' | awk '{print $1}')
+                #     mmcli -m "$modem_number" --simple-connect="apn=$apn"
+                #     ifdown "$interface"
+                #     sleep 3
+                #     ifup "$interface"
+                # elif [ "$attempt" = "3" ]; then
+                #     log "[$jenis - $nama] Restart Modem Manager"
+                #     /etc/init.d/modemmanager restart
+                # elif [ "$attempt" = "4" ]; then
+                #     log "[$jenis - $nama] Mencoba Menghubungkan Kembali Modem Dengan APN : $apn"
+                #     modem_info=$(mmcli -L)
+                #     modem_number=$(echo "$modem_info" | awk -F 'Modem/' '{print $2}' | awk '{print $1}')
+                #     mmcli -m "$modem_number" --simple-connect="apn=$apn"
+                #     ifdown "$interface"
+                #     sleep 5
+                #     ifup "$interface"
+                # fi
 
                 attempt=$((attempt + 1))
 
@@ -294,10 +296,10 @@ perform_ping() {
                 fi
             elif [ "$jenis" = "orbit" ]; then
                 if python3 /usr/bin/modem-orbit.py "$iporbit" "$usernameorbit" "$passwordorbit"; then
-                    new_ip_orbit=$(python3 /usr/bin/modem-orbit.py "$iporbit" "$usernameorbit" "$passwordorbit" "ip")
+                    new_ip_orbit="IP Changed"
                 else
                     /usr/bin/rakitanhilink.sh "$iporbit" "$passwordorbit" "iphunter"
-                    new_ip_orbit=$(/usr/bin/rakitanhilink.sh "$iporbit" "$passwordorbit" "myip")
+                    new_ip_orbit="IP Changed"
                 fi
                 log "[$jenis - $nama] New IP $new_ip_orbit"
                 CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/$new_ip_orbit/g")
