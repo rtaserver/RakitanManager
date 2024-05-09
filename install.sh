@@ -4,6 +4,7 @@
 fix_sh() {
     sed -i 's/\r$//' /usr/bin/setuprakitanmanager.sh
     sed -i 's/\r$//' /usr/bin/rakitanmanager.sh
+    sed -i 's/\r$//' /usr/bin/rakitanhilink.sh
     sed -i 's/\r$//' /usr/share/rakitanmanager/plugins/adb-deviceinfo.sh
     sed -i 's/\r$//' /usr/share/rakitanmanager/plugins/adb-refresh-network.sh
     sed -i 's/\r$//' /usr/share/rakitanmanager/plugins/adb-sms.sh
@@ -106,11 +107,11 @@ if [ -z "$LatestVerDev" ]; then
 fi
 
 if [ "$(uci get rakitanmanager.cfg.branch)" = "main" ]; then
-    currentVersion=$(head -n 1 /www/rakitanmanager/versionmain.txt 2>/dev/null | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]' | sed 's/bt/beta/g')
+    currentVersion=$(head -n 1 /www/rakitanmanager/versionmain.txt 2>/dev/null | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]' | sed 's/bt/beta | Branch Main/g')
 fi
 
 if [ "$(uci get rakitanmanager.cfg.branch)" = "dev" ]; then
-    currentVersion=$(head -n 1 /www/rakitanmanager/versiondev.txt 2>/dev/null | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]' | sed 's/bt/beta/g')
+    currentVersion=$(head -n 1 /www/rakitanmanager/versiondev.txt 2>/dev/null | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]' | sed 's/bt/beta | Brach Dev/g')
 fi
 
 if [ -z "$currentVersion" ]; then
@@ -262,6 +263,7 @@ install_upgrade_main() {
     sleep 1
     clear
     echo "Downloading files from repo Main..."
+    
     local version_info_main=$(curl -s https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/version)
     local latest_version_main=$(echo "$version_info_main" | grep -o 'New Release-v[^"]*' | cut -d 'v' -f 2 | cut -d '-' -f1)
     
@@ -283,6 +285,7 @@ install_upgrade_main() {
     # Set the branch to 'main' in configuration
     uci set rakitanmanager.cfg.branch='main'
     uci commit rakitanmanager
+    wget -O "/www/rakitanmanager/hash.txt" "https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/hash.txt"
     clear
     sleep 1
     finish
@@ -299,6 +302,7 @@ install_upgrade_dev() {
     sleep 1
     clear
     echo "Downloading files from repo Dev..."
+    
     local version_info_dev=$(curl -s https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/version)
     local latest_version_dev=$(echo "$version_info_dev" | grep -o 'New Release-v[^"]*' | cut -d 'v' -f 2 | cut -d '-' -f1)
     
@@ -307,7 +311,7 @@ install_upgrade_dev() {
     
     # Download the latest version of the package
     if wget -O "$DIR/rakitanmanager/rakitanmanager.ipk" "$file_url_dev"; then
-        # Install the downloaded package
+        # Install the downloaded package        
         opkg install "$DIR/rakitanmanager/rakitanmanager.ipk" --force-reinstall
     else
         echo "Error: Failed to download or install the package. Exiting."
@@ -320,6 +324,7 @@ install_upgrade_dev() {
     # Set the branch to 'dev' in configuration
     uci set rakitanmanager.cfg.branch='dev'
     uci commit rakitanmanager
+    wget -O "/www/rakitanmanager/hash.txt" "https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/hash.txt"
     clear
     sleep 1
     finish

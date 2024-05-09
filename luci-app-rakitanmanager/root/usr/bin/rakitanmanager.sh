@@ -102,7 +102,10 @@ perform_ping() {
     host="${4:-}"
     androidid="${5:-}"
     devicemodem="${6:-}"
-    delayping="${7:10}"
+    delayping="${7:-}"
+    if [ -z "$delayping" ]; then
+	    delayping="10"
+    fi
     apn="${8:-}"
     portmodem="${9:-}"
     interface="${10:-}"
@@ -281,9 +284,15 @@ perform_ping() {
                     send_message "$CUSTOM_MESSAGE"
                 fi
             elif [ "$jenis" = "orbit" ]; then
-                python3 /usr/bin/modem-orbit.py $iporbit $usernameorbit $passwordorbit
-                log "[$jenis - $nama] New IP Sukses"
-                CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/SUKSES/g")
+                if python3 /usr/bin/modem-orbit.py "$iporbit" "$usernameorbit" "$passwordorbit"; then
+                    new_ip_orbit=$(python3 /usr/bin/modem-orbit.py "$iporbit" "$usernameorbit" "$passwordorbit" "ip")
+                else
+                    /usr/bin/rakitanhilink.sh "$iporbit" "$passwordorbit" "iphunter"
+                    new_ip_orbit=$(/usr/bin/rakitanhilink.sh "$iporbit" "$passwordorbit" "myip")
+                fi
+                
+                log "[$jenis - $nama] New IP $new_ip_orbit"
+                CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/$new_ip_orbit/g")
                 CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[NAMAMODEM\]/$nama/g")
                 if [ "$(uci get rakitanmanager.telegram.enabled)" = "1" ]; then
                     send_message "$CUSTOM_MESSAGE"

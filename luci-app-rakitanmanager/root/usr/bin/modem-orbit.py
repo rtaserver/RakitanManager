@@ -13,7 +13,7 @@ def get_wan_info(client):
 
 def main():
     """Main function."""
-    if len(sys.argv) != 4:
+    if len(sys.argv) < 4:
         print("Usage: python script.py <router_ip> <username> <password>")
         sys.exit(1)
     
@@ -27,21 +27,21 @@ def main():
         client = Client(connection)
         
         try:
-            print_header("Auto Reconnect Modem Huawei", "@RTASERVER")
-            
-            wan_ip_address, device_name = fetch_wan_info(client)
-            print_result("Device Name", device_name)
-            print_result("Current IP", wan_ip_address)
-            
-            print("Initiating IP change process...")
-            initiate_ip_change(client)
-            
-            time.sleep(5)  
-            
-            print("Waiting for the IP to be changed...")
-            wan_ip_address_after_plmn, _ = fetch_wan_info(client)
-            print_result("New IP", wan_ip_address_after_plmn) 
-            print_success("IP has been successfully changed.")
+            if len(sys.argv) == 5 and sys.argv[4] == "ip":
+                wan_ip_address, _ = fetch_wan_info(client)
+                print(f"{wan_ip_address}")
+            else:
+                print_header("Auto Reconnect Modem Huawei", "@RTASERVER")
+                wan_ip_address, device_name = fetch_wan_info(client)
+                print_result("Device Name", device_name)
+                print_result("Current IP", wan_ip_address)
+                print("Initiating IP change process...")
+                initiate_ip_change(client)
+                time.sleep(5)  
+                print("Waiting for the IP to be changed...")
+                wan_ip_address_after_plmn, _ = fetch_wan_info(client)
+                print_result("New IP", wan_ip_address_after_plmn)
+                print_success("IP has been successfully changed.")
         
         except Exception as e:
             print_error(f"An error occurred: {e}")
