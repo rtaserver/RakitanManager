@@ -295,12 +295,14 @@ perform_ping() {
                     send_message "$CUSTOM_MESSAGE"
                 fi
             elif [ "$jenis" = "orbit" ]; then
-                if python3 /usr/bin/modem-orbit.py "$iporbit" "$usernameorbit" "$passwordorbit"; then
-                    new_ip_orbit="IP Changed"
-                else
-                    /usr/bin/rakitanhilink.sh "$iporbit" "$passwordorbit" "iphunter"
-                    new_ip_orbit="IP Changed"
-                fi
+                python3 /usr/bin/modem-orbit.py "$iporbit" "$usernameorbit" "$passwordorbit"; then
+                new_ip_orbit="Changed"
+                # if python3 /usr/bin/modem-orbit.py "$iporbit" "$usernameorbit" "$passwordorbit"; then
+                #     new_ip_orbit="IP Changed"
+                # else
+                #     /usr/bin/rakitanhilink.sh "$iporbit" "$passwordorbit" "iphunter"
+                #     new_ip_orbit="IP Changed"
+                # fi
                 log "[$jenis - $nama] New IP $new_ip_orbit"
                 CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/$new_ip_orbit/g")
                 CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[NAMAMODEM\]/$nama/g")
