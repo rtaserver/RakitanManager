@@ -1,1 +1,1 @@
-**Changelog** (v0.00.14-beta 08-05-2024):%0A- Test Add IP%0A- Fix Logic
+**Changelog** (v0.00.14-beta 08-05-2024):%0A- Test Add IP%0A- Fix Logic%0A- Add IP Hunter by Aryo Brokolly
