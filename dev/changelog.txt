@@ -1,1 +1,1 @@
-**Changelog** (v0.00.15-beta 09-05-2024):%0A- Fix Logic%0A- Fix Telegram%0A- Fix Permission%0A- Fixed Orbit
+**Changelog** (v0.00.15-beta 09-05-2024):%0A- Fix Logic%0A- Fix Telegram%0A- Fix Permission%0A- Fixed Orbit%0A- Error Log
