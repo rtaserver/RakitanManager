@@ -1,1 +1,1 @@
-**Changelog** (v0.00.16-beta 10-05-2024):%0A- Fix Logic%0A- Fix Telegram%0A- Fix Permission%0A- Fixed Orbit%0A- Fix Error Log%0A- Add Custom Script%0A- Typo Script
+**Changelog** (v0.00.16-beta 10-05-2024):%0A- Fix Logic%0A- Fix Telegram%0A- Fix Permission%0A- Fixed Orbit%0A- Fix Error Log%0A- Add Custom Script%0A- Typo Script%0A- Change Python Script Orbit
