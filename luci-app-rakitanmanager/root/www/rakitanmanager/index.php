@@ -22,26 +22,6 @@ function simpanDataModem($modems)
     file_put_contents($file, $data);
 }
 
-function load_customscript()
-{
-    $script_file = "/usr/share/rakitanmanager/customscript.sh";
-
-    $configcs = array();
-
-    // Load pesan kustom dari berkas terpisah
-    if (file_exists($script_file)) {
-        $custom_script = file_get_contents($script_file);
-        $configcs['custom_script'] = $custom_script;
-    }
-
-    return $configcs;
-}
-
-function save_customscript()
-{
-    // Simpan pesan kustom ke dalam berkas terpisah
-    file_put_contents("/usr/share/rakitanmanager/customscript.sh", $_POST['custom_script']);
-}
 
 // Periksa apakah ada pengiriman formulir tambah modem
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["tambah_modem"])) {
@@ -59,10 +39,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["tambah_modem"])) {
         "hostbug" => $_POST["hostbug"],
         "androidid" => $_POST["androidid"],
         "devicemodem" => $_POST["devicemodem"],
-        "delayping" => $_POST["delayping"]
+        "delayping" => $_POST["delayping"],
+        "script" => $_POST["script"]
     ];
-    // $custom_script = $_POST['custom_script'];
-    // save_customscript();
     simpanDataModem($modems);
 }
 
@@ -83,8 +62,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["edit_modem"])) {
         $modems[$index]["androidid"] = $_POST["edit_androidid"];
         $modems[$index]["devicemodem"] = $_POST["edit_devicemodem"];
         $modems[$index]["delayping"] = $_POST["edit_delayping"];
-        // $configcs = load_customscript();
-        // $custom_script = isset($configcs['custom_script']) ? $configcs['custom_script'] : '';
+        $modems[$index]["script"] = $_POST["edit_script"];
         simpanDataModem($modems);
     }
 }
@@ -94,8 +72,20 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET["hapus_modem"])) {
     $index = $_GET["hapus_modem"];
     $modems = bacaDataModem();
     if (isset($modems[$index])) {
+        $nama_jnis = $modems[$index]["jenis"];
+        if ($nama_jnis === "customscript") {
+            $myscript_name = $modems[$index]["nama"] . "-customscript.sh";
+            $myscript_path = "/usr/share/rakitanmanager/$myscript_name";
+            exec("killall -9 /$myscript_name");
+            if (file_exists($myscript_path)) {
+                if (unlink($myscript_path)) {
+                    $log_message = shell_exec("date '+%Y-%m-%d %H:%M:%S'") . " - Tmp Script Di Hapus\n";
+                    file_put_contents('/var/log/rakitanmanager.log', $log_message, FILE_APPEND);
+                } 
+            }
+        }
         unset($modems[$index]);
-        simpanDataModem($modems);
+        simpanDataModem($modems); 
     }
 }
 
@@ -147,17 +137,6 @@ if (!empty($matchesinterface[1])) {
 } else {
     $interfaces = []; // Atur kembali interfaces sebagai array kosong jika tidak ada interface yang ditemukan
 }
-
-/* $androidid = []; // Inisialisasi array androidid
-$outputandroidid = shell_exec("adb devices | grep 'device' | grep -v 'List of' | awk {'print $1'}");
-preg_match_all('/^\d+: (\S+):/m', $outputandroidid, $matchesandroidid);
-if (!empty($matchesandroidid[1])) {
-    // Mengonversi daftar androidid menjadi array asosiatif untuk diproses lebih lanjut
-    $getandroidid = array_combine($matchesandroidid[1], $matchesandroidid[1]);
-    $androidid = $getandroidid; // Memperbarui array androidid dengan hasil yang baru ditemukan
-} else {
-    $androidid = []; // Atur kembali androidid sebagai array kosong jika tidak ada androidid yang ditemukan
-} */
 
 $androididdevices = shell_exec("adb devices | grep 'device' | grep -v 'List of' | awk {'print $1'}");
 $androidid = explode("\n", trim($androididdevices)); // Memisahkan daftar perangkat menjadi array
@@ -453,12 +432,12 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                                                                     <label class="form-check-label" for="orbit">Modem
                                                                         Orbit</label>
                                                                 </div>
-                                                                <!-- <div class="form-check form-check-inline">
+                                                                <div class="form-check form-check-inline">
                                                                     <input class="form-check-input" type="radio"
                                                                         name="jenis" id="customscript" value="customscript">
                                                                     <label class="form-check-label" for="customscript">Custom
                                                                         Script</label>
-                                                                </div> -->
+                                                                </div>
                                                             </div>
                                                             <div class="form-group">
                                                                 <label for="nama">Nama Modem:</label>
@@ -473,18 +452,14 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                                                                 <label for="portmodem">Pilih Port Modem:</label>
                                                                 <select name="portmodem" id="portmodem"
                                                                     class="form-control">
-                                                                    <?php
-                                                                    // Deteksi port serial untuk modem GSM
-                                                                    $serial_ports = glob("/dev/ttyUSB*") + glob("/dev/ttyACM*");
-
-                                                                    if (empty($serial_ports)) {
-                                                                        echo "<option value=''>Tidak ada port serial yang terdeteksi</option>";
-                                                                    } else {
-                                                                        foreach ($serial_ports as $portmodem) {
-                                                                            echo "<option value='$portmodem'>$portmodem</option>";
-                                                                        }
-                                                                    }
-                                                                    ?>
+                                                                    <option value="/dev/ttyUSB">/dev/ttyUSB0</option>
+                                                                    <option value="/dev/ttyUSB">/dev/ttyUSB1</option>
+                                                                    <option value="/dev/ttyUSB">/dev/ttyUSB2</option>
+                                                                    <option value="/dev/ttyUSB">/dev/ttyUSB3</option>
+                                                                    <option value="/dev/ttyACM">/dev/ttyACM0</option>
+                                                                    <option value="/dev/ttyACM">/dev/ttyACM1</option>
+                                                                    <option value="/dev/ttyACM">/dev/ttyACM2</option>
+                                                                    <option value="/dev/ttyACM">/dev/ttyACM3</option>
                                                                 </select>
                                                                 <label for="interface">Interface Modem Manager:</label>
                                                                 <select name="interface" id="interface"
@@ -526,12 +501,12 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                                                                     ?>
                                                                 </select>
                                                             </div>
-                                                            <!-- <div class="form-group" id="customscript_field">
-                                                                <label for="myscript">Custom Script:</label>
-                                                                <textarea required type="text" id="myscript" name="myscript"
+                                                            <div class="form-group" id="customscript_field">
+                                                                <label for="script">Custom Script:</label>
+                                                                <textarea required type="text" id="script" name="script"
                                                                     class="form-control"
-                                                                    placeholder="Custom Script"><?php echo $custom_script; ?></textarea>
-                                                            </div> -->
+                                                                    placeholder="Custom Script">#!/bin/bash</textarea>
+                                                            </div>
                                                             <div class="form-group">
                                                                 <label for="metodeping">Pilih Metode PING:</label>
                                                                 <select id="metodeping" name="metodeping"
@@ -589,7 +564,7 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                                                     <form id="editModemForm" onsubmit="return validateFormEdit()"
                                                         method="post">
                                                         <div class="modal-body">
-                                                            <div class="form-group">
+                                                            <div class="form-group" id="edit_radio">
                                                                 <label for="edit_jenis">Jenis Modem:</label><br>
                                                                 <div class="form-check form-check-inline">
                                                                     <input class="form-check-input" type="radio"
@@ -612,12 +587,12 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                                                                     <label class="form-check-label"
                                                                         for="edit_orbit">Modem Orbit</label>
                                                                 </div>
-                                                                <!-- <div class="form-check form-check-inline">
+                                                                <div class="form-check form-check-inline">
                                                                     <input class="form-check-input" type="radio"
                                                                         name="edit_jenis" id="edit_customscript" value="customscript">
                                                                     <label class="form-check-label" for="edit_customscript">Custom
                                                                         Script</label>
-                                                                </div> -->
+                                                                </div>
                                                             </div>
                                                             <div class="form-group">
                                                                 <label for="edit_nama">Nama Modem:</label>
@@ -631,18 +606,14 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                                                                 <label for="edit_portmodem">Pilih Port Modem:</label>
                                                                 <select name="edit_portmodem" id="edit_portmodem"
                                                                     class="form-control">
-                                                                    <?php
-                                                                    // Deteksi port serial untuk modem GSM
-                                                                    $serial_ports = glob("/dev/ttyUSB*") + glob("/dev/ttyACM*");
-
-                                                                    if (empty($serial_ports)) {
-                                                                        echo "<option value=''>Tidak ada port serial yang terdeteksi</option>";
-                                                                    } else {
-                                                                        foreach ($serial_ports as $portmodem) {
-                                                                            echo "<option value='$portmodem'>$portmodem</option>";
-                                                                        }
-                                                                    }
-                                                                    ?>
+                                                                    <option value="/dev/ttyUSB">/dev/ttyUSB0</option>
+                                                                    <option value="/dev/ttyUSB">/dev/ttyUSB1</option>
+                                                                    <option value="/dev/ttyUSB">/dev/ttyUSB2</option>
+                                                                    <option value="/dev/ttyUSB">/dev/ttyUSB3</option>
+                                                                    <option value="/dev/ttyACM">/dev/ttyACM0</option>
+                                                                    <option value="/dev/ttyACM">/dev/ttyACM1</option>
+                                                                    <option value="/dev/ttyACM">/dev/ttyACM2</option>
+                                                                    <option value="/dev/ttyACM">/dev/ttyACM3</option>
                                                                 </select>
                                                                 <label for="edit_interface">Interface Modem
                                                                     Manager:</label>
@@ -685,12 +656,12 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                                                                     ?>
                                                                 </select>
                                                             </div>
-                                                            <!-- <div class="form-group" id="edit_customscript_field">
-                                                                <label for="edit_myscript">Custom Script:</label>
-                                                                <textarea required type="text" id="edit_myscript" name="edit_myscript"
+                                                            <div class="form-group" id="edit_customscript_field">
+                                                                <label for="edit_script">Custom Script:</label>
+                                                                <textarea required type="text" id="edit_script" name="edit_script"
                                                                     class="form-control"
-                                                                    placeholder="Custom Script"><?php echo $custom_script; ?></textarea>
-                                                            </div> -->
+                                                                    placeholder="Custom Script">#!/bin/bash</textarea>
+                                                            </div>
                                                             <div class="form-group">
                                                                 <label for="edit_metodeping">Pilih Metode PING:</label>
                                                                 <select id="edit_metodeping" name="edit_metodeping"
@@ -760,19 +731,29 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
             $('#edit_androidid').val(modem.androidid);
             $('#edit_devicemodem').val(modem.devicemodem);
             $('#edit_delayping').val(modem.delayping);
+            $('#edit_script').val(modem.script);
             $('input[name="edit_jenis"][value="' + modem.jenis + '"]').prop('checked', true);
+            $('#edit_radio').hide();
             if (modem.jenis === 'rakitan') {
                 $('#edit_rakitan_field').show();
                 $('#edit_orbit_field').hide();
                 $('#edit_hp_field').hide();
+                $('#edit_customscript_field').hide();
             } else if (modem.jenis === 'orbit') {
                 $('#edit_rakitan_field').hide();
                 $('#edit_orbit_field').show();
                 $('#edit_hp_field').hide();
-            } else {
+                $('#edit_customscript_field').hide();
+            } else if (modem.jenis === 'hp') {
                 $('#edit_rakitan_field').hide();
                 $('#edit_orbit_field').hide();
                 $('#edit_hp_field').show();
+                $('#edit_customscript_field').hide();
+            } else if (modem.jenis === 'customscript') {
+                $('#edit_rakitan_field').hide();
+                $('#edit_orbit_field').hide();
+                $('#edit_hp_field').hide();
+                $('#edit_customscript_field').show();
             }
             $('#editIndex').val(index);
             $('#editModemModal').modal('show');
@@ -786,7 +767,7 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
 
         $(document).ready(function () {
             // Sembunyikan bidang non-rakitan dan non-orbit secara default
-            $('#rakitan_field, #orbit_field, #hp_field').hide();
+            $('#rakitan_field, #orbit_field, #hp_field, #customscript_field').hide();
 
             // Tampilkan bidang rakitan saat halaman dimuat karena itu default
             $('#rakitan_field').show();
@@ -796,6 +777,7 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                     $('#rakitan_field').show();
                     $('#orbit_field').hide();
                     $('#hp_field').hide();
+                    $('#customscript_field').hide();
                 }
             });
 
@@ -803,6 +785,7 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                 if ($(this).is(':checked')) {
                     $('#rakitan_field, #orbit_field').hide();
                     $('#hp_field').show();
+                    $('#customscript_field').hide();
                 }
             });
 
@@ -811,6 +794,16 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                     $('#orbit_field').show();
                     $('#rakitan_field').hide();
                     $('#hp_field').hide();
+                    $('#customscript_field').hide();
+                }
+            });
+
+            $('#customscript').change(function () {
+                if ($(this).is(':checked')) {
+                    $('#orbit_field').hide();
+                    $('#rakitan_field').hide();
+                    $('#hp_field').hide();
+                    $('#customscript_field').show();
                 }
             });
 
@@ -820,13 +813,21 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                     $('#edit_rakitan_field').show();
                     $('#edit_orbit_field').hide();
                     $('#edit_hp_field').hide();
+                    $('#edit_customscript_field').hide();
                 } else if ($(this).val() === 'hp') {
                     $('#edit_rakitan_field, #edit_orbit_field').hide();
                     $('#edit_hp_field').show();
+                    $('#edit_customscript_field').hide();
                 } else if ($(this).val() === 'orbit') {
                     $('#edit_orbit_field').show();
                     $('#edit_rakitan_field').hide();
                     $('#edit_hp_field').hide();
+                    $('#edit_customscript_field').hide();
+                } else if ($(this).val() === 'customscript') {
+                    $('#edit_orbit_field').hide();
+                    $('#edit_rakitan_field').hide();
+                    $('#edit_hp_field').hide();
+                    $('#edit_customscript_field').show();
                 }
             });
 
@@ -863,6 +864,7 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
             var androidid = document.getElementById("androidid").value.trim();
             var devicemodem = document.getElementById("devicemodem").value.trim();
             var delayping = document.getElementById("delayping").value.trim();
+            var script = document.getElementById("script").value.trim();
 
             if (!jenis) {
                 alert("Pilih jenis modem!");
@@ -888,6 +890,10 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
             }
             if (delayping === "") {
                 alert("Jeda waktu detik sebelum melanjutkan cek PING harus diisi!");
+                return false;
+            }
+            if (script === "") {
+                alert("Custom Script harus diisi!");
                 return false;
             }
             return true;
@@ -906,6 +912,7 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
             var androidid = document.getElementById("edit_androidid").value.trim();
             var devicemodem = document.getElementById("edit_devicemodem").value.trim();
             var delayping = document.getElementById("edit_delayping").value.trim();
+            var script = document.getElementById("edit_script").value.trim();
 
             if (!jenis) {
                 alert("Pilih jenis modem!");
@@ -931,6 +938,10 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
             }
             if (delayping === "") {
                 alert("Jeda waktu detik sebelum melanjutkan cek PING harus diisi!");
+                return false;
+            }
+            if (script === "") {
+                alert("Custom Script harus diisi!");
                 return false;
             }
             return true;

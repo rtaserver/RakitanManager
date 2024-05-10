@@ -1,11 +1,12 @@
 # What's New!
 
-**Changelog** (v0.00.15-beta 09-05-2024):
+**Changelog** (v0.00.16-beta 10-05-2024):
 - Fix Logic
 - Fix Telegram
 - Fix Permission
 - Fixed Orbit
-- Error Log
+- Fix Error Log
+- Add Custom Script
 
 **Changelog** (v0.00.14-beta 08-05-2024):
 - Test Add IP

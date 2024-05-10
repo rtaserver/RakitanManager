@@ -1,4 +1,3 @@
-import sys
 import logging
 from huawei_lte_api.Client import Client
 from huawei_lte_api.Connection import Connection
@@ -13,10 +12,6 @@ def get_wan_info(client):
 
 def main():
     """Main function."""
-    if len(sys.argv) != 4:
-        print("Usage: python script.py <router_ip> <username> <password>")
-        sys.exit(1)
-    
     router_ip = sys.argv[1]
     username = sys.argv[2]
     password = sys.argv[3]
@@ -27,12 +22,12 @@ def main():
         client = Client(connection)
         
         try:
-            print_header("Auto Reconnect Modem Huawei", "@RTASERVER")
+            print_header("Auto Reconnect Modem Huawei", "@RTASERVER")           
             
             wan_ip_address, device_name = fetch_wan_info(client)
             print_result("Device Name", device_name)
             print_result("Current IP", wan_ip_address)
-            
+          
             print("Initiating IP change process...")
             initiate_ip_change(client)
             
@@ -72,11 +67,11 @@ def print_result(label, value):
 
 def print_success(message):
     """Print success message."""
-    print("\n" + message)
+    print("\n\033[92m" + message + "\033[0m")
 
 def print_error(message):
     """Print error message."""
-    print("\n" + message)
+    print("\n\033[91m" + message + "\033[0m")
 
 if __name__ == "__main__":
     main()
