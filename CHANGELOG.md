@@ -8,6 +8,7 @@
 - Fix Error Log
 - Add Custom Script
 - Typo Script
+- Change Python Script Orbit
 
 **Changelog** (v0.00.14-beta 08-05-2024):
 - Test Add IP

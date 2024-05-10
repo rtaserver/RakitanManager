@@ -1,6 +1,69 @@
 #!/bin/bash
 # Copyright 2024 RTA SERVER
 
+echo "Setup php uhttpd"
+uci set uhttpd.main.index_page='index.php'
+uci set uhttpd.main.interpreter='.php=/usr/bin/php-cgi'
+uci commit uhttpd
+
+/etc/init.d/uhttpd restart
+echo "Setup php uhttpd Done"
+
+echo "Setup Package For Python3"
+if which pip3 >/dev/null; then
+    # Instal paket 'requests' jika belum terinstal
+    if ! pip3 show requests >/dev/null; then
+        echo "Installing package 'requests'"
+        if ! pip3 install requests >/dev/null; then
+            echo "Error installing package 'requests'"
+            echo "Setup Gagal | Mohon Coba Kembali"
+            exit 1  # Keluar dari skrip dengan status error
+        fi
+    else
+        echo "Package 'requests' already installed"
+    fi
+
+    # Instal paket 'huawei-lte-api' jika belum terinstal
+    if ! pip3 show huawei-lte-api >/dev/null; then
+        echo "Installing package 'huawei-lte-api'"
+        if ! pip3 install huawei-lte-api >/dev/null; then
+            echo "Error installing package 'huawei-lte-api'"
+            echo "Setup Gagal | Mohon Coba Kembali"
+            exit 1  # Keluar dari skrip dengan status error
+        fi
+    else
+        echo "Package 'huawei-lte-api' already installed"
+    fi
+
+    # Instal paket 'datetime' jika belum terinstal
+    if ! pip3 show datetime >/dev/null; then
+        echo "Installing package 'datetime'"
+        if ! pip3 install datetime >/dev/null; then
+            echo "Error installing package 'datetime'"
+            echo "Setup Gagal | Mohon Coba Kembali"
+            exit 1  # Keluar dari skrip dengan status error
+        fi
+    else
+        echo "Package 'datetime' already installed"
+    fi
+
+    # Instal paket 'logging' jika belum terinstal
+    if ! pip3 show logging >/dev/null; then
+        echo "Installing package 'logging'"
+        if ! pip3 install logging >/dev/null; then
+            echo "Error installing package 'logging'"
+            echo "Setup Gagal | Mohon Coba Kembali"
+            exit 1  # Keluar dari skrip dengan status error
+        fi
+    else
+        echo "Package 'logging' already installed"
+    fi
+else
+    echo "Error: 'pip3' command not found"
+    echo "Setup Gagal | Mohon Coba Kembali"
+    exit 1  # Keluar dari skrip dengan status error
+fi
+
 sed -i 's/\r$//' /usr/bin/setuprakitanmanager.sh
 sed -i 's/\r$//' /usr/bin/rakitanmanager.sh
 sed -i 's/\r$//' /usr/bin/rakitanhilink.sh
@@ -28,11 +91,6 @@ fi
 
 echo "Setup ModemManager Done"
 
-chmod 0755 /usr/bin/rakitanmanager.sh
-chmod 0755 /usr/bin/setuprakitanmanager.sh
-chmod 0755 /usr/bin/modem-orbit.py
-chmod 0755 /etc/init.d/rakitanmanager
-
 set_permissions() {
     local directory="$1"
     if [ -d "$directory" ]; then
@@ -46,6 +104,4 @@ set_permissions() {
     fi
 }
 set_permissions "/usr/share/rakitanmanager"
-
-/usr/bin/setuprakitanmanager.sh
 exit
