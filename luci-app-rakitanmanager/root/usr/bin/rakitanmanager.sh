@@ -170,7 +170,7 @@ perform_ping() {
                     fi
                 elif [ "$motodeping" = "http" ]; then
                     # HTTP ping
-                    if curl -Is http://${xhost}:${port_http} >/dev/null; then
+                    if curl -Is --max-time 3 http://${xhost}:${port_http} >/dev/null; then
                         log "[$jenis - $nama] HTTP ping to $pinghost succeeded"
                         status_Internet=true
                         attempt=1
@@ -179,7 +179,7 @@ perform_ping() {
                     fi
                 elif [ "$motodeping" = "https" ]; then
                     # HTTPS ping
-                    if curl -Is https://${xhost}:${port_https} >/dev/null; then
+                    if curl -Is --max-time 3 https://${xhost}:${port_https} >/dev/null; then
                         log "[$jenis - $nama] HTTPS ping to $pinghost succeeded"
                         status_Internet=true
                         attempt=1
@@ -210,7 +210,7 @@ perform_ping() {
                     fi
                 elif [ "$motodeping" = "http" ]; then
                     # HTTP ping dengan antarmuka kustom
-                    if curl -Is http://${xhost}:${port_http} --interface ${devicemodem} >/dev/null; then
+                    if curl -Is --max-time 3 http://${xhost}:${port_http} --interface ${devicemodem} >/dev/null; then
                         log "[$jenis - $nama] HTTP ping to $pinghost on interface $devicemodem succeeded"
                         status_Internet=true
                         attempt=1
@@ -219,7 +219,7 @@ perform_ping() {
                     fi
                 elif [ "$motodeping" = "https" ]; then
                     # HTTPS ping dengan antarmuka kustom
-                    if curl -Is https://${xhost}:${port_https} --interface ${devicemodem} >/dev/null; then
+                    if curl -Is --max-time 3 https://${xhost}:${port_https} --interface ${devicemodem} >/dev/null; then
                         log "[$jenis - $nama] HTTPS ping to $pinghost on interface $devicemodem succeeded"
                         status_Internet=true
                         attempt=1
@@ -233,31 +233,29 @@ perform_ping() {
         if [ "$status_Internet" = false ]; then
             if [ "$jenis" = "rakitan" ]; then
                 log "[$jenis - $nama] Internet mati. Percobaan $attempt/$max_attempts"
-                log "[$jenis - $nama] Mengaktifkan Mode Pesawat"
-                echo AT+CFUN=4 | atinout - "$portmodem" -
-                # if [ "$attempt" = "1" ]; then
-                #     log "[$jenis - $nama] Mengaktifkan Mode Pesawat"
-                #     echo AT+CFUN=4 | atinout - "$portmodem" -
-                # elif [ "$attempt" = "2" ]; then
-                #     log "[$jenis - $nama] Mencoba Menghubungkan Kembali Modem Dengan APN : $apn"
-                #     modem_info=$(mmcli -L)
-                #     modem_number=$(echo "$modem_info" | awk -F 'Modem/' '{print $2}' | awk '{print $1}')
-                #     mmcli -m "$modem_number" --simple-connect="apn=$apn"
-                #     ifdown "$interface"
-                #     sleep 3
-                #     ifup "$interface"
-                # elif [ "$attempt" = "3" ]; then
-                #     log "[$jenis - $nama] Restart Modem Manager"
-                #     /etc/init.d/modemmanager restart
-                # elif [ "$attempt" = "4" ]; then
-                #     log "[$jenis - $nama] Mencoba Menghubungkan Kembali Modem Dengan APN : $apn"
-                #     modem_info=$(mmcli -L)
-                #     modem_number=$(echo "$modem_info" | awk -F 'Modem/' '{print $2}' | awk '{print $1}')
-                #     mmcli -m "$modem_number" --simple-connect="apn=$apn"
-                #     ifdown "$interface"
-                #     sleep 5
-                #     ifup "$interface"
-                # fi
+                if [ "$attempt" = "1" ]; then
+                    log "[$jenis - $nama] Mengaktifkan Mode Pesawat"
+                    echo AT+CFUN=4 | atinout - "$portmodem" -
+                elif [ "$attempt" = "2" ]; then
+                    log "[$jenis - $nama] Mencoba Menghubungkan Kembali Modem Dengan APN : $apn"
+                    modem_info=$(mmcli -L)
+                    modem_number=$(echo "$modem_info" | awk -F 'Modem/' '{print $2}' | awk '{print $1}')
+                    mmcli -m "$modem_number" --simple-connect="apn=$apn"
+                    ifdown "$interface"
+                    sleep 3
+                    ifup "$interface"
+                elif [ "$attempt" = "3" ]; then
+                    log "[$jenis - $nama] Restart Modem Manager"
+                    /etc/init.d/modemmanager restart
+                elif [ "$attempt" = "4" ]; then
+                    log "[$jenis - $nama] Mencoba Menghubungkan Kembali Modem Dengan APN : $apn"
+                    modem_info=$(mmcli -L)
+                    modem_number=$(echo "$modem_info" | awk -F 'Modem/' '{print $2}' | awk '{print $1}')
+                    mmcli -m "$modem_number" --simple-connect="apn=$apn"
+                    ifdown "$interface"
+                    sleep 5
+                    ifup "$interface"
+                fi
 
                 attempt=$((attempt + 1))
 

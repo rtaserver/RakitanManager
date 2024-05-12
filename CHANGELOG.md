@@ -1,5 +1,13 @@
 # What's New!
 
+**Changelog** (v0.00.17-beta 12-05-2024):
+- Fix Logic
+- Add Time Ping For HTTP
+- Add Time Ping For HTTPS
+- Fixed Script
+- Fixed Installation Script Not Found
+- Typo Script
+
 **Changelog** (v0.00.16-beta 10-05-2024):
 - Fix Logic
 - Fix Telegram
