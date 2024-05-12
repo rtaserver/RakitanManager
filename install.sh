@@ -139,6 +139,21 @@ finish(){
     bash -c "$(wget -qO - 'https://raw.githubusercontent.com/rtaserver/RakitanManager/dev/install.sh')"
 }
 
+gagal_install(){
+    fix_sh
+    clear
+    echo ""
+    echo -e "${CLCyan}===================================="
+    echo -e "${BGRed}=========== INSTALL GAGAL ==========="
+    echo -e "${CLCyan}===================================="
+    echo ""
+    echo -e "${CLWhite}Terdapat Kegagalan Saat Menginstall $1"
+    echo -e "${CLWhite}Silahkan Ulangi Instalasi Jika Ada Yang Gagal :)"
+    echo ""
+    echo "Ketik Apapun Untuk Kembali Ke Menu"
+    read -n 1 -s -r -p ""
+    bash -c "$(wget -qO - 'https://raw.githubusercontent.com/rtaserver/RakitanManager/dev/install.sh')"
+}
 
 download_packages() {
     echo "Update dan instal prerequisites"
@@ -201,7 +216,7 @@ download_packages() {
             if ! pip3 install requests; then
                 echo -e "${CLRed}Error installing package 'requests'"
                 echo -e "${CLRed}Setup Gagal | Mohon Coba Kembali"
-                exit  # Keluar dari skrip dengan status error
+                gagal_install "pip3 requests"
             fi
         else
             echo -e "${CLGreen}Package 'requests' sudah terinstal"
@@ -213,7 +228,7 @@ download_packages() {
             if ! pip3 install huawei-lte-api; then
                 echo -e "${CLRed}Error installing package 'huawei-lte-api'"
                 echo -e "${CLRed}Setup Gagal | Mohon Coba Kembali"
-                exit  # Keluar dari skrip dengan status error
+                gagal_install "pip3 huawei-lte-api"
             fi
         else
             echo -e "${CLGreen}Package 'huawei-lte-api' sudah terinstal"
@@ -225,7 +240,7 @@ download_packages() {
             if ! pip3 install datetime; then
                 echo -e "${CLRed}Error installing package 'datetime'"
                 echo -e "${CLRed}Setup Gagal | Mohon Coba Kembali"
-                exit 1  # Keluar dari skrip dengan status error
+                gagal_install "pip3 datetime"
             fi
         else
             echo -e "${CLGreen}Package 'datetime' already installed"
@@ -245,7 +260,7 @@ download_packages() {
     else
         echo -e "${CLRed}Error: 'pip3' command tidak ditemukan"
         echo -e "${CLRed}Setup Gagal | Mohon Coba Kembali"
-        exit  # Keluar dari skrip dengan status error
+        gagal_install "pip3"
     fi
     echo -e "${CLGreen}Setup Package Sukses"
     fix_sh
@@ -276,7 +291,7 @@ install_upgrade_main() {
         opkg install "$DIR/rakitanmanager/rakitanmanager.ipk" --force-reinstall
     else
         echo "Error: Failed to download or install the package. Exiting."
-        exit 1
+        gagal_install "rakitanmanager main"
     fi
 
     # Remove the downloaded package file
@@ -315,7 +330,7 @@ install_upgrade_dev() {
         opkg install "$DIR/rakitanmanager/rakitanmanager.ipk" --force-reinstall
     else
         echo "Error: Failed to download or install the package. Exiting."
-        exit 1
+        gagal_install "rakitanmanager dev"
     fi
 
     # Remove the downloaded package file

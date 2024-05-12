@@ -1,5 +1,15 @@
 # What's New!
 
+**Changelog** (v0.00.16-beta 10-05-2024):
+- Fix Logic
+- Fix Telegram
+- Fix Permission
+- Fixed Orbit
+- Fix Error Log
+- Add Custom Script
+- Typo Script
+- Change Python Script Orbit
+
 **Changelog** (v0.00.14-beta 08-05-2024):
 - Test Add IP
 - Fix Logic

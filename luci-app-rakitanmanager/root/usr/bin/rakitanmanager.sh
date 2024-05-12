@@ -55,6 +55,7 @@ hostbug_modem=()
 androidid_modem=()
 devicemodem_modem=()
 delayping_modem=()
+script_modem=()
 
 
 send_telegram() { #$1 Token - $2 Chat ID - $3 Nama Modem - $4 New IP
@@ -92,6 +93,7 @@ parse_json() {
         androidid_modem[$i]=$(jq -r ".modems[$i].androidid" "$json_file")
         devicemodem_modem[$i]=$(jq -r ".modems[$i].devicemodem" "$json_file")
         delayping_modem[$i]=$(jq -r ".modems[$i].delayping" "$json_file")
+        script_modem[$i]=$(jq -r ".modems[$i].script" "$json_file")
     done
 }
 
@@ -112,6 +114,7 @@ perform_ping() {
     iporbit="${11:-}"
     usernameorbit="${12:-}"
     passwordorbit="${13:-}"
+    script="${14:-}"
 
     max_attempts=5
     attempt=1
@@ -129,8 +132,8 @@ perform_ping() {
 
         for pinghost in $host; do
             # Parsing host dan port dari pinghost
-            host=$(echo "${pinghost}" | cut -d':' -f1)
-            port=$(echo "${pinghost}" | cut -d':' -f2)
+            xhost=$(echo "${pinghost}" | cut -d':' -f1)
+            xport=$(echo "${pinghost}" | cut -d':' -f2)
 
             # Set port default jika tidak ada port yang diberikan
             if [ "$port" = "" ]; then
@@ -148,7 +151,7 @@ perform_ping() {
 
                 if [ "$motodeping" = "icmp" ]; then
                     # ICMP ping
-                    ping -q -c 3 -W 3 -p $port_icmp ${host} > /dev/null
+                    ping -q -c 3 -W 3 -p $port_icmp ${xhost} > /dev/null
                     if [ $? -eq 0 ]; then
                         log "[$jenis - $nama] ICMP ping to $pinghost succeeded"
                         status_Internet=true
@@ -158,7 +161,7 @@ perform_ping() {
                     fi
                 elif [ "$motodeping" = "tcp" ]; then
                      # TCP ping
-                    if nc -zvw 1 ${host} $port_tcp 2>&1 | grep -q succeeded; then
+                    if nc -zvw 1 ${xhost} $port_tcp 2>&1 | grep -q succeeded; then
                         log "[$jenis - $nama] TCP ping to $pinghost succeeded"
                         status_Internet=true
                         attempt=1
@@ -167,7 +170,7 @@ perform_ping() {
                     fi
                 elif [ "$motodeping" = "http" ]; then
                     # HTTP ping
-                    if curl -Is http://${host}:${port_http} >/dev/null; then
+                    if curl -Is http://${xhost}:${port_http} >/dev/null; then
                         log "[$jenis - $nama] HTTP ping to $pinghost succeeded"
                         status_Internet=true
                         attempt=1
@@ -176,7 +179,7 @@ perform_ping() {
                     fi
                 elif [ "$motodeping" = "https" ]; then
                     # HTTPS ping
-                    if curl -Is https://${host}:${port_https} >/dev/null; then
+                    if curl -Is https://${xhost}:${port_https} >/dev/null; then
                         log "[$jenis - $nama] HTTPS ping to $pinghost succeeded"
                         status_Internet=true
                         attempt=1
@@ -187,7 +190,7 @@ perform_ping() {
             else
                 if [ "$motodeping" = "icmp" ]; then
                     # ICMP ping dengan antarmuka kustom
-                    ping -q -c 3 -W 3 -I ${devicemodem} ${pinghost} > /dev/null
+                    ping -q -c 3 -W 3 -I ${devicemodem} ${xhost} > /dev/null
                     if [ $? -eq 0 ]; then
                         log "[$jenis - $nama] ICMP ping to $pinghost on interface $devicemodem succeeded"
                         status_Internet=true
@@ -197,7 +200,7 @@ perform_ping() {
                     fi
                 elif [ "$motodeping" = "tcp" ]; then
                     # TCP ping dengan antarmuka kustom
-                    if nc -zvw 1 -e /bin/true -g 1 -G 1 -I ${devicemodem} ${pinghost} 2>&1 | grep -q succeeded; then
+                    if nc -zvw 1 -e /bin/true -g 1 -G 1 -I ${devicemodem} ${xhost} $port_tcp 2>&1 | grep -q succeeded; then
                         log "[$jenis - $nama] TCP ping to $pinghost on interface $devicemodem succeeded"
                         status_Internet=true
                         attempt=1
@@ -207,7 +210,7 @@ perform_ping() {
                     fi
                 elif [ "$motodeping" = "http" ]; then
                     # HTTP ping dengan antarmuka kustom
-                    if curl -Is http://${pinghost} --interface ${devicemodem} >/dev/null; then
+                    if curl -Is http://${xhost}:${port_http} --interface ${devicemodem} >/dev/null; then
                         log "[$jenis - $nama] HTTP ping to $pinghost on interface $devicemodem succeeded"
                         status_Internet=true
                         attempt=1
@@ -216,7 +219,7 @@ perform_ping() {
                     fi
                 elif [ "$motodeping" = "https" ]; then
                     # HTTPS ping dengan antarmuka kustom
-                    if curl -Is https://${pinghost} --interface ${devicemodem} >/dev/null; then
+                    if curl -Is https://${xhost}:${port_https} --interface ${devicemodem} >/dev/null; then
                         log "[$jenis - $nama] HTTPS ping to $pinghost on interface $devicemodem succeeded"
                         status_Internet=true
                         attempt=1
@@ -230,45 +233,56 @@ perform_ping() {
         if [ "$status_Internet" = false ]; then
             if [ "$jenis" = "rakitan" ]; then
                 log "[$jenis - $nama] Internet mati. Percobaan $attempt/$max_attempts"
-                if [ "$attempt" = "1" ]; then
-                    log "[$jenis - $nama] Mengaktifkan Mode Pesawat"
-                    echo AT+CFUN=4 | atinout - "$portmodem" -
-                    sleep 5
-                elif [ "$attempt" = "2" ]; then
-                    log "[$jenis - $nama] Mencoba Menghubungkan Kembali Modem Dengan APN : $apn"
-                    modem_info=$(mmcli -L)
-                    modem_number=$(echo "$modem_info" | awk -F 'Modem/' '{print $2}' | awk '{print $1}')
-                    mmcli -m "$modem_number" --simple-connect="apn=$apn"
-                    ifdown "$interface"
-                    sleep 5
-                    ifup "$interface"
-                elif [ "$attempt" = "3" ]; then
-                    log "[$jenis - $nama] Restart Modem Manager"
-                    /etc/init.d/modemmanager restart
-                    sleep 5
-                elif [ "$attempt" = "4" ]; then
-                    log "[$jenis - $nama] Mencoba Menghubungkan Kembali Modem Dengan APN : $apn"
-                    modem_info=$(mmcli -L)
-                    modem_number=$(echo "$modem_info" | awk -F 'Modem/' '{print $2}' | awk '{print $1}')
-                    mmcli -m "$modem_number" --simple-connect="apn=$apn"
-                    ifdown "$interface"
-                    sleep 5
-                    ifup "$interface"
-                fi
+                log "[$jenis - $nama] Mengaktifkan Mode Pesawat"
+                echo AT+CFUN=4 | atinout - "$portmodem" -
+                # if [ "$attempt" = "1" ]; then
+                #     log "[$jenis - $nama] Mengaktifkan Mode Pesawat"
+                #     echo AT+CFUN=4 | atinout - "$portmodem" -
+                # elif [ "$attempt" = "2" ]; then
+                #     log "[$jenis - $nama] Mencoba Menghubungkan Kembali Modem Dengan APN : $apn"
+                #     modem_info=$(mmcli -L)
+                #     modem_number=$(echo "$modem_info" | awk -F 'Modem/' '{print $2}' | awk '{print $1}')
+                #     mmcli -m "$modem_number" --simple-connect="apn=$apn"
+                #     ifdown "$interface"
+                #     sleep 3
+                #     ifup "$interface"
+                # elif [ "$attempt" = "3" ]; then
+                #     log "[$jenis - $nama] Restart Modem Manager"
+                #     /etc/init.d/modemmanager restart
+                # elif [ "$attempt" = "4" ]; then
+                #     log "[$jenis - $nama] Mencoba Menghubungkan Kembali Modem Dengan APN : $apn"
+                #     modem_info=$(mmcli -L)
+                #     modem_number=$(echo "$modem_info" | awk -F 'Modem/' '{print $2}' | awk '{print $1}')
+                #     mmcli -m "$modem_number" --simple-connect="apn=$apn"
+                #     ifdown "$interface"
+                #     sleep 5
+                #     ifup "$interface"
+                # fi
+
                 attempt=$((attempt + 1))
-                
+
                 if [ $attempt -ge $max_attempts ]; then
                     log "[$jenis - $nama] Upaya maksimal tercapai. Internet masih mati. Restart modem akan dijalankan"
                     echo AT^RESET | atinout - "$portmodem" - || echo AT+CFUN=1,1 | atinout - "$portmodem" -
                     sleep 20 && ifdown "$interface" && ifup "$interface"
                     attempt=1
+                    sleep 5
+                    new_rakitan_ip=$(ifconfig $devicemodem | grep inet | grep -v inet6 | awk '{print $2}' | awk -F : '{print $2}')
+                    log "[$jenis - $nama] New IP: $new_rakitan_ip"
+                    CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/$new_rakitan_ip/g")
+                    CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[NAMAMODEM\]/$nama/g")
+                    if [ "$(uci get rakitanmanager.telegram.enabled)" = "1" ]; then
+                        curl -s -X POST https://api.telegram.org/bot$TOKEN_ID/sendMessage -d chat_id=$CHAT_ID -d text="$CUSTOM_MESSAGE" > /dev/null
+                    fi
                 fi
+
+                sleep 5
                 new_rakitan_ip=$(ifconfig $devicemodem | grep inet | grep -v inet6 | awk '{print $2}' | awk -F : '{print $2}')
                 log "[$jenis - $nama] New IP: $new_rakitan_ip"
                 CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/$new_rakitan_ip/g")
                 CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[NAMAMODEM\]/$nama/g")
                 if [ "$(uci get rakitanmanager.telegram.enabled)" = "1" ]; then
-                    send_message "$CUSTOM_MESSAGE"
+                    curl -s -X POST https://api.telegram.org/bot$TOKEN_ID/sendMessage -d chat_id=$CHAT_ID -d text="$CUSTOM_MESSAGE" > /dev/null
                 fi
             elif [ "$jenis" = "hp" ]; then
                 $RAKITANPLUGINS/adb-refresh-network.sh $androidid
@@ -281,21 +295,29 @@ perform_ping() {
                 CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/$new_ip_hp/g")
                 CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[NAMAMODEM\]/$nama/g")
                 if [ "$(uci get rakitanmanager.telegram.enabled)" = "1" ]; then
-                    send_message "$CUSTOM_MESSAGE"
+                    curl -s -X POST https://api.telegram.org/bot$TOKEN_ID/sendMessage -d chat_id=$CHAT_ID -d text="$CUSTOM_MESSAGE" > /dev/null
                 fi
             elif [ "$jenis" = "orbit" ]; then
-                if python3 /usr/bin/modem-orbit.py "$iporbit" "$usernameorbit" "$passwordorbit"; then
-                    new_ip_orbit=$(python3 /usr/bin/modem-orbit.py "$iporbit" "$usernameorbit" "$passwordorbit" "ip")
-                else
-                    /usr/bin/rakitanhilink.sh "$iporbit" "$passwordorbit" "iphunter"
-                    new_ip_orbit=$(/usr/bin/rakitanhilink.sh "$iporbit" "$passwordorbit" "myip")
+                if python3 /usr/bin/modem-orbit.py $iporbit $usernameorbit $passwordorbit; then
+                    new_ip_orbit="IP Changed"
+                 else
+                    /usr/bin/rakitanhilink.sh iphunter
+                    new_ip_orbit="IP Changed"
                 fi
-                
                 log "[$jenis - $nama] New IP $new_ip_orbit"
                 CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/$new_ip_orbit/g")
                 CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[NAMAMODEM\]/$nama/g")
                 if [ "$(uci get rakitanmanager.telegram.enabled)" = "1" ]; then
-                    send_message "$CUSTOM_MESSAGE"
+                    curl -s -X POST https://api.telegram.org/bot$TOKEN_ID/sendMessage -d chat_id=$CHAT_ID -d text="$CUSTOM_MESSAGE" > /dev/null
+                fi
+            elif [ "$jenis" = "customscript" ]; then
+                echo "$script" > "/usr/share/takitanmanager/${nama}-customscript.sh"
+                sleep 1
+                chmod +x "/usr/share/takitanmanager/${nama}-customscript.sh"
+                sleep 1
+                bash "/usr/share/takitanmanager/${nama}-customscript.sh"
+                if [ "$(uci get rakitanmanager.telegram.enabled)" = "1" ]; then
+                    curl -s -X POST https://api.telegram.org/bot$TOKEN_ID/sendMessage -d chat_id=$CHAT_ID -d text="$CUSTOM_MESSAGE" > /dev/null
                 fi
             fi
         fi
@@ -308,7 +330,7 @@ main() {
 
     # Loop through each modem and perform actions
     for ((i = 0; i < ${#jenis_modem[@]}; i++)); do
-        perform_ping "${nama_modem[$i]}" "${jenis_modem[$i]}" "${metodeping_modem[$i]}" "${hostbug_modem[$i]}" "${androidid_modem[$i]}" "${devicemodem_modem[$i]}" "${delayping_modem[$i]}" "${apn_modem[$i]}" "${port_modem[$i]}" "${interface_modem[$i]}" "${iporbit_modem[$i]}" "${usernameorbit_modem[$i]}" "${passwordorbit_modem[$i]}" &
+        perform_ping "${nama_modem[$i]}" "${jenis_modem[$i]}" "${metodeping_modem[$i]}" "${hostbug_modem[$i]}" "${androidid_modem[$i]}" "${devicemodem_modem[$i]}" "${delayping_modem[$i]}" "${apn_modem[$i]}" "${port_modem[$i]}" "${interface_modem[$i]}" "${iporbit_modem[$i]}" "${usernameorbit_modem[$i]}" "${passwordorbit_modem[$i]}" "${script_modem[$i]}" &
     done
 }
 
