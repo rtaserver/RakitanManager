@@ -140,7 +140,6 @@ finish(){
 }
 
 gagal_install(){
-    fix_sh
     clear
     echo ""
     echo -e "${CLCyan}===================================="
@@ -252,7 +251,7 @@ download_packages() {
             if ! pip3 install logging; then
                 echo -e "${CLRed}Error installing package 'logging'"
                 echo -e "${CLRed}Setup Gagal | Mohon Coba Kembali"
-                exit 1  # Keluar dari skrip dengan status error
+                gagal_install "pip3 logging"
             fi
         else
             echo -e "${CLGreen}Package 'logging' already installed"
@@ -313,6 +312,8 @@ install_upgrade_dev() {
     else
         echo "RakitanManager is not running."
     fi
+    download_packages
+    sleep 1
     download_packages
     sleep 1
     clear
