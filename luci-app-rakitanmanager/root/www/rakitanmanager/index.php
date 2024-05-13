@@ -363,6 +363,7 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                                                     <tr>
                                                         <th scope="col">Nama</th>
                                                         <th scope="col">Jenis Modem</th>
+                                                        <th scope="col">Metode</th>
                                                         <th scope="col">Host</th>
                                                         <th scope="col">Action</th>
                                                     </tr>
@@ -372,6 +373,7 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                                                         <tr>
                                                             <td><?= $modem["nama"] ?></td>
                                                             <td><?= $modem["jenis"] ?></td>
+                                                            <td><?= $modem["metodeping"] ?></td>
                                                             <td><?= $modem["hostbug"] ?></td>
                                                             <td>
                                                                 <button type="button" class="btn btn-primary btn-sm"

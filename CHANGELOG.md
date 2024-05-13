@@ -1,5 +1,8 @@
 # What's New!
 
+**Changelog** (Pengembangan 13-05-2024):
+- Add Ping Method on Dashboard
+
 **Changelog** (v0.00.17-beta 12-05-2024):
 - Fix Logic
 - Add Time Ping For HTTP
