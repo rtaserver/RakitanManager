@@ -314,8 +314,6 @@ install_upgrade_dev() {
     fi
     download_packages
     sleep 1
-    download_packages
-    sleep 1
     clear
     echo "Downloading files from repo Dev..."
     
