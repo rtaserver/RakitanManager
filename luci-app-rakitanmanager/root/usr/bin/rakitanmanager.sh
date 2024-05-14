@@ -232,6 +232,7 @@ perform_ping() {
 
         if [ "$status_Internet" = false ]; then
             if [ "$jenis" = "rakitan" ]; then
+                new_rakitan_ip=""
                 log "[$jenis - $nama] Internet mati. Percobaan $attempt/$max_attempts"
                 if [ "$attempt" = "1" ]; then
                     log "[$jenis - $nama] Mengaktifkan Mode Pesawat"
@@ -283,6 +284,7 @@ perform_ping() {
                     curl -s -X POST https://api.telegram.org/bot$TOKEN_ID/sendMessage -d chat_id=$CHAT_ID -d text="$CUSTOM_MESSAGE" > /dev/null
                 fi
             elif [ "$jenis" = "hp" ]; then
+                new_ip_hp=""
                 $RAKITANPLUGINS/adb-refresh-network.sh $androidid
                 sleep 3
                 new_ip_hp=$(adb shell ip addr show rmnet_data0 | grep 'inet ' | awk '{print $2}' | cut -d / -f 1)
@@ -296,6 +298,7 @@ perform_ping() {
                     curl -s -X POST https://api.telegram.org/bot$TOKEN_ID/sendMessage -d chat_id=$CHAT_ID -d text="$CUSTOM_MESSAGE" > /dev/null
                 fi
             elif [ "$jenis" = "orbit" ]; then
+                new_ip_orbit=""
                 if python3 /usr/bin/modem-orbit.py $iporbit $usernameorbit $passwordorbit; then
                     new_ip_orbit="IP Changed"
                  else
