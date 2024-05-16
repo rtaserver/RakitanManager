@@ -28,7 +28,7 @@ CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[DEVICE_BOARD\]/$DEVICE_BOARD/
 
 send_message() {
     local message="$1"
-    curl -s -X POST https://api.telegram.org/bot$TOKEN_ID/sendMessage -d chat_id=$CHAT_ID -d text="$message" > /dev/null
+    curl --max-time 5 -s -X POST https://api.telegram.org/bot$TOKEN_ID/sendMessage -d chat_id=$CHAT_ID -d text="$message" > /dev/null
 }
 
 RAKITANPLUGINS="/usr/share/rakitanmanager/plugins"
@@ -106,7 +106,7 @@ perform_ping() {
     devicemodem="${6:-}"
     delayping="${7:-}"
     if [ -z "$delayping" ]; then
-	    delayping="10"
+	    delayping="1"
     fi
     apn="${8:-}"
     portmodem="${9:-}"
@@ -116,12 +116,11 @@ perform_ping() {
     passwordorbit="${13:-}"
     script="${14:-}"
 
-    max_attempts=5
     attempt=1
 
     while true; do
         log_size=$(wc -c < "$log_file")
-        max_size=$((2 * 2048))
+        max_size=$((2 * 5000))
         if [ "$log_size" -gt "$max_size" ]; then
             # Kosongkan isi file log
             echo -n "" > "$log_file"
@@ -232,94 +231,57 @@ perform_ping() {
 
         if [ "$status_Internet" = false ]; then
             if [ "$jenis" = "rakitan" ]; then
-                new_rakitan_ip=""
-                log "[$jenis - $nama] Internet mati. Percobaan $attempt/$max_attempts"
-                if [ "$attempt" = "1" ]; then
-                    log "[$jenis - $nama] Mengaktifkan Mode Pesawat"
-                    echo AT+CFUN=4 | atinout - "$portmodem" -
-                elif [ "$attempt" = "2" ]; then
-                    log "[$jenis - $nama] Mencoba Menghubungkan Kembali Modem Dengan APN : $apn"
-                    modem_info=$(mmcli -L)
-                    modem_number=$(echo "$modem_info" | awk -F 'Modem/' '{print $2}' | awk '{print $1}')
-                    mmcli -m "$modem_number" --simple-connect="apn=$apn"
-                    ifdown "$interface"
-                    sleep 3
-                    ifup "$interface"
-                elif [ "$attempt" = "3" ]; then
-                    log "[$jenis - $nama] Restart Modem Manager"
-                    /etc/init.d/modemmanager restart
-                elif [ "$attempt" = "4" ]; then
-                    log "[$jenis - $nama] Mencoba Menghubungkan Kembali Modem Dengan APN : $apn"
-                    modem_info=$(mmcli -L)
-                    modem_number=$(echo "$modem_info" | awk -F 'Modem/' '{print $2}' | awk '{print $1}')
-                    mmcli -m "$modem_number" --simple-connect="apn=$apn"
-                    ifdown "$interface"
-                    sleep 5
-                    ifup "$interface"
-                fi
-
+                case $attempt in
+                    1) log "[$jenis - $nama] Gagal PING | Cek 1 / 2" ;;
+                    2) log "[$jenis - $nama] Gagal PING | Cek 2 / 2" ;;
+                    3)
+                        log "[$jenis - $nama] Mengaktifkan Mode Pesawat"
+                        echo AT+CFUN=4 | atinout - "$portmodem" -
+                        sleep 20
+                        new_rakitan_ip=$(ifconfig $devicemodem | grep inet | grep -v inet6 | awk '{print $2}' | awk -F : '{print $2}')
+                        [ -z "$new_rakitan_ip" ] && new_rakitan_ip="Tidak Ada IP"
+                        log "[$jenis - $nama] New IP: $new_rakitan_ip"
+                        TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/$new_rakitan_ip/g" -e "s/\[NAMAMODEM\]/$nama/g")
+                        if [ "$(uci get rakitanmanager.telegram.enabled)" = "1" ]; then
+                            send_message "$TGMSG"
+                        fi
+                        ;;
+                    4)
+                        log "[$jenis - $nama] Restart Modem Dijalankan"
+                        echo AT^RESET | atinout - "$portmodem" -
+                        sleep 20
+                        new_rakitan_ip=$(ifconfig $devicemodem | grep inet | grep -v inet6 | awk '{print $2}')
+                        [ -z "$new_rakitan_ip" ] && new_rakitan_ip="Tidak Ada IP"
+                        log "[$jenis - $nama] New IP: $new_rakitan_ip"
+                        TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/$new_rakitan_ip/g" -e "s/\[NAMAMODEM\]/$nama/g")
+                        if [ "$(uci get rakitanmanager.telegram.enabled)" = "1" ]; then
+                            send_message "$TGMSG"
+                        fi
+                        ;;
+                esac
                 attempt=$((attempt + 1))
-
-                if [ $attempt -ge $max_attempts ]; then
-                    log "[$jenis - $nama] Upaya maksimal tercapai. Internet masih mati. Restart modem akan dijalankan"
-                    echo AT^RESET | atinout - "$portmodem" - || echo AT+CFUN=1,1 | atinout - "$portmodem" -
-                    sleep 20 && ifdown "$interface" && ifup "$interface"
-                    attempt=1
-                    sleep 5
-                    new_rakitan_ip=$(ifconfig $devicemodem | grep inet | grep -v inet6 | awk '{print $2}' | awk -F : '{print $2}')
-                    log "[$jenis - $nama] New IP: $new_rakitan_ip"
-                    CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/$new_rakitan_ip/g")
-                    CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[NAMAMODEM\]/$nama/g")
-                    if [ "$(uci get rakitanmanager.telegram.enabled)" = "1" ]; then
-                        curl -s -X POST https://api.telegram.org/bot$TOKEN_ID/sendMessage -d chat_id=$CHAT_ID -d text="$CUSTOM_MESSAGE" > /dev/null
-                    fi
-                fi
-
-                sleep 5
-                new_rakitan_ip=$(ifconfig $devicemodem | grep inet | grep -v inet6 | awk '{print $2}' | awk -F : '{print $2}')
-                log "[$jenis - $nama] New IP: $new_rakitan_ip"
-                CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/$new_rakitan_ip/g")
-                CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[NAMAMODEM\]/$nama/g")
-                if [ "$(uci get rakitanmanager.telegram.enabled)" = "1" ]; then
-                    curl -s -X POST https://api.telegram.org/bot$TOKEN_ID/sendMessage -d chat_id=$CHAT_ID -d text="$CUSTOM_MESSAGE" > /dev/null
-                fi
             elif [ "$jenis" = "hp" ]; then
-                new_ip_hp=""
+                log "[$jenis - $nama] Melakukan Refresh Network"
                 $RAKITANPLUGINS/adb-refresh-network.sh $androidid
                 sleep 3
-                new_ip_hp=$(adb shell ip addr show rmnet_data0 | grep 'inet ' | awk '{print $2}' | cut -d / -f 1)
-                if [ -z "$new_ip_hp" ]; then
-	                new_ip_hp=$(adb shell ip addr show rmnet_data1 | grep 'inet ' | awk '{print $2}' | cut -d / -f 1)
-                fi
-                log "[$jenis - $nama] New IP = $new_ip_hp"
-                CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/$new_ip_hp/g")
-                CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[NAMAMODEM\]/$nama/g")
+                TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/Changed/g" -e "s/\[NAMAMODEM\]/$nama/g")
                 if [ "$(uci get rakitanmanager.telegram.enabled)" = "1" ]; then
-                    curl -s -X POST https://api.telegram.org/bot$TOKEN_ID/sendMessage -d chat_id=$CHAT_ID -d text="$CUSTOM_MESSAGE" > /dev/null
+                    send_message "$TGMSG"
                 fi
             elif [ "$jenis" = "orbit" ]; then
-                new_ip_orbit=""
-                if python3 /usr/bin/modem-orbit.py $iporbit $usernameorbit $passwordorbit; then
-                    new_ip_orbit="IP Changed"
-                 else
-                    /usr/bin/rakitanhilink.sh iphunter
-                    new_ip_orbit="IP Changed"
-                fi
-                log "[$jenis - $nama] New IP $new_ip_orbit"
-                CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[IP\]/$new_ip_orbit/g")
-                CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[NAMAMODEM\]/$nama/g")
+                log "[$jenis - $nama] Melakukan Refresh Network"
+                python3 /usr/bin/modem-orbit.py "$iporbit" "$usernameorbit" "$passwordorbit" || /usr/bin/rakitanhilink.sh iphunter || curl -d "isTest=false&goformId=REBOOT_DEVICE" -X POST http://$iporbit/reqproc/proc_post
+                sleep 10
+                TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/Changed/g" -e "s/\[NAMAMODEM\]/$nama/g")
                 if [ "$(uci get rakitanmanager.telegram.enabled)" = "1" ]; then
-                    curl -s -X POST https://api.telegram.org/bot$TOKEN_ID/sendMessage -d chat_id=$CHAT_ID -d text="$CUSTOM_MESSAGE" > /dev/null
+                    send_message "$TGMSG"
                 fi
             elif [ "$jenis" = "customscript" ]; then
-                echo "$script" > "/usr/share/takitanmanager/${nama}-customscript.sh"
-                sleep 1
-                chmod +x "/usr/share/takitanmanager/${nama}-customscript.sh"
-                sleep 1
-                bash "/usr/share/takitanmanager/${nama}-customscript.sh"
-                if [ "$(uci get rakitanmanager.telegram.enabled)" = "1" ]; then
-                    curl -s -X POST https://api.telegram.org/bot$TOKEN_ID/sendMessage -d chat_id=$CHAT_ID -d text="$CUSTOM_MESSAGE" > /dev/null
-                fi
+                log "[$jenis - $nama] Menjalankan Custom Script"
+                echo "$script" > /usr/share/rakitanmanager/${nama}-customscript.sh
+                chmod +x /usr/share/rakitanmanager/${nama}-customscript.sh
+                /usr/share/rakitanmanager/${nama}-customscript.sh
+                sleep 10
             fi
         fi
         sleep "$delayping"

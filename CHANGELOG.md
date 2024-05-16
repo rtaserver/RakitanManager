@@ -1,7 +1,11 @@
 # What's New!
 
-**Changelog** (Pengembangan 13-05-2024):
+**Changelog** (Pengembangan 16-05-2024):
 - Add Ping Method on Dashboard
+- Fixed Script
+- Beta Test orbit CPE20
+- Change Structure
+Langsung Lapor Jika Menemukan Bug :)
 
 **Changelog** (v0.00.17-beta 12-05-2024):
 - Fix Logic

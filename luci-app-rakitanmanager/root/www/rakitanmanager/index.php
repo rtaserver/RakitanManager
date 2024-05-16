@@ -106,11 +106,8 @@ if (isset($_POST['enable'])) {
     shell_exec('/usr/bin/rakitanmanager.sh -s');
     exec("uci set rakitanmanager.cfg.enabled='1' && uci commit rakitanmanager");
 } elseif (isset($_POST['disable'])) {
-    exec('killall -9 rakitanmanager.sh');
+    shell_exec('/usr/bin/rakitanmanager.sh -k');
     exec("uci set rakitanmanager.cfg.enabled='0' && uci commit rakitanmanager");
-    exec('rm /var/log/rakitanmanager.log');
-    $log_message = shell_exec("date '+%Y-%m-%d %H:%M:%S'") . " - Script Telah Di Nonaktifkan\n";
-    file_put_contents('/var/log/rakitanmanager.log', $log_message, FILE_APPEND);
 }
 
 
@@ -538,7 +535,7 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                                                                 <label for="delayping">Jeda Waktu Detik | Sebelum
                                                                     Melanjutkan Cek PING:</label>
                                                                 <input type="number" id="delayping" name="delayping"
-                                                                    class="form-control" placeholder="15" value="20">
+                                                                    class="form-control" placeholder="1" value="3">
                                                             </div>
                                                         </div>
                                                         <div class="modal-footer">
@@ -693,7 +690,7 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                                                                     Melanjutkan Cek PING:</label>
                                                                 <input type="number" id="edit_delayping"
                                                                     name="edit_delayping" class="form-control"
-                                                                    placeholder="15">
+                                                                    placeholder="1">
                                                             </div>
                                                         </div>
                                                         <div class="modal-footer">
