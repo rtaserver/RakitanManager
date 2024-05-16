@@ -160,14 +160,17 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
         $(document).ready(function () {
             var previousContent = "";
             setInterval(function () {
-                $.get("log.php", function (data) {
-                    // Jika konten berubah, lakukan update dan scroll
+                $.get("log.php")
+                .done(function (data) {
                     if (data !== previousContent) {
                         previousContent = data;
                         $("#logContent").html(data);
                         var elem = document.getElementById('logContent');
                         elem.scrollTop = elem.scrollHeight;
                     }
+                })
+                .fail(function(jqXHR, textStatus, errorThrown) {
+                    console.error("Gagal mengambil log: " + textStatus, errorThrown);
                 });
             }, 1000);
 
