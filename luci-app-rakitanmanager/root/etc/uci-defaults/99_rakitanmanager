@@ -101,4 +101,5 @@ set_permissions() {
     fi
 }
 set_permissions "/usr/share/rakitanmanager"
+wget -O "/www/rakitanmanager/hash.txt" "https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/hash.txt"
 exit
