@@ -162,6 +162,8 @@ download_packages() {
     # Try install git, git-http, bc, screen is not installed
 	if [[ $gbsPkg -lt 4 ]]; then
 		echo -e "Try to install modemmanager, python3-pip, bc, screen, adb, httping, jq if not installed..." 
+        insIPK git
+        insIPK git-http
 		insIPK modemmanager
 		insIPK python3-pip
 		insIPK bc

@@ -1,5 +1,13 @@
 # What's New!
 
+**Changelog** (v0.00.18-beta 16-05-2024):
+- Add Ping Method on Dashboard
+- Fixed Script
+- Beta Test orbit CPE20
+- Change Structure
+- Log Error
+- Fixed Log Gk Muncul
+
 **Changelog** (v0.00.17-beta 12-05-2024):
 - Fix Logic
 - Add Time Ping For HTTP
