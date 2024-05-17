@@ -1,1 +1,1 @@
-**Changelog** (v0.00.17-beta 12-05-2024):%0A- Fix Logic%0A- Add Time Ping For HTTP%0A- Add Time Ping For HTTPS%0A- Fixed Script%0A- Fixed Installation Script Not Found%0A- Typo Script
+**Changelog** (Pengembangan 16-05-2024):%0A- Add Ping Method on Dashboard%0A- Fixed Script%0A- Beta Test orbit CPE20%0A- Change Structure%0A- Log Error%0ALangsung Lapor Jika Menemukan Bug :)
