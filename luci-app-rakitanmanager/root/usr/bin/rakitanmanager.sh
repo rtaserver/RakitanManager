@@ -26,10 +26,63 @@ CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[DEVICE_PROCESSOR\]/$DEVICE_PR
 CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[DEVICE_MODEL\]/$DEVICE_MODEL/g")
 CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[DEVICE_BOARD\]/$DEVICE_BOARD/g")
 
+
+
+# Fungsi untuk mengirim pesan balasan
 send_message() {
     local message="$1"
-    curl --max-time 5 -s -X POST https://api.telegram.org/bot$TOKEN_ID/sendMessage -d chat_id=$CHAT_ID -d text="$message" > /dev/null
+    curl -s -X POST "https://api.telegram.org/bot$TOKEN/sendMessage" -d "chat_id=$CHAT_ID" -d "text=$message" >/dev/null
 }
+
+# Fungsi untuk menangani pesan
+handle_message() {
+    local update_id="$1"
+    local message="$2"
+    local chat_id="$3"
+
+    # Memeriksa pesan untuk command tertentu
+    case "$message" in
+        "/start")
+            send_message "Halo! Saya adalah bot yang sederhana."
+            ;;
+        "/info")
+            send_message "Ini adalah informasi."
+            ;;
+        "/help")
+            send_message "Daftar perintah yang tersedia:\n/start - Memulai bot\n/info - Mendapatkan informasi\n/help - Menampilkan pesan bantuan"
+            ;;
+        *)
+            send_message "Maaf, saya tidak mengerti perintah tersebut. Ketik /help untuk melihat daftar perintah yang tersedia."
+            ;;
+    esac
+}
+
+if [ "$(uci get rakitanmanager.telegram.enabled)" = "1" ]; then
+    send_message "Welcome | Bot Telegram Telah Aktif"
+    # Main loop
+    update_id=0
+    while true; do
+        # Mengambil update terbaru dari API Telegram
+        response=$(curl -s "https://api.telegram.org/bot$TOKEN_ID/getUpdates?offset=$((update_id + 1))")
+        message=$(echo "$response" | jq -r ".result | .[].message.text // empty")
+        chat_id=$(echo "$response" | jq -r ".result | .[].message.chat.id // empty")
+        new_update_id=$(echo "$response" | jq -r ".result | .[].update_id // empty")
+        
+
+        # Memeriksa apakah pesan baru
+        if [ -n "$message" ] && [ -n "$chat_id" ] && [ "$new_update_id" != "$update_id" ]; then
+            update_id="$new_update_id"
+            # Memeriksa apakah pengirim pesan diizinkan
+            if [ "$chat_id" = "$CHAT_ID" ]; then
+                handle_message "$update_id" "$message" "$chat_id"
+            else
+                send_message "$chat_id" "Maaf, Anda tidak diizinkan menggunakan bot ini."
+            fi
+        fi
+        sleep 1
+    done
+fi
+
 
 RAKITANPLUGINS="/usr/share/rakitanmanager/plugins"
 test_bot() {
@@ -56,26 +109,6 @@ androidid_modem=()
 devicemodem_modem=()
 delayping_modem=()
 script_modem=()
-
-
-send_telegram() { #$1 Token - $2 Chat ID - $3 Nama Modem - $4 New IP
-    TOKEN="$1"
-    CHAT_ID="$2"
-    MESSAGE="====== RAKITAN MANAGER ======\nModem : $3\nNew IP : $4"
-    MESSAGE=$(echo "$MESSAGE" | sed 's/"/\\"/g')
-    curl_response=$(curl -s -X POST \
-        "https://api.telegram.org/bot$TOKEN/sendMessage" \
-        -d "chat_id=$CHAT_ID" \
-        -d "text=$MESSAGE" \
-        -H "Content-Type: application/json"
-    )
-    if [[ "$curl_response" == *"\"ok\":true"* ]]; then
-        log "Pesan telah berhasil terkirim."
-    else
-        log "Gagal mengirim pesan. Periksa token bot dan ID grup Anda."
-    fi
-}
-
 
 parse_json() {
     modems=$(jq -r '.modems | length' "$json_file")

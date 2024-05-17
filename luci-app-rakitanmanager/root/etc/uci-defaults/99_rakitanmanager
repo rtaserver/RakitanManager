@@ -88,8 +88,6 @@ if [ -f "$mm3" ]; then
     chmod +x /usr/lib/ModemManager/connection.d/10-report-down-and-reconnect
 fi
 
-echo "Setup ModemManager Done"
-
 set_permissions() {
     local directory="$1"
     if [ -d "$directory" ]; then
