@@ -146,10 +146,10 @@ token=$(echo "$data" | grep "TokInfo" | cut -b 10-41)
 check=$(curl -s http://$ipmodem/api/user/state-login -H "Host: $ipmodem" -H "Connection: keep-alive" -H "Accept: */*" -H "X-Requested-With: XMLHttpRequest" -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36" -H "Referer: http://$ipmodem/html/home.html" -H "Accept-Encoding: gzib, deflate" -H "Accept-Language: id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7" -H "Cookie: $sesi")
 state=$(echo $check|awk -F "<State>" '{print $2}'|awk -F "</State>" '{print $1}')
 type=$(echo $check|awk -F "<password_type>" '{print $2}'|awk -F "</password_type>" '{print $1}')
-if [ $state = "0" ]; then
+if [ "$state" = "0" ]; then
   echo "Activated Successfully";
 else
-  if [ $type = "4" ]; then
+  if [ "$type" = "4" ]; then
     pass1=$(echo -n "$pass"|sha256sum|head -c 64|base64 -w 0)
     pass1=$(echo -n "admin$pass1$token"|sha256sum|head -c 64|base64 -w 0)
     pass1=$(echo -n "$pass1</Password><password_type>4</password_type>")

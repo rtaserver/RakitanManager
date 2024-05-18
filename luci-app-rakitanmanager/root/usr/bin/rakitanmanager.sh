@@ -186,11 +186,12 @@ perform_ping() {
             if [ "$jenis" = "rakitan" ]; then
                 case $attempt in
                     $cobaping)
+                        unset new_rakitan_ip
                         log "[$jenis - $nama] Gagal PING | Renew IP Started"
                         echo AT+CFUN=4 | atinout - "$portmodem" - >/dev/null
                         log "[$jenis - $nama] Renew IP Sukses"
                         sleep 10
-                        local new_rakitan_ip=$(ifconfig $devicemodem | grep inet | grep -v inet6 | awk '{print $2}' | awk -F : '{print $2}')
+                        new_rakitan_ip=$(ifconfig $devicemodem | grep inet | grep -v inet6 | awk '{print $2}' | awk -F : '{print $2}')
                         [ -z "$new_rakitan_ip" ] && new_rakitan_ip="Tidak Ada IP"
                         log "[$jenis - $nama] New IP: $new_rakitan_ip"
                         TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/$new_rakitan_ip/g" -e "s/\[NAMAMODEM\]/$nama/g")
@@ -199,11 +200,12 @@ perform_ping() {
                         fi
                         ;;
                     $((cobaping + 1)))
+                        unset new_rakitan_ip
                         log "[$jenis - $nama] Gagal PING | Restart Modem Started"
                         echo AT^RESET | atinout - "$portmodem" - >/dev/null
                         log "[$jenis - $nama] Restart Modem Sukses"
                         sleep 20
-                        local new_rakitan_ip=$(ifconfig $devicemodem | grep inet | grep -v inet6 | awk '{print $2}')
+                        new_rakitan_ip=$(ifconfig $devicemodem | grep inet | grep -v inet6 | awk '{print $2}')
                         [ -z "$new_rakitan_ip" ] && new_rakitan_ip="Tidak Ada IP"
                         log "[$jenis - $nama] New IP: $new_rakitan_ip"
                         TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/$new_rakitan_ip/g" -e "s/\[NAMAMODEM\]/$nama/g")
@@ -215,40 +217,44 @@ perform_ping() {
             elif [ "$jenis" = "hp" ]; then
                 case $attempt in
                     $cobaping)
-                    log "[$jenis - $nama] Gagal PING | Restart Network Started"
-                    $RAKITANPLUGINS/adb-refresh-network.sh $androidid >/dev/null
-                    log "[$jenis - $nama] Gagal PING | Restart Network Sukses"
-                    sleep 10
-                    local new_hp_ip=$($RAKITANPLUGINS/adb-refresh-network.sh $androidid myip)
-                    log "[$jenis - $nama] New IP: $new_hp_ip"
-                    TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/$new_hp_ip/g" -e "s/\[NAMAMODEM\]/$nama/g")
-                    if [ "$(uci get rakitanmanager.telegram.enabled)" = "1" ]; then
-                        send_message "$TGMSG"
-                    fi
-                    ;;
+                        unset new_hp_ip
+                        log "[$jenis - $nama] Gagal PING | Restart Network Started"
+                        $RAKITANPLUGINS/adb-refresh-network.sh $androidid >/dev/null
+                        log "[$jenis - $nama] Gagal PING | Restart Network Sukses"
+                        sleep 10
+                        new_hp_ip=$($RAKITANPLUGINS/adb-refresh-network.sh $androidid myip)
+                        log "[$jenis - $nama] New IP: $new_hp_ip"
+                        TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/$new_hp_ip/g" -e "s/\[NAMAMODEM\]/$nama/g")
+                        if [ "$(uci get rakitanmanager.telegram.enabled)" = "1" ]; then
+                            send_message "$TGMSG"
+                        fi
+                        ;;
                 esac
             elif [ "$jenis" = "orbit" ]; then
                 case $attempt in
                     $cobaping)
-                    log "[$jenis - $nama] Gagal PING | Restart Network Started"
-                    python3 /usr/bin/modem-orbit.py "$iporbit" "$usernameorbit" "$passwordorbit" >/dev/null || /usr/bin/rakitanhilink.sh iphunter >/dev/null || curl -d "isTest=false&goformId=REBOOT_DEVICE" -X POST http://$iporbit/reqproc/proc_post >/dev/null
-                    log "[$jenis - $nama] Gagal PING | Restart Network Sukses"
-                    sleep 10
-                    TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/Changed/g" -e "s/\[NAMAMODEM\]/$nama/g")
-                    if [ "$(uci get rakitanmanager.telegram.enabled)" = "1" ]; then
-                        send_message "$TGMSG"
-                    fi
-                    ;;
+                        unset orbitresult
+                        unset new_ip_orbit
+                        log "[$jenis - $nama] Gagal PING | Restart Network Started"
+                        orbitresult=$(python3 /usr/bin/modem-orbit.py "$iporbit" "$usernameorbit" "$passwordorbit" || /usr/bin/rakitanhilink.sh iphunter || curl -d "isTest=false&goformId=REBOOT_DEVICE" -X POST http://$iporbit/reqproc/proc_post)
+                        log "[$jenis - $nama] Gagal PING | Restart Network Sukses"
+                        sleep 10
+                        new_ip_orbit=$(echo "$orbitresult" | grep "New IP" | awk -F": " '{print $2}')
+                        TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/$new_ip_orbit/g" -e "s/\[NAMAMODEM\]/$nama/g")
+                        if [ "$(uci get rakitanmanager.telegram.enabled)" = "1" ]; then
+                            send_message "$TGMSG"
+                        fi
+                        ;;
                 esac
             elif [ "$jenis" = "customscript" ]; then
                 case $attempt in
                     $cobaping)
-                    log "[$jenis - $nama] Gagal PING | Custom Script Started"
-                    echo "$script" > /usr/share/rakitanmanager/${nama}-customscript.sh
-                    chmod +x /usr/share/rakitanmanager/${nama}-customscript.sh
-                    /usr/share/rakitanmanager/${nama}-customscript.sh
-                    sleep 10
-                    ;;
+                        log "[$jenis - $nama] Gagal PING | Custom Script Started"
+                        echo "$script" > /usr/share/rakitanmanager/${nama}-customscript.sh
+                        chmod +x /usr/share/rakitanmanager/${nama}-customscript.sh
+                        /usr/share/rakitanmanager/${nama}-customscript.sh
+                        sleep 10
+                        ;;
                 esac
             fi
             attempt=$((attempt + 1))
