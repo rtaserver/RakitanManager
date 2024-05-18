@@ -31,7 +31,7 @@ CUSTOM_MESSAGE=$(echo "$CUSTOM_MESSAGE" | sed "s/\[DEVICE_BOARD\]/$DEVICE_BOARD/
 # Fungsi untuk mengirim pesan balasan
 send_message() {
     local message="$1"
-    curl -s -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" -d "chat_id=$CHAT_ID" -d "text=$message" >/dev/null
+    curl -s -X POST "https://api.telegram.org/bot$TOKEN_ID/sendMessage" -d "chat_id=$CHAT_ID" -d "text=$message" >/dev/null
 }
 
 RAKITANPLUGINS="/usr/share/rakitanmanager/plugins"
@@ -189,7 +189,7 @@ perform_ping() {
                         log "[$jenis - $nama] Gagal PING | Renew IP Started"
                         echo AT+CFUN=4 | atinout - "$portmodem" - >/dev/null
                         log "[$jenis - $nama] Renew IP Sukses"
-                        sleep 20
+                        sleep 10
                         local new_rakitan_ip=$(ifconfig $devicemodem | grep inet | grep -v inet6 | awk '{print $2}' | awk -F : '{print $2}')
                         [ -z "$new_rakitan_ip" ] && new_rakitan_ip="Tidak Ada IP"
                         log "[$jenis - $nama] New IP: $new_rakitan_ip"
