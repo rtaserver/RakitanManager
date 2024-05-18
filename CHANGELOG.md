@@ -6,6 +6,7 @@
 - Penambahan Cek Untuk Gagal Ping
 - Perbaikan Restart IP HP
 - Mengganti Beberapa Logika Dalam Script
+- Typo Tele Script
 
 **Changelog** (v0.00.18-beta 16-05-2024):
 - Add Ping Method on Dashboard
