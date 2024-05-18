@@ -1,1 +1,1 @@
-**Changelog** (v0.00.19-beta 18-05-2024):%0A- Fix Kirim Telegram | Typo%0A- Ganti Ping TCP Ke CURL%0A- Penambahan Cek Untuk Gagal Ping%0A- Perbaikan Restart IP HP%0A- Mengganti Beberapa Logika Dalam Script%0A- Typo Tele Script
+**Changelog** (v0.00.19-beta 18-05-2024):%0A- Fix Kirim Telegram | Typo%0A- Ganti Ping TCP Ke CURL%0A- Penambahan Cek Untuk Gagal Ping%0A- Perbaikan Restart IP HP%0A- Mengganti Beberapa Logika Dalam Script%0A- Typo Tele Script%0A- Perbaikan Script Modem Hilink (Update)%0A- Merubah Beberapa Script (Update)
