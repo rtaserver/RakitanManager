@@ -1,7 +1,8 @@
+
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-rakitanmanager
-PKG_VERSION:=0.00.22
+PKG_VERSION:=0.00.23
 PKG_RELEASE:=beta
 PKG_MAINTAINER:=rtaserver <https://github.com/rtaserver/RakitanManager>
 
@@ -51,8 +52,10 @@ endef
 
 define Package/$(PKG_NAME)/preinst
 #!/bin/sh
-	if [ -f "/www/rakitanmanager/data_modem.json" ]; then
-		rm -rf /www/rakitanmanager/ >/dev/null 2>&1
+	if [ -f "/etc/config/rakitanmanager" ]; then
+		cp -f "/etc/config/rakitanmanager" "/tmp/rakitanmanager.bak" >/dev/null 2>&1
+		cp -f "/www/rakitanmanager/data_modem.json" "/tmp/data_modem.json.bak" >/dev/null 2>&1
+		cp -f "/www/rakitanmanager/bot_message.txt" "/tmp/bot_message.txt.bak" >/dev/null 2>&1
 	fi
 	exit 0
 endef
@@ -78,13 +81,20 @@ define Package/$(PKG_NAME)/prerm
     if [ "$PID1" ]  ; then
         /usr/share/rakitanmanager/core-manager.sh -k
     fi
+	cp -f "/etc/config/rakitanmanager" "/tmp/rakitanmanager.bak" >/dev/null 2>&1
+	cp -f "/www/rakitanmanager/data_modem.json" "/tmp/data_modem.json.bak" >/dev/null 2>&1
+	cp -f "/www/rakitanmanager/bot_message.txt" "/tmp/bot_message.txt.bak" >/dev/null 2>&1
 	exit 0
 endef
 
 define Package/$(PKG_NAME)/postrm
 #!/bin/sh
-	rm -rf /etc/rakitanmanager/ >/dev/null 2>&1
-	rm -rf /www/rakitanmanager/ >/dev/null 2>&1
+	rm -rf /etc/config/rakitanmanager >/dev/null 2>&1
+	rm -rf /etc/init.d/rakitanmanager >/dev/null 2>&1
+	rm -rf /etc/uci-defaults/99_rakitanmanager >/dev/null 2>&1
+	rm -rf /usr/share/rakitanmanager >/dev/null 2>&1
+	rm -rf /tmp/log/rakitanmanager.log >/dev/null 2>&1
+	rm -rf /www/rakitanmanager >/dev/null 2>&1
 	exit 0
 endef
 

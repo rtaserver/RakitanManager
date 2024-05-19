@@ -15,6 +15,7 @@ if [ "$1" = "renew" ]; then
     IP=$(ifconfig "$DEVICEMODEM" | grep inet | grep -v inet6 | awk '{print $2}')
     log "IP Saat Ini: $IP"
     echo AT+CFUN=4 | atinout - "$PORTMODEM" - >/dev/null
+    log "Mohon Tunggu.. Sedang Mendapatkan IP Baru."
     sleep 20
     IP=$(ifconfig "$DEVICEMODEM" | grep inet | grep -v inet6 | awk '{print $2}')
     log "New IP: $IP"
@@ -25,7 +26,7 @@ if [ "$1" = "restart" ]; then
     IP=$(ifconfig "$DEVICEMODEM" | grep inet | grep -v inet6 | awk '{print $2}')
     log "IP Saat Ini: $IP"
     echo AT^RESET | atinout - "$PORTMODEM" - >/dev/null
-    log "Mohon Tunggu :)"
+    log "Mohon Tunggu.. Sedang Mendapatkan IP Baru."
     sleep 35
     IP=$(ifconfig "$DEVICEMODEM" | grep inet | grep -v inet6 | awk '{print $2}')
     log "New IP: $IP"

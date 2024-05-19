@@ -49,6 +49,22 @@ Menggunakan Terminal OpenWrt / TTYD / PuTTY
 bash -c "$(wget -qO - 'https://raw.githubusercontent.com/rtaserver/RakitanManager/dev/install.sh')"
 ```
 
+Features
+---
+ - Auto Reconect Modem Rakitan
+ - Auto Renew IP Modem Orbit
+ - Auto Renew IP Modem Huawei / Hilink
+ - Auto Renew IP Modem HP
+ - Notifikasi Bot Telegram
+ - Host To IP - Domain
+
+  <p align="center">
+    <img src="./assets/ss1.png">
+    <img src="./assets/ss2.png">
+    <img src="./assets/ss3.png">
+    <img src="./assets/ss4.png">
+    <img src="./assets/ss5.png">
+  </p>
 
 lisensi
 ---
