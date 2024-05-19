@@ -8,8 +8,8 @@ log() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - $1"
 }
 
-DEVICEMODEM="$3"
-PORTMODEM="$4"
+DEVICEMODEM="$2"
+PORTMODEM="$3"
 
 if [ "$1" = "renew" ]; then
     IP=$(ifconfig "$DEVICEMODEM" | grep inet | grep -v inet6 | awk '{print $2}')

@@ -1,8 +1,7 @@
 # What's New!
 
 **Changelog** (v0.00.21-beta 19-05-2024):
-- Jangan Di Install Dulu Ya. Masih Tester
-- Gunakan Main Branch Terlebih Dahulu
+- typo Modem Orbit
 
 **Changelog** (v0.00.20-beta 19-05-2024):
 - Fix Kirim Telegram | Typo
