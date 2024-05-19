@@ -103,12 +103,12 @@ if ($modem_count == 0) {
 if (isset($_POST['enable'])) {
     $log_message = shell_exec("date '+%Y-%m-%d %H:%M:%S'") . " - Script Telah Di Aktifkan\n";
     file_put_contents('/var/log/rakitanmanager.log', $log_message, FILE_APPEND);
-    shell_exec('/usr/bin/rakitanmanager.sh -s');
+    shell_exec('/usr/share/rakitanmanager/rakitanmanager.sh -s');
     exec("uci set rakitanmanager.cfg.enabled='1' && uci commit rakitanmanager");
 } elseif (isset($_POST['disable'])) {
     $log_message = shell_exec("date '+%Y-%m-%d %H:%M:%S'") . " - Script Telah Di Berhentikan\n";
     file_put_contents('/var/log/rakitanmanager.log', $log_message, FILE_APPEND);
-    shell_exec('/usr/bin/rakitanmanager.sh -k');
+    shell_exec('/usr/share/rakitanmanager/rakitanmanager.sh -k');
     exec("uci set rakitanmanager.cfg.enabled='0' && uci commit rakitanmanager");
 }
 
@@ -153,8 +153,9 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
     <title>Daftar Modem</title>
     <?php
     include ("head.php");
-    exec('chmod -R 755 /usr/bin/rakitanmanager.sh');
-    exec('chmod -R 755 /usr/bin/modem-orbit.py');
+    exec('chmod -R 755 /usr/share/rakitanmanager/rakitanmanager.sh');
+    exec('chmod -R 755 /usr/share/rakitanmanager/rakitanhilink.sh');
+    exec('chmod -R 755 /usr/share/rakitanmanager/modem-orbit.py');
     ?>
     <script src="lib/vendor/jquery/jquery-3.6.0.slim.min.js"></script>
 
@@ -193,7 +194,7 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
                     var changelogUrl = 'https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/changelog.txt';
                 <?php endif; ?>
                 <?php if ($branch_select == "dev"): ?>
-                    var latestVersionUrl = 'https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/hash.txt';
+                    var latestVersionUrl = 'https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/version';
                     var changelogUrl = 'https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/changelog.txt';
                 <?php endif; ?>
 
@@ -233,8 +234,7 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
                         <?php endif; ?>
                         <?php if ($branch_select == "dev"): ?>
                             var latestVersion = data.split('\n')[0].trim().toLowerCase();
-                            var currentVersion = '<?php echo trim(file_get_contents("hash.txt")); ?>';
-                            var currentVersion = currentVersion.trim();
+                            var currentVersion = '<?php echo trim(file_get_contents("versiondev.txt")); ?>';
 
                             // Periksa jika versi terbaru berbeda dari versi saat ini
                             if (latestVersion && latestVersion !== currentVersion) {

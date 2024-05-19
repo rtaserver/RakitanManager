@@ -1,16 +1,6 @@
 #!/bin/bash
 # set -e
 
-fix_sh() {
-    sed -i 's/\r$//' /usr/bin/rakitanmanager.sh
-    sed -i 's/\r$//' /usr/bin/rakitanhilink.sh
-    sed -i 's/\r$//' /usr/share/rakitanmanager/plugins/adb-deviceinfo.sh
-    sed -i 's/\r$//' /usr/share/rakitanmanager/plugins/adb-refresh-network.sh
-    sed -i 's/\r$//' /usr/share/rakitanmanager/plugins/adb-sms.sh
-    sed -i 's/\r$//' /usr/share/rakitanmanager/plugins/service-openclash.sh
-    sed -i 's/\r$//' /usr/share/rakitanmanager/plugins/systeminfo.sh
-}
-
 oIns="opkg install"
 InsTxt="Installing"
 
@@ -41,9 +31,6 @@ clear
 
 if [ -f "$DIR/rakitanmanager.ipk" ]; then
     rm -rf "$DIR/rakitanmanager.ipk"
-fi
-if [ -f "/usr/bin/rakitanmanager" ]; then
-    rm -rf "/usr/bin/rakitanmanager"
 fi
 
 if [ ! -d "$DIR/rakitanmanager" ]; then
@@ -120,7 +107,6 @@ fi
 sleep 2
 
 finish(){
-    fix_sh
     clear
     echo ""
     echo -e "${CLCyan}===================================="
@@ -263,7 +249,6 @@ download_packages() {
         gagal_install "pip3"
     fi
     echo -e "${CLGreen}Setup Package Sukses"
-    fix_sh
     clear
 }
 
@@ -300,7 +285,6 @@ install_upgrade_main() {
     # Set the branch to 'main' in configuration
     uci set rakitanmanager.cfg.branch='main'
     uci commit rakitanmanager
-    wget -O "/www/rakitanmanager/hash.txt" "https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/hash.txt"
     clear
     sleep 1
     finish
@@ -339,7 +323,6 @@ install_upgrade_dev() {
     # Set the branch to 'dev' in configuration
     uci set rakitanmanager.cfg.branch='dev'
     uci commit rakitanmanager
-    wget -O "/www/rakitanmanager/hash.txt" "https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/hash.txt"
     clear
     sleep 1
     finish

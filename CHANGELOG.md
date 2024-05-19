@@ -1,6 +1,6 @@
 # What's New!
 
-**Changelog** (v0.00.19-beta 19-05-2024):
+**Changelog** (v0.00.20-beta 19-05-2024):
 - Fix Kirim Telegram | Typo
 - Ganti Ping TCP Ke CURL
 - Penambahan Cek Untuk Gagal Ping
@@ -9,7 +9,9 @@
 - Typo Tele Script
 - Perbaikan Script Modem Hilink
 - Merubah Beberapa Script
-- Perbaikan Percobaan Yang Melebihi Jumlah (Update)
+- Perbaikan Percobaan Yang Melebihi Jumlah
+- Memindahkan Core Ke /usr/share/rakitanmanager
+- Mengganti Logic Core
 
 **Changelog** (v0.00.18-beta 16-05-2024):
 - Add Ping Method on Dashboard

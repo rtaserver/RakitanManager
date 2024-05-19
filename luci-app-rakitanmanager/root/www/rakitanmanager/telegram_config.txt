@@ -1,2 +1,0 @@
-token_id=TOKEN
-chat_id=CHATID
