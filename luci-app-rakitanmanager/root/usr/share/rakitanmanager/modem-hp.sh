@@ -42,6 +42,7 @@ do
     	adb -s "$IPX" shell cmd connectivity airplane-mode disable &>/dev/null
     fi
     log "ID [${IPX}] : Penyegaran jaringan selesai...!!"
+    exit 0
 done
 
 if [ "$2" = "myip" ]; then
@@ -56,7 +57,9 @@ if [ "$2" = "myip" ]; then
         # Ambil alamat IP dari baris tersebut
         ip_address=$(echo "$ip_address_line" | awk '{print $2}')
         echo "$ip_address"
+        exit 0
     else
         log "Tidak dapat menemukan alamat IP perangkat."
+        exit 1
     fi
 fi

@@ -1,5 +1,11 @@
 # What's New!
 
+**Changelog** (v0.00.22-beta 19-05-2024):
+- typo Modem Orbit
+- Fix Percobaan Malah Lebih
+- Test Modem MF90
+- Rebuild Core
+
 **Changelog** (v0.00.21-beta 19-05-2024):
 - typo Modem Orbit
 - Test Modem MF90
