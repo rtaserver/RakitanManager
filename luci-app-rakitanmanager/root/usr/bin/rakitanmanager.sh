@@ -205,6 +205,7 @@ perform_ping() {
                         echo AT^RESET | atinout - "$portmodem" - >/dev/null
                         log "[$jenis - $nama] Restart Modem Sukses"
                         sleep 20
+                        attempt=1
                         new_rakitan_ip=$(ifconfig $devicemodem | grep inet | grep -v inet6 | awk '{print $2}')
                         [ -z "$new_rakitan_ip" ] && new_rakitan_ip="Tidak Ada IP"
                         log "[$jenis - $nama] New IP: $new_rakitan_ip"
@@ -222,6 +223,7 @@ perform_ping() {
                         $RAKITANPLUGINS/adb-refresh-network.sh $androidid >/dev/null
                         log "[$jenis - $nama] Gagal PING | Restart Network Sukses"
                         sleep 10
+                        attempt=1
                         new_hp_ip=$($RAKITANPLUGINS/adb-refresh-network.sh $androidid myip)
                         log "[$jenis - $nama] New IP: $new_hp_ip"
                         TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/$new_hp_ip/g" -e "s/\[NAMAMODEM\]/$nama/g")
@@ -239,6 +241,7 @@ perform_ping() {
                         orbitresult=$(python3 /usr/bin/modem-orbit.py "$iporbit" "$usernameorbit" "$passwordorbit" || /usr/bin/rakitanhilink.sh iphunter || curl -d "isTest=false&goformId=REBOOT_DEVICE" -X POST http://$iporbit/reqproc/proc_post)
                         log "[$jenis - $nama] Gagal PING | Restart Network Sukses"
                         sleep 10
+                        attempt=1
                         new_ip_orbit=$(echo "$orbitresult" | grep "New IP" | awk -F": " '{print $2}')
                         TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/$new_ip_orbit/g" -e "s/\[NAMAMODEM\]/$nama/g")
                         if [ "$(uci get rakitanmanager.telegram.enabled)" = "1" ]; then
@@ -254,6 +257,7 @@ perform_ping() {
                         chmod +x /usr/share/rakitanmanager/${nama}-customscript.sh
                         /usr/share/rakitanmanager/${nama}-customscript.sh
                         sleep 10
+                        attempt=1
                         ;;
                 esac
             fi

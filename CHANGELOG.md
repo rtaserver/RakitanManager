@@ -7,8 +7,9 @@
 - Perbaikan Restart IP HP
 - Mengganti Beberapa Logika Dalam Script
 - Typo Tele Script
-- Perbaikan Script Modem Hilink (Update)
-- Merubah Beberapa Script (Update)
+- Perbaikan Script Modem Hilink
+- Merubah Beberapa Script
+- Perbaikan Percobaan Yang Melebihi Jumlah (Update)
 
 **Changelog** (v0.00.18-beta 16-05-2024):
 - Add Ping Method on Dashboard
