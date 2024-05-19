@@ -253,8 +253,8 @@ download_packages() {
 }
 
 install_upgrade_main() {
-    if pidof rakitanmanager.sh > /dev/null; then
-        killall -9 rakitanmanager.sh
+    if pidof core-manager.sh > /dev/null; then
+        killall -9 core-manager.sh
         echo "RakitanManager Berhasil Di Hentikan."
     else
         echo "RakitanManager is not running."
@@ -291,8 +291,8 @@ install_upgrade_main() {
 }
 
 install_upgrade_dev() {
-    if pidof rakitanmanager.sh > /dev/null; then
-        killall -9 rakitanmanager.sh
+    if pidof core-manager.sh > /dev/null; then
+        killall -9 core-manager.sh
         echo "RakitanManager Berhasil Di Hentikan."
     else
         echo "RakitanManager is not running."
@@ -330,8 +330,8 @@ install_upgrade_dev() {
 
 uninstaller() {
 	echo "Menghapus Rakitan Manager"
-    if pidof rakitanmanager.sh > /dev/null; then
-        killall -9 rakitanmanager.sh
+    if pidof core-manager.sh > /dev/null; then
+        killall -9 core-manager.sh
         echo "RakitanManager Berhasil Di Hentikan."
     else
         echo "RakitanManager is not running."

@@ -1,5 +1,8 @@
 # What's New!
 
+**Changelog** (v0.00.21-beta 19-05-2024):
+- typo Modem Orbit
+
 **Changelog** (v0.00.20-beta 19-05-2024):
 - Fix Kirim Telegram | Typo
 - Ganti Ping TCP Ke CURL

@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-rakitanmanager
-PKG_VERSION:=0.00.20
+PKG_VERSION:=0.00.21
 PKG_RELEASE:=beta
 PKG_MAINTAINER:=rtaserver <https://github.com/rtaserver/RakitanManager>
 
@@ -30,8 +30,11 @@ define Build/Prepare
 	sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-beta/g" $(PKG_BUILD_DIR)/root/www/rakitanmanager/versionmain.txt >/dev/null 2>&1
 	sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-beta/g" $(PKG_BUILD_DIR)/root/www/rakitanmanager/versiondev.txt >/dev/null 2>&1
 	chmod 0755 $(PKG_BUILD_DIR)/root/etc/init.d/rakitanmanager
-	chmod 0755 $(PKG_BUILD_DIR)/root/usr/share/rakitanmanager/rakitanmanager.sh
-	chmod 0755 $(PKG_BUILD_DIR)/root/usr/share/rakitanmanager/rakitanhilink.sh
+	chmod 0755 $(PKG_BUILD_DIR)/root/usr/share/rakitanmanager/core-manager.sh
+	chmod 0755 $(PKG_BUILD_DIR)/root/usr/share/rakitanmanager/modem-hilink.sh
+	chmod 0755 $(PKG_BUILD_DIR)/root/usr/share/rakitanmanager/modem-mf90.sh
+	chmod 0755 $(PKG_BUILD_DIR)/root/usr/share/rakitanmanager/modem-hp.sh
+	chmod 0755 $(PKG_BUILD_DIR)/root/usr/share/rakitanmanager/modem-rakitan.sh
   	chmod 0755 $(PKG_BUILD_DIR)/root/usr/share/rakitanmanager/modem-orbit.py
 	chmod 0755 $(PKG_BUILD_DIR)/root/etc/uci-defaults/99_rakitanmanager
 	exit 0
@@ -59,8 +62,11 @@ define Package/$(PKG_NAME)/postinst
 	sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-beta/g" /www/rakitanmanager/curent.svg >/dev/null 2>&1
 	sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-beta/g" /www/rakitanmanager/versionmain.txt >/dev/null 2>&1
 	sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-beta/g" /www/rakitanmanager/versiondev.txt >/dev/null 2>&1
-	chmod 0755 /usr/share/rakitanmanager/rakitanmanager.sh
-	chmod 0755 /usr/share/rakitanmanager/rakitanhilink.sh
+	chmod 0755 /usr/share/rakitanmanager/core-manager.sh
+	chmod 0755 /usr/share/rakitanmanager/modem-hilink.sh
+	chmod 0755 /usr/share/rakitanmanager/modem-mf90.sh
+	chmod 0755 /usr/share/rakitanmanager/modem-hp.sh
+	chmod 0755 /usr/share/rakitanmanager/modem-rakitan.sh
     chmod 0755 /usr/share/rakitanmanager/modem-orbit.py
 	chmod 0755 /etc/init.d/rakitanmanager
 	exit 0
@@ -68,9 +74,9 @@ endef
 
 define Package/$(PKG_NAME)/prerm
 #!/bin/sh
-	PID1=$(pgrep -f /usr/share/rakitanmanager/rakitanmanager.sh)
+	PID1=$(pgrep -f /usr/share/rakitanmanager/core-manager.sh)
     if [ "$PID1" ]  ; then
-        /usr/share/rakitanmanager/rakitanmanager.sh -k
+        /usr/share/rakitanmanager/core-manager.sh -k
     fi
 	exit 0
 endef

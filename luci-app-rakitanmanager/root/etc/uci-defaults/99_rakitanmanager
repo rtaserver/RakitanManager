@@ -64,10 +64,12 @@ else
     exit 1  # Keluar dari skrip dengan status error
 fi
 
-sed -i 's/\r$//' /usr/share/rakitanmanager/rakitanmanager.sh
-sed -i 's/\r$//' /usr/share/rakitanmanager/rakitanhilink.sh
+sed -i 's/\r$//' /usr/share/rakitanmanager/core-manager.sh
+sed -i 's/\r$//' /usr/share/rakitanmanager/modem-hilink.sh
+sed -i 's/\r$//' /usr/share/rakitanmanager/modem-mf90.sh
+sed -i 's/\r$//' /usr/share/rakitanmanager/modem-hp.sh
+sed -i 's/\r$//' /usr/share/rakitanmanager/modem-rakitan.sh
 sed -i 's/\r$//' /usr/share/rakitanmanager/plugins/adb-deviceinfo.sh
-sed -i 's/\r$//' /usr/share/rakitanmanager/plugins/adb-refresh-network.sh
 sed -i 's/\r$//' /usr/share/rakitanmanager/plugins/adb-sms.sh
 sed -i 's/\r$//' /usr/share/rakitanmanager/plugins/service-openclash.sh
 sed -i 's/\r$//' /usr/share/rakitanmanager/plugins/systeminfo.sh

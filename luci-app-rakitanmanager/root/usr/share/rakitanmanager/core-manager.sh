@@ -31,11 +31,11 @@ send_message() {
     fi
 }
 
-RAKITANPLUGINS="/usr/share/rakitanmanager/plugins"
+RAKITANMANAGERDIR="/usr/share/rakitanmanager"
 test_bot() {
     # Kirim pesan uji
     send_message "===============
-$(bash $RAKITANPLUGINS/systeminfo.sh)
+$(bash $RAKITANMANAGERDIR/plugins/systeminfo.sh)
 ==============="
 }
 
@@ -167,16 +167,20 @@ handle_rakitan() {
 
     if [ "$attempt" -eq "$cobaping" ]; then
         log "[$jenis - $nama] Gagal PING | Renew IP Started"
-        echo AT+CFUN=4 | atinout - "$portmodem" - >/dev/null
-        sleep 20
+        "$RAKITANMANAGERDIR/modem-rakitan.sh" renew "$devicemodem" "$portmodem"
         new_ip=$(ifconfig "$devicemodem" | grep inet | grep -v inet6 | awk '{print $2}')
+        if [ -z "$new_ip" ]; then
+            new_ip="Changed"
+        fi
         TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/$new_ip/g" -e "s/\[NAMAMODEM\]/$nama/g")
         send_message "$TGMSG"
     elif [ "$attempt" -eq $((cobaping + 1)) ]; then
         log "[$jenis - $nama] Gagal PING | Restart Modem Started"
-        echo AT^RESET | atinout - "$portmodem" - >/dev/null
-        sleep 30
+        "$RAKITANMANAGERDIR/modem-rakitan.sh" restart "$devicemodem" "$portmodem"
         new_ip=$(ifconfig "$devicemodem" | grep inet | grep -v inet6 | awk '{print $2}')
+        if [ -z "$new_ip" ]; then
+            new_ip="Changed"
+        fi
         TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/$new_ip/g" -e "s/\[NAMAMODEM\]/$nama/g")
         send_message "$TGMSG"
         attempt=1
@@ -189,9 +193,12 @@ handle_hp() {
 
     if [ "$attempt" -eq "$cobaping" ]; then
         log "[$jenis - $nama] Gagal PING | Restart Network Started"
-        "$RAKITANPLUGINS/adb-refresh-network.sh" "$androidid"
+        "$RAKITANMANAGERDIR/modem-hp.sh" "$androidid"
         sleep 30
         new_ip=$(adb -s "$androidid" shell ip route | awk 'NR==1 {print $9}')
+        if [ -z "$new_ip" ]; then
+            new_ip="Changed"
+        fi
         TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/$new_ip/g" -e "s/\[NAMAMODEM\]/$nama/g")
         send_message "$TGMSG"
         attempt=1
@@ -204,9 +211,18 @@ handle_orbit() {
 
     if [ "$attempt" -eq "$cobaping" ]; then
         log "[$jenis - $nama] Gagal PING | Restart Network Started"
-        orbitresult=$(python3 /usr/bin/modem-orbit.py "$iporbit" "$usernameorbit" "$passwordorbit" || /usr/bin/rakitanhilink.sh iphunter || curl -d "isTest=false&goformId=REBOOT_DEVICE" -X POST http://"$iporbit"/reqproc/proc_post)
+        if ! orbitresult=$(python3 "$RAKITANMANAGERDIR/modem-orbit.py" "$iporbit" "$usernameorbit" "$passwordorbit"); then
+            if ! orbitresult=$("$RAKITANMANAGERDIR/modem-hilink.sh" "$iporbit" "$usernameorbit" "$passwordorbit"); then
+                if ! orbitresult=$("$RAKITANMANAGERDIR/modem-mf90.sh" "$iporbit" "$usernameorbit" "$passwordorbit"); then
+                    orbitresult=$(curl -d "isTest=false&goformId=REBOOT_DEVICE" -X POST "http://$iporbit/reqproc/proc_post")
+                fi
+            fi
+        fi
         sleep 30
         new_ip=$(echo "$orbitresult" | grep "New IP" | awk -F": " '{print $2}')
+        if [ -z "$new_ip" ]; then
+            new_ip="Changed"
+        fi
         TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/$new_ip/g" -e "s/\[NAMAMODEM\]/$nama/g")
         send_message "$TGMSG"
         attempt=1
@@ -236,8 +252,8 @@ main() {
 }
 
 rakitanmanager_stop() {
-    if pidof rakitanmanager.sh > /dev/null; then
-        killall -9 rakitanmanager.sh
+    if pidof core-manager.sh > /dev/null; then
+        killall -9 core-manager.sh
         log "RakitanManager Berhasil Dihentikan."
     else
         log "RakitanManager is not running."
