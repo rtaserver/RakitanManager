@@ -5,11 +5,11 @@ START=99
 STOP=15
 
 start_service() {
-    if pidof rakitanmanager.sh > /dev/null; then
+    if pidof core-manager.sh > /dev/null; then
         echo "RakitanManager is already running."
     else
         if [ "$(uci get rakitanmanager.cfg.startup)" = "1" ]; then
-            /usr/bin/rakitanmanager.sh -s
+            /usr/share/rakitanmanager/core-manager.sh -s
         fi        
     fi
 }

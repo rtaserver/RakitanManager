@@ -1,5 +1,6 @@
-#!/bin/sh
-#Replace with IP or device ID, support multiple android adb device id, writing sample: "id0001 id0002" quoted with double quotes
+#!/bin/bash
+# Copyright 2024 RTA SERVER
+
 log_file="/var/log/rakitanmanager.log"
 exec 1>>"$log_file" 2>&1
 
@@ -13,7 +14,7 @@ if ! command -v adb &> /dev/null; then
 fi
 
 if [ -z "$1" ]; then
-	log "ADBID is unset, using default..."
+	log "ADBID tidak disetel, menggunakan default..."
 	ADBID=$(adb devices | grep 'device' | grep -v 'List of' | awk {'print $1'}) # Default device_id if $1 unset
 else
 	ADBID="$1"
@@ -21,8 +22,8 @@ fi
 
 for IPX in ${ADBID}
 do
-	log "Connecting to ${IPX} device..." 
-    log "Airplane mode is at DISABLED state, will be enabled in 3 secs..."
+	log "Menghubungkan ke perangkat ${IPX}..." 
+    log "Mode pesawat dalam status DISABLED, akan diaktifkan dalam 3 detik..."
     if [[ "$(adb -s ${IPX} shell settings get global airplane_mode_on)" == "0" ]]; then
     	adb -s "$IPX" settings put global airplane_mode_on 1 &>/dev/null
     	adb -s "$IPX" am broadcast -a android.intent.action.AIRPLANE_MODE --ez state true &>/dev/null
@@ -32,7 +33,7 @@ do
     fi
     sleep "3" &>/dev/null
 
-    log "Disabling airplane mode to get new IP and refreshed network..."
+    log "Menonaktifkan mode pesawat untuk mendapatkan IP baru dan jaringan yang diperbarui..."
     if [[  "$(adb -s ${IPX} shell settings get global airplane_mode_on)" == "1" ]]; then
     	adb -s "$IPX" settings put global airplane_mode_on 0 &>/dev/null
     	adb -s "$IPX" am broadcast -a android.intent.action.AIRPLANE_MODE --ez state false &>/dev/null
@@ -40,7 +41,7 @@ do
     if [[ "$(adb -s ${IPX} shell cmd connectivity airplane-mode)" == "enabled" ]]; then
     	adb -s "$IPX" shell cmd connectivity airplane-mode disable &>/dev/null
     fi
-    log "ID [${IPX}] : Network refreshed done...!!"
+    log "ID [${IPX}] : Penyegaran jaringan selesai...!!"
 done
 
 if [ "$2" = "myip" ]; then
@@ -56,6 +57,6 @@ if [ "$2" = "myip" ]; then
         ip_address=$(echo "$ip_address_line" | awk '{print $2}')
         echo "$ip_address"
     else
-        echo "Tidak dapat menemukan alamat IP perangkat."
+        log "Tidak dapat menemukan alamat IP perangkat."
     fi
 fi

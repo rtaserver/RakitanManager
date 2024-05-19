@@ -103,12 +103,12 @@ if ($modem_count == 0) {
 if (isset($_POST['enable'])) {
     $log_message = shell_exec("date '+%Y-%m-%d %H:%M:%S'") . " - Script Telah Di Aktifkan\n";
     file_put_contents('/var/log/rakitanmanager.log', $log_message, FILE_APPEND);
-    shell_exec('/usr/share/rakitanmanager/rakitanmanager.sh -s');
+    shell_exec('/usr/share/rakitanmanager/core-manager.sh -s');
     exec("uci set rakitanmanager.cfg.enabled='1' && uci commit rakitanmanager");
 } elseif (isset($_POST['disable'])) {
     $log_message = shell_exec("date '+%Y-%m-%d %H:%M:%S'") . " - Script Telah Di Berhentikan\n";
     file_put_contents('/var/log/rakitanmanager.log', $log_message, FILE_APPEND);
-    shell_exec('/usr/share/rakitanmanager/rakitanmanager.sh -k');
+    shell_exec('/usr/share/rakitanmanager/core-manager.sh -k');
     exec("uci set rakitanmanager.cfg.enabled='0' && uci commit rakitanmanager");
 }
 
@@ -153,8 +153,11 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
     <title>Daftar Modem</title>
     <?php
     include ("head.php");
-    exec('chmod -R 755 /usr/share/rakitanmanager/rakitanmanager.sh');
-    exec('chmod -R 755 /usr/share/rakitanmanager/rakitanhilink.sh');
+    exec('chmod -R 755 /usr/share/rakitanmanager/core-manager.sh');
+    exec('chmod -R 755 /usr/share/rakitanmanager/modem-hilink.sh');
+    exec('chmod -R 755 /usr/share/rakitanmanager/modem-mf90.sh');
+    exec('chmod -R 755 /usr/share/rakitanmanager/modem-hp.sh');
+    exec('chmod -R 755 /usr/share/rakitanmanager/modem-rakitan.sh');
     exec('chmod -R 755 /usr/share/rakitanmanager/modem-orbit.py');
     ?>
     <script src="lib/vendor/jquery/jquery-3.6.0.slim.min.js"></script>
