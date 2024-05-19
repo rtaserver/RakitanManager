@@ -143,16 +143,16 @@ perform_ping() {
             log "[$jenis - $nama] Gagal PING | $attempt"
             case $jenis in
                 rakitan)
-                    handle_rakitan "$modem_data" "$attempt"
+                    handle_rakitan
                     ;;
                 hp)
-                    handle_hp "$modem_data" "$attempt"
+                    handle_hp
                     ;;
                 orbit)
-                    handle_orbit "$modem_data" "$attempt"
+                    handle_orbit
                     ;;
                 customscript)
-                    handle_customscript "$modem_data" "$attempt"
+                    handle_customscript
                     ;;
             esac
             attempt=$((attempt + 1))
@@ -162,9 +162,6 @@ perform_ping() {
 }
 
 handle_rakitan() {
-    local modem_data="$1"
-    local attempt="$2"
-
     if [ "$attempt" -eq "$cobaping" ]; then
         log "[$jenis - $nama] Gagal PING | Renew IP Started"
         "$RAKITANMANAGERDIR/modem-rakitan.sh" renew "$devicemodem" "$portmodem"
@@ -183,14 +180,11 @@ handle_rakitan() {
         fi
         TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/$new_ip/g" -e "s/\[NAMAMODEM\]/$nama/g")
         send_message "$TGMSG"
-        attempt=1
+        attempt=0
     fi
 }
 
 handle_hp() {
-    local modem_data="$1"
-    local attempt="$2"
-
     if [ "$attempt" -eq "$cobaping" ]; then
         log "[$jenis - $nama] Gagal PING | Restart Network Started"
         "$RAKITANMANAGERDIR/modem-hp.sh" "$androidid"
@@ -201,14 +195,11 @@ handle_hp() {
         fi
         TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/$new_ip/g" -e "s/\[NAMAMODEM\]/$nama/g")
         send_message "$TGMSG"
-        attempt=1
+        attempt=0
     fi
 }
 
 handle_orbit() {
-    local modem_data="$1"
-    local attempt="$2"
-
     if [ "$attempt" -eq "$cobaping" ]; then
         log "[$jenis - $nama] Gagal PING | Restart Network Started"
         if ! orbitresult=$(python3 "$RAKITANMANAGERDIR/modem-orbit.py" "$iporbit" "$usernameorbit" "$passwordorbit"); then
@@ -225,21 +216,18 @@ handle_orbit() {
         fi
         TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/$new_ip/g" -e "s/\[NAMAMODEM\]/$nama/g")
         send_message "$TGMSG"
-        attempt=1
+        attempt=0
     fi
 }
 
 handle_customscript() {
-    local modem_data="$1"
-    local attempt="$2"
-
     if [ "$attempt" -eq "$cobaping" ]; then
         log "[$jenis - $nama] Gagal PING | Custom Script Started"
         echo "$script" > "/usr/share/rakitanmanager/${nama}-customscript.sh"
         chmod +x "/usr/share/rakitanmanager/${nama}-customscript.sh"
         "/usr/share/rakitanmanager/${nama}-customscript.sh"
         sleep 10
-        attempt=1
+        attempt=0
     fi
 }
 
