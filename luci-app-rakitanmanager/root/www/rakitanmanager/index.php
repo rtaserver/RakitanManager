@@ -29,7 +29,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["tambah_modem"])) {
     $modems[] = [
         "jenis" => $_POST["jenis"],
         "nama" => $_POST["nama"],
-        "apn" => $_POST["apn"],
+        "cobaping" => $_POST["cobaping"],
         "portmodem" => $_POST["portmodem"],
         "interface" => $_POST["interface"],
         "iporbit" => $_POST["iporbit"],
@@ -51,7 +51,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["edit_modem"])) {
     $modems = bacaDataModem();
     if (isset($modems[$index])) {
         $modems[$index]["nama"] = $_POST["edit_nama"];
-        $modems[$index]["apn"] = $_POST["edit_apn"];
+        $modems[$index]["cobaping"] = $_POST["edit_cobaping"];
         $modems[$index]["portmodem"] = $_POST["edit_portmodem"];
         $modems[$index]["interface"] = $_POST["edit_interface"];
         $modems[$index]["iporbit"] = $_POST["edit_iporbit"];
@@ -103,10 +103,12 @@ if ($modem_count == 0) {
 if (isset($_POST['enable'])) {
     $log_message = shell_exec("date '+%Y-%m-%d %H:%M:%S'") . " - Script Telah Di Aktifkan\n";
     file_put_contents('/var/log/rakitanmanager.log', $log_message, FILE_APPEND);
-    shell_exec('/usr/bin/rakitanmanager.sh -s');
+    shell_exec('/usr/share/rakitanmanager/rakitanmanager.sh -s');
     exec("uci set rakitanmanager.cfg.enabled='1' && uci commit rakitanmanager");
 } elseif (isset($_POST['disable'])) {
-    shell_exec('/usr/bin/rakitanmanager.sh -k');
+    $log_message = shell_exec("date '+%Y-%m-%d %H:%M:%S'") . " - Script Telah Di Berhentikan\n";
+    file_put_contents('/var/log/rakitanmanager.log', $log_message, FILE_APPEND);
+    shell_exec('/usr/share/rakitanmanager/rakitanmanager.sh -k');
     exec("uci set rakitanmanager.cfg.enabled='0' && uci commit rakitanmanager");
 }
 
@@ -151,8 +153,9 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
     <title>Daftar Modem</title>
     <?php
     include ("head.php");
-    exec('chmod -R 755 /usr/bin/rakitanmanager.sh');
-    exec('chmod -R 755 /usr/bin/modem-orbit.py');
+    exec('chmod -R 755 /usr/share/rakitanmanager/rakitanmanager.sh');
+    exec('chmod -R 755 /usr/share/rakitanmanager/rakitanhilink.sh');
+    exec('chmod -R 755 /usr/share/rakitanmanager/modem-orbit.py');
     ?>
     <script src="lib/vendor/jquery/jquery-3.6.0.slim.min.js"></script>
 
@@ -191,7 +194,7 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
                     var changelogUrl = 'https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/changelog.txt';
                 <?php endif; ?>
                 <?php if ($branch_select == "dev"): ?>
-                    var latestVersionUrl = 'https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/hash.txt';
+                    var latestVersionUrl = 'https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/version';
                     var changelogUrl = 'https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/changelog.txt';
                 <?php endif; ?>
 
@@ -231,8 +234,7 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
                         <?php endif; ?>
                         <?php if ($branch_select == "dev"): ?>
                             var latestVersion = data.split('\n')[0].trim().toLowerCase();
-                            var currentVersion = '<?php echo trim(file_get_contents("hash.txt")); ?>';
-                            var currentVersion = currentVersion.trim();
+                            var currentVersion = '<?php echo trim(file_get_contents("versiondev.txt")); ?>';
 
                             // Periksa jika versi terbaru berbeda dari versi saat ini
                             if (latestVersion && latestVersion !== currentVersion) {
@@ -447,10 +449,6 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                                                                     class="form-control" placeholder="Nama Bebas">
                                                             </div>
                                                             <div class="form-group" id="rakitan_field">
-                                                                <label for="apn">APN:</label>
-                                                                <input type="text" id="apn" name="apn"
-                                                                    class="form-control" placeholder="internet"
-                                                                    value="internet">
                                                                 <label for="portmodem">Pilih Port Modem:</label>
                                                                 <select name="portmodem" id="portmodem"
                                                                     class="form-control">
@@ -514,7 +512,7 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                                                                 <select id="metodeping" name="metodeping"
                                                                     class="form-control">
                                                                     <option value="icmp">ICMP</option>
-                                                                    <option value="tcp">TCP</option>
+                                                                    <option value="curl">CURL</option>
                                                                     <option value="http">HTTP</option>
                                                                     <option value="https">HTTPS</option>
                                                                 </select>
@@ -535,6 +533,10 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                                                                     }
                                                                     ?>
                                                                 </select>
+                                                                <label for="cobaping">Percobaan Ping Gagal:</label>
+                                                                <input type="number" id="cobaping" name="cobaping"
+                                                                    class="form-control" placeholder="2"
+                                                                    value="2">
                                                                 <label for="delayping">Jeda Waktu Detik | Sebelum
                                                                     Melanjutkan Cek PING:</label>
                                                                 <input type="number" id="delayping" name="delayping"
@@ -602,9 +604,6 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                                                                     class="form-control" placeholder="Nama Bebas">
                                                             </div>
                                                             <div class="form-group" id="edit_rakitan_field">
-                                                                <label for="edit_apn">APN:</label>
-                                                                <input type="text" id="edit_apn" name="edit_apn"
-                                                                    class="form-control" placeholder="internet">
                                                                 <label for="edit_portmodem">Pilih Port Modem:</label>
                                                                 <select name="edit_portmodem" id="edit_portmodem"
                                                                     class="form-control">
@@ -669,7 +668,7 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                                                                 <select id="edit_metodeping" name="edit_metodeping"
                                                                     class="form-control">
                                                                     <option value="icmp">ICMP</option>
-                                                                    <option value="tcp">TCP</option>
+                                                                    <option value="curl">CURL</option>
                                                                     <option value="http">HTTP</option>
                                                                     <option value="https">HTTPS</option>
                                                                 </select>
@@ -689,6 +688,9 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                                                                     }
                                                                     ?>
                                                                 </select>
+                                                                <label for="edit_cobaping">Percobaan Ping Gagal:</label>
+                                                                <input type="number" id="edit_cobaping" name="edit_cobaping"
+                                                                    class="form-control" placeholder="2">
                                                                 <label for="edit_delayping">Jeda Waktu Detik | Sebelum
                                                                     Melanjutkan Cek PING:</label>
                                                                 <input type="number" id="edit_delayping"
@@ -722,7 +724,7 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
         function editModem(index) {
             var modem = <?= json_encode($modems) ?>[index];
             $('#edit_nama').val(modem.nama);
-            $('#edit_apn').val(modem.apn);
+            $('#edit_cobaping').val(modem.cobaping);
             $('#edit_portmodem').val(modem.portmodem);
             $('#edit_interface').val(modem.interface);
             $('#edit_iporbit').val(modem.iporbit);
@@ -855,7 +857,7 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
         function validateFormTambah() {
             var jenis = document.querySelector('input[name="jenis"]:checked');
             var nama = document.getElementById("nama").value.trim();
-            var apn = document.getElementById("apn").value.trim();
+            var cobaping = document.getElementById("cobaping").value.trim();
             var portmodem = document.getElementById("portmodem").value.trim();
             var interface = document.getElementById("interface").value.trim();
             var iporbit = document.getElementById("iporbit").value.trim();
@@ -876,8 +878,8 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                 alert("Nama modem harus diisi!");
                 return false;
             }
-            if (jenis.value === "rakitan" && apn === "") {
-                alert("APN harus diisi untuk modem rakitan!");
+            if (cobaping === "") {
+                alert("Percobaan gagal ping harus diisi!");
                 return false;
             }
             if (jenis.value === "orbit") {
@@ -903,7 +905,7 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
         function validateFormEdit() {
             var jenis = document.querySelector('input[name="edit_jenis"]:checked');
             var nama = document.getElementById("edit_nama").value.trim();
-            var apn = document.getElementById("edit_apn").value.trim();
+            var cobaping = document.getElementById("edit_cobaping").value.trim();
             var portmodem = document.getElementById("edit_portmodem").value.trim();
             var interface = document.getElementById("edit_interface").value.trim();
             var iporbit = document.getElementById("edit_iporbit").value.trim();
@@ -924,8 +926,8 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                 alert("Nama modem harus diisi!");
                 return false;
             }
-            if (jenis.value === "rakitan" && apn === "") {
-                alert("APN harus diisi untuk modem rakitan!");
+            if (cobaping === "") {
+                alert("Percobaan gagal ping harus diisi!");
                 return false;
             }
             if (jenis.value === "orbit") {

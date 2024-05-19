@@ -1,5 +1,16 @@
 #!/bin/sh
 #Replace with IP or device ID, support multiple android adb device id, writing sample: 'id0001 id0002'
+log_file="/var/log/rakitanmanager.log"
+exec 1>>"$log_file" 2>&1
+
+log() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1"
+}
+
+if ! command -v adb &> /dev/null; then
+    echo "ADB tidak ditemukan. Pastikan Android Debug Bridge (ADB) telah diinstal."
+    exit 1
+fi
 
 NAMAMODEM=$1
 

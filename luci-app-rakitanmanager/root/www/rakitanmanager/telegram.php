@@ -46,7 +46,7 @@ if (isset($_POST['rakitanmanager'])) {
         exec("uci set rakitanmanager.telegram.enabled='0' && uci commit rakitanmanager");
     } elseif ($dt == 'test') {
         // Mengirim pesan uji bot Telegram
-        exec("/usr/bin/rakitanmanager.sh bot_test");
+        exec("/usr/share/rakitanmanager/rakitanmanager.sh bot_test");
     } elseif ($dt == 'save') {
         // Simpan konfigurasi tanpa mengaktifkan bot Telegram
         $token_id = $_POST['tokenid'];

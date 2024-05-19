@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-rakitanmanager
-PKG_VERSION:=0.00.18
+PKG_VERSION:=0.00.20
 PKG_RELEASE:=beta
 PKG_MAINTAINER:=rtaserver <https://github.com/rtaserver/RakitanManager>
 
@@ -30,9 +30,9 @@ define Build/Prepare
 	sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-beta/g" $(PKG_BUILD_DIR)/root/www/rakitanmanager/versionmain.txt >/dev/null 2>&1
 	sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-beta/g" $(PKG_BUILD_DIR)/root/www/rakitanmanager/versiondev.txt >/dev/null 2>&1
 	chmod 0755 $(PKG_BUILD_DIR)/root/etc/init.d/rakitanmanager
-	chmod 0755 $(PKG_BUILD_DIR)/root/usr/bin/rakitanmanager.sh
-	chmod 0755 $(PKG_BUILD_DIR)/root/usr/bin/rakitanhilink.sh
-  	chmod 0755 $(PKG_BUILD_DIR)/root/usr/bin/modem-orbit.py
+	chmod 0755 $(PKG_BUILD_DIR)/root/usr/share/rakitanmanager/rakitanmanager.sh
+	chmod 0755 $(PKG_BUILD_DIR)/root/usr/share/rakitanmanager/rakitanhilink.sh
+  	chmod 0755 $(PKG_BUILD_DIR)/root/usr/share/rakitanmanager/modem-orbit.py
 	chmod 0755 $(PKG_BUILD_DIR)/root/etc/uci-defaults/99_rakitanmanager
 	exit 0
 endef
@@ -59,18 +59,18 @@ define Package/$(PKG_NAME)/postinst
 	sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-beta/g" /www/rakitanmanager/curent.svg >/dev/null 2>&1
 	sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-beta/g" /www/rakitanmanager/versionmain.txt >/dev/null 2>&1
 	sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-beta/g" /www/rakitanmanager/versiondev.txt >/dev/null 2>&1
-	chmod 0755 /usr/bin/rakitanmanager.sh
-	chmod 0755 /usr/bin/rakitanhilink.sh
-    chmod 0755 /usr/bin/modem-orbit.py
+	chmod 0755 /usr/share/rakitanmanager/rakitanmanager.sh
+	chmod 0755 /usr/share/rakitanmanager/rakitanhilink.sh
+    chmod 0755 /usr/share/rakitanmanager/modem-orbit.py
 	chmod 0755 /etc/init.d/rakitanmanager
 	exit 0
 endef
 
 define Package/$(PKG_NAME)/prerm
 #!/bin/sh
-	PID1=$(pgrep -f /usr/bin/rakitanmanager.sh)
+	PID1=$(pgrep -f /usr/share/rakitanmanager/rakitanmanager.sh)
     if [ "$PID1" ]  ; then
-        /usr/bin/rakitanmanager.sh -k
+        /usr/share/rakitanmanager/rakitanmanager.sh -k
     fi
 	exit 0
 endef
@@ -84,6 +84,7 @@ endef
 
 define Package/$(PKG_NAME)/install
     $(INSTALL_DIR) $(1)/usr/lib/lua/luci
+	$(INSTALL_DIR) $(1)/usr/share/rakitanmanager
     $(INSTALL_DIR) $(1)/www/rakitanmanager
     $(CP) $(PKG_BUILD_DIR)/root/* $(1)/
     $(CP) $(PKG_BUILD_DIR)/luasrc/* $(1)/usr/lib/lua/luci/
