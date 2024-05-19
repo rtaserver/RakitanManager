@@ -1,6 +1,6 @@
 # What's New!
 
-**Changelog** (v0.00.19-beta 18-05-2024):
+**Changelog** (v0.00.19-beta 19-05-2024):
 - Fix Kirim Telegram | Typo
 - Ganti Ping TCP Ke CURL
 - Penambahan Cek Untuk Gagal Ping
