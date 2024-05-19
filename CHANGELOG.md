@@ -1,5 +1,9 @@
 # What's New!
 
+**Changelog** (v0.00.23-beta 19-05-2024):
+- Perbaikan Ping Di HTTPS Dan HTTP
+- Perbaikan Masalah Delay
+
 **Changelog** (v0.00.22-beta 19-05-2024):
 - typo Modem Orbit
 - Fix Percobaan Malah Lebih

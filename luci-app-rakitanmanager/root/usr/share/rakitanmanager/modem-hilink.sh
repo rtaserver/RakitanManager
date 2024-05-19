@@ -36,6 +36,8 @@ if login; then
     log "Login berhasil."
     if restart_modem; then
         log "Perintah restart berhasil dikirim."
+        log "Mohon Tunggu..."
+        sleep 5
         exit 0
     else
         log "Gagal mengirim perintah restart."

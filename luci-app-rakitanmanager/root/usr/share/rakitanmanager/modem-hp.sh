@@ -23,7 +23,7 @@ fi
 for IPX in ${ADBID}
 do
 	log "Menghubungkan ke perangkat ${IPX}..." 
-    log "Mode pesawat dalam status DISABLED, akan diaktifkan dalam 3 detik..."
+    log "Mode pesawat akan diaktifkan dalam 3 detik..."
     if [[ "$(adb -s ${IPX} shell settings get global airplane_mode_on)" == "0" ]]; then
     	adb -s "$IPX" settings put global airplane_mode_on 1 &>/dev/null
     	adb -s "$IPX" am broadcast -a android.intent.action.AIRPLANE_MODE --ez state true &>/dev/null
@@ -45,21 +45,21 @@ do
     exit 0
 done
 
-if [ "$2" = "myip" ]; then
-    # Jalankan perintah adb untuk mendapatkan informasi jaringan perangkat
-    network_info=$(adb -s ${IPX} shell ip addr show)
+# if [ "$2" = "myip" ]; then
+#     # Jalankan perintah adb untuk mendapatkan informasi jaringan perangkat
+#     network_info=$(adb -s ${IPX} shell ip addr show)
 
-    # Cari baris yang berisi alamat IP
-    ip_address_line=$(echo "$network_info" | grep 'inet ' | grep -v '127.0.0.1')
+#     # Cari baris yang berisi alamat IP
+#     ip_address_line=$(echo "$network_info" | grep 'inet ' | grep -v '127.0.0.1')
 
-    # Jika ditemukan baris yang berisi alamat IP
-    if [ -n "$ip_address_line" ]; then
-        # Ambil alamat IP dari baris tersebut
-        ip_address=$(echo "$ip_address_line" | awk '{print $2}')
-        echo "$ip_address"
-        exit 0
-    else
-        log "Tidak dapat menemukan alamat IP perangkat."
-        exit 1
-    fi
-fi
+#     # Jika ditemukan baris yang berisi alamat IP
+#     if [ -n "$ip_address_line" ]; then
+#         # Ambil alamat IP dari baris tersebut
+#         ip_address=$(echo "$ip_address_line" | awk '{print $2}')
+#         echo "$ip_address"
+#         exit 0
+#     else
+#         log "Tidak dapat menemukan alamat IP perangkat."
+#         exit 1
+#     fi
+# fi

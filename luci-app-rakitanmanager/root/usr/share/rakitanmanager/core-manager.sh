@@ -90,10 +90,11 @@ perform_ping() {
             local xport=$(echo "${pinghost}" | cut -d':' -f2)
 
             port_icmp=0
-            port_tcp=${xport:-80}
-            port_http=${xport:-80}
-            port_https=${xport:-443}
-
+            if [ -z "$xport" ]; then
+                port_tcp=80
+                port_http=80
+                port_https=443
+            fi
             ping_success=false
 
             case "$metodeping" in
@@ -169,8 +170,10 @@ handle_rakitan() {
         if [ -z "$new_ip" ]; then
             new_ip="Changed"
         fi
-        TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/$new_ip/g" -e "s/\[NAMAMODEM\]/$nama/g")
-        send_message "$TGMSG"
+        if [ "$(uci -q get rakitanmanager.telegram.enabled)" = "1" ]; then
+            TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/$new_ip/g" -e "s/\[NAMAMODEM\]/$nama/g")
+            send_message "$TGMSG"
+        fi
     elif [ "$attempt" -eq $((cobaping + 1)) ]; then
         log "[$jenis - $nama] Gagal PING | Restart Modem Started"
         "$RAKITANMANAGERDIR/modem-rakitan.sh" restart "$devicemodem" "$portmodem"
@@ -178,8 +181,10 @@ handle_rakitan() {
         if [ -z "$new_ip" ]; then
             new_ip="Changed"
         fi
-        TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/$new_ip/g" -e "s/\[NAMAMODEM\]/$nama/g")
-        send_message "$TGMSG"
+        if [ "$(uci -q get rakitanmanager.telegram.enabled)" = "1" ]; then
+            TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/$new_ip/g" -e "s/\[NAMAMODEM\]/$nama/g")
+            send_message "$TGMSG"
+        fi
         attempt=0
     fi
 }
@@ -188,13 +193,14 @@ handle_hp() {
     if [ "$attempt" -eq "$cobaping" ]; then
         log "[$jenis - $nama] Gagal PING | Restart Network Started"
         "$RAKITANMANAGERDIR/modem-hp.sh" "$androidid"
-        sleep 30
         new_ip=$(adb -s "$androidid" shell ip route | awk 'NR==1 {print $9}')
         if [ -z "$new_ip" ]; then
             new_ip="Changed"
         fi
-        TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/$new_ip/g" -e "s/\[NAMAMODEM\]/$nama/g")
-        send_message "$TGMSG"
+        if [ "$(uci -q get rakitanmanager.telegram.enabled)" = "1" ]; then
+            TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/$new_ip/g" -e "s/\[NAMAMODEM\]/$nama/g")
+            send_message "$TGMSG"
+        fi
         attempt=0
     fi
 }
@@ -209,13 +215,14 @@ handle_orbit() {
                 fi
             fi
         fi
-        sleep 30
         new_ip=$(echo "$orbitresult" | grep "New IP" | awk -F": " '{print $2}')
         if [ -z "$new_ip" ]; then
             new_ip="Changed"
         fi
-        TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/$new_ip/g" -e "s/\[NAMAMODEM\]/$nama/g")
-        send_message "$TGMSG"
+        if [ "$(uci -q get rakitanmanager.telegram.enabled)" = "1" ]; then
+            TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/$new_ip/g" -e "s/\[NAMAMODEM\]/$nama/g")
+            send_message "$TGMSG"
+        fi
         attempt=0
     fi
 }

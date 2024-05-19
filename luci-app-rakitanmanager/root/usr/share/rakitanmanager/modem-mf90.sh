@@ -30,6 +30,8 @@ RESTART_RESPONSE=$(curl -s -X POST "http://${MODEM_IP}/api/device/control" \
 
 if echo "$RESTART_RESPONSE" | grep -q "OK"; then
   log "Perintah restart modem berhasil dikirim."
+  log "Mohon Tunggu..."
+  sleep 5
   exit 0
 else
   log "Gagal mengirim perintah restart. Periksa pengaturan modem Anda."
