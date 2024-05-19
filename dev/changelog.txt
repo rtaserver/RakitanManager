@@ -1,1 +1,1 @@
-**Changelog** (v0.00.21-beta 19-05-2024):%0A- typo Modem Orbit
+**Changelog** (v0.00.22-beta 19-05-2024):%0A- typo Modem Orbit%0A- Fix Percobaan Malah Lebih%0A- Test Modem MF90%0A- Rebuild Core
