@@ -1,11 +1,11 @@
 name: Compile The New Version RakitanManager V2
 
 on: 
-  push:
-    branches:
-      - dev
-    paths:
-      - 'luci-app-rakitanmanager/Makefile'
+  #push:
+  #  branches:
+  #    - dev
+  #  paths:
+  #    - 'luci-app-rakitanmanager/Makefile'
   workflow_dispatch:
     inputs:
       revision:
