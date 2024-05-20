@@ -1,11 +1,6 @@
 name: Compile The New Version RakitanManager V2
 
 on: 
-  #push:
-  #  branches:
-  #    - dev
-  #  paths:
-  #    - 'luci-app-rakitanmanager/Makefile'
   workflow_dispatch:
     inputs:
       revision:
@@ -65,7 +60,7 @@ jobs:
           cd ..
           mkdir tmp
           curl -SLk --connect-timeout 30 --retry 2 "https://archive.openwrt.org/chaos_calmer/15.05.1/ar71xx/generic/OpenWrt-SDK-15.05.1-ar71xx-generic_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64.tar.bz2" -o "./tmp/SDK.tar.bz2"
-          cd \tmp
+          cd tmp
           tar xjf SDK.tar.bz2
           mv "OpenWrt-SDK-15.05.1-ar71xx-generic_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64" "SDK"
 
@@ -73,7 +68,7 @@ jobs:
         run: |
           cd ..
           mkdir tmp/SDK/package/luci-app-rakitanmanager
-          cp -rf "./RakitanManager/luci-app-rakitanmanager/." "./tmp/SDK/package/luci-app-rakitanmanager/"
+          cp -rf "./RakitanManager/luci-app-rakitanmanager" "./tmp/SDK/package/"
 
       - name: Compile RakitanManager IPK
         run: |
