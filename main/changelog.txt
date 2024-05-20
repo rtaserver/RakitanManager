@@ -1,1 +1,1 @@
-**Changelog** (v0.00.22-beta 19-05-2024):%0A- typo Modem Orbit%0A- Fix Percobaan Malah Lebih%0A- Test Modem MF90%0A- Rebuild Core
+**Changelog** (v0.00.23-beta 19-05-2024):%0A- Perbaikan Ping Di HTTPS Dan HTTP%0A- Perbaikan Masalah Delay%0A- Simpan Data Modem Jika Update
