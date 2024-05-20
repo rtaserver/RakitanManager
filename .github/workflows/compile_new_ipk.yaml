@@ -1,11 +1,11 @@
 name: Compile The New Version RakitanManager
 
 on: 
-  push:
-    branches:
-      - dev
-    paths:
-      - 'luci-app-rakitanmanager/Makefile'
+  #push:
+  #  branches:
+  #    - dev
+  #  paths:
+  #    - 'luci-app-rakitanmanager/Makefile'
   workflow_dispatch:
     inputs:
       revision:
@@ -15,7 +15,7 @@ on:
         type: boolean
 
 env:
-  TZ: Asia/Shanghai
+  TZ: Asia/Jakarta
   sdk_url: https://downloads.openwrt.org/releases/21.02.5/targets/x86/64/openwrt-sdk-21.02.5-x86-64_gcc-8.4.0_musl.Linux-x86_64.tar.xz
   sdk_ver: 21.02
   luci_ver: 19.07
