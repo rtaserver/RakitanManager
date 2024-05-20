@@ -1,3 +1,4 @@
+
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-rakitanmanager
@@ -9,25 +10,18 @@ PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
 
 include $(INCLUDE_DIR)/package.mk
 
-define Package/$(PKG_NAME)/config
-	config PACKAGE_kmod-inet-diag
-	default y if PACKAGE_$(PKG_NAME)
-
-	config PACKAGE_luci-compat
-	default y if PACKAGE_$(PKG_NAME)
-endef
 
 define Package/$(PKG_NAME)
 	CATEGORY:=LuCI
 	SUBMENU:=3. Applications
-	TITLE:=LuCI support for ModemManager
+	TITLE:=LuCI support for Modem Manager
 	PKGARCH:=all
 	DEPENDS:=+modemmanager +python3-pip +jq +adb +bash +curl +unzip
-	MAINTAINER:=rizkikotet
+	MAINTAINER:=rtaserver
 endef
 
 define Package/$(PKG_NAME)/description
-    A LuCI support for ModemManager
+    A LuCI support for Modem Manager
 endef
 
 define Build/Prepare
