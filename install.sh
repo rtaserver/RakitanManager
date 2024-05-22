@@ -1,26 +1,34 @@
 #!/bin/bash
 # set -e
 
-oIns="opkg install"
-InsTxt="Installing"
+# Daftar paket yang perlu diinstal
+packages=(
+    "git"
+    "git-http"
+    "modemmanager"
+    "python3-pip"
+    "bc"
+    "screen"
+    "adb"
+    "httping"
+    "jq"
+)
 
-chkIPK () {
-	unset gbsPkg
-
-	gbsPkg=$( opkg list-installed | grep -c "^git -\|^git-http -\|^bc -\|^screen -\|^httping -\|^adb -" )
-		
-	# Checking if packages installed
-	if [[ $gbsPkg -lt 5 ]]; then
-		echo -e "All/some required packages is not installed correctly or something wrong...."
-		echo -e "Updating package repositories for Rakitan Manager..."
-		opkg update
-	fi
+# Fungsi untuk memeriksa dan menginstal paket
+check_and_install() {
+    local package="$1"
+    if opkg list-installed | grep -q "^$package -"; then
+        echo "$package sudah terpasang."
+    else
+        echo "$package belum terpasang. Menginstal $package..."
+        opkg update && opkg install "$package"
+        if [ $? -eq 0 ]; then
+            echo "$package berhasil diinstal."
+        else
+            echo "Gagal menginstal $package."
+        fi
+    fi
 }
-
-insIPK () {
-	if [[ $(opkg list-installed | grep -c "^$1 -") == "0" ]]; then $oIns $1; fi
-}
-
 
 DIR="/tmp"
 clear
@@ -138,29 +146,12 @@ gagal_install(){
 download_packages() {
     echo "Update dan instal prerequisites"
 
-    chkIPK
-
-    # Try install git, git-http, bc, screen is not installed
-	if [[ $gbsPkg -lt 4 ]]; then
-		echo -e "Try to install modemmanager, python3-pip, bc, screen, adb, httping, jq if not installed..." 
-        insIPK git
-        insIPK git-http
-		insIPK modemmanager
-		insIPK python3-pip
-		insIPK bc
-		insIPK screen
-		insIPK adb
-		insIPK httping
-        insIPK jq
-
-	else
-		echo -e "Package: modemmanager, python3-pip, bc, screen, adb, httping, jq  already installed." 
-	fi
+    for pkg in "${packages[@]}"; do
+        check_and_install "$pkg"
+    done
 
     sleep 1
     clear
-	# Rechecking all required packages
-	chkIPK
 
     # Configure uhttpd
     uci set uhttpd.main.index_page='index.php'
