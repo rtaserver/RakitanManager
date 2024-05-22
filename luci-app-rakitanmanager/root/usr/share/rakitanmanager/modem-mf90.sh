@@ -12,28 +12,66 @@ MODEM_IP="$1"
 USERNAME="$2"
 PASSWORD="$3"
 
-LOGIN_RESPONSE=$(curl -s -i -X POST "http://${MODEM_IP}/api/user/login" \
-  -H "Content-Type: application/x-www-form-urlencoded; charset=UTF-8" \
-  -d "username=${USERNAME}&password=${PASSWORD}")
+send_request() {
+    local ip="$MODEM_IP"
+    local payload="$1"
+    local url="http://$ip/goform/goform_set_cmd_process"
+    local response
 
-COOKIE=$(echo "$LOGIN_RESPONSE" | grep "Set-Cookie" | awk -F ": " '{print $2}' | tr -d '\r')
+    response=$(curl -s -X POST "$url" \
+        -H "Accept: application/json, text/javascript, */*; q=0.01" \
+        -H "Accept-Encoding: gzip, deflate" \
+        -H "Accept-Language: en-US,en;q=0.9" \
+        -H "Connection: keep-alive" \
+        -H "Content-Length: ${#payload}" \
+        -H "Content-Type: application/x-www-form-urlencoded; charset=UTF-8" \
+        -H "DNT: 1" \
+        -H "Host: $ip" \
+        -H "Origin: http://$ip" \
+        -H "Referer: http://$ip/index.html" \
+        -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36" \
+        -H "X-Requested-With: XMLHttpRequest" \
+        --data "$payload")
 
-if [[ -z "$COOKIE" ]]; then
-  log "Login gagal. Modem Belum Support."
-  exit 1
-fi
+    echo "$response"
+}
 
-RESTART_RESPONSE=$(curl -s -X POST "http://${MODEM_IP}/api/device/control" \
-  -H "Content-Type: application/x-www-form-urlencoded; charset=UTF-8" \
-  -H "Cookie: $COOKIE" \
-  -d "operation=restart")
+check_success() {
+    local response="$1"
+    if [[ "$response" == *"error"* ]]; then
+        log "Operation failed: $response"
+        return 1
+    else
+        log "Operation successful: $response"
+        return 0
+    fi
+}
 
-if echo "$RESTART_RESPONSE" | grep -q "OK"; then
-  log "Perintah restart modem berhasil dikirim."
-  log "Mohon Tunggu..."
-  sleep 5
-  exit 0
-else
-  log "Gagal mengirim perintah restart. Periksa pengaturan modem Anda."
-  exit 1
-fi
+login() {
+    local payload="isTest=false&goformId=LOGIN&password=$(echo -n "${PASSWORD}" | base64)"
+    log "Login Modem..."
+    response=$(send_request "$payload")
+    if check_success "$response"; then
+        log "Login successful."
+    else
+        log "Login failed."
+        exit 1
+    fi
+}
+
+reboot() {
+    local payload="isTest=false&goformId=REBOOT_DEVICE"
+    log "Reboot Modem..."
+    response=$(send_request "$payload")
+    if check_success "$response"; then
+        log "Reboot successful."
+    else
+        log "Reboot failed."
+        exit 1
+    fi
+}
+
+login
+sleep 2
+reboot
+exit 0

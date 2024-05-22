@@ -6,15 +6,11 @@ InsTxt="Installing"
 
 chkIPK () {
 	unset gbsPkg
-	unset p7Pkg
-	unset p8Pkg
 
 	gbsPkg=$( opkg list-installed | grep -c "^git -\|^git-http -\|^bc -\|^screen -\|^httping -\|^adb -" )
-	p7Pkg=$( opkg list-installed | grep -c "^php7-cli -\|^php7-mod-curl -" )
-	p8Pkg=$( opkg list-installed | grep -c "^php8-cli -\|^php8-mod-curl -" )
 		
 	# Checking if packages installed
-	if [[ $gbsPkg -lt 5 ]] && [[ $p7Pkg -lt 2 || $p8Pkg -lt 2 ]]; then
+	if [[ $gbsPkg -lt 5 ]]; then
 		echo -e "All/some required packages is not installed correctly or something wrong...."
 		echo -e "Updating package repositories for Rakitan Manager..."
 		opkg update
@@ -163,26 +159,6 @@ download_packages() {
 
     sleep 1
     clear
-
-    # Try install PHP if php8/php7 is not installed
-	if [[ $(ls {/bin,/usr/bin,/usr/sbin} | grep -c "^php8-cli\|^php7-cli") -lt 1 ]] && [[ $(ls /usr/lib/php* | grep -c "^curl.so") -lt 1 ]]; then
-		# install php7 if php8 is not available on the repo
-		if [[ $(opkg list | grep -c "^php8-cli -") == 0 ]];then
-			# Try install php7
-			echo -e "Try to install php7 deps..." 
-			insIPK php7-cli
-			insIPK php7-mod-curl
-		else
-			# Try install php8
-			echo -e "Try to install php8 deps..."
-			insIPK php8-cli
-			insIPK php8-mod-curl
-		fi
-	else
-		echo -e "Package: PHP packages already installed." 
-	fi
-	
-    sleep 1
 	# Rechecking all required packages
 	chkIPK
 

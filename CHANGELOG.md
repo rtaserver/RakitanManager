@@ -1,5 +1,10 @@
 # What's New!
 
+**Changelog** (v0.00.24-beta 22-05-2024):
+- Add MF90 Script By Bayu
+- Fix Logic
+- Fix Bug
+
 **Changelog** (v0.00.23-beta 19-05-2024):
 - Perbaikan Ping Di HTTPS Dan HTTP
 - Perbaikan Masalah Delay

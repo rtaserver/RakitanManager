@@ -420,31 +420,15 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                                                         <div class="modal-body">
                                                             <div class="form-group">
                                                                 <label for="jenis">Jenis Modem:</label><br>
-                                                                <div class="form-check form-check-inline">
-                                                                    <input class="form-check-input" type="radio"
-                                                                        name="jenis" id="rakitan" value="rakitan"
-                                                                        checked>
-                                                                    <label class="form-check-label" for="rakitan">Modem
-                                                                        Rakitan</label>
-                                                                </div>
-                                                                <div class="form-check form-check-inline">
-                                                                    <input class="form-check-input" type="radio"
-                                                                        name="jenis" id="hp" value="hp">
-                                                                    <label class="form-check-label" for="hp">Modem
-                                                                        HP</label>
-                                                                </div>
-                                                                <div class="form-check form-check-inline">
-                                                                    <input class="form-check-input" type="radio"
-                                                                        name="jenis" id="orbit" value="orbit">
-                                                                    <label class="form-check-label" for="orbit">Modem
-                                                                        Orbit</label>
-                                                                </div>
-                                                                <div class="form-check form-check-inline">
-                                                                    <input class="form-check-input" type="radio"
-                                                                        name="jenis" id="customscript" value="customscript">
-                                                                    <label class="form-check-label" for="customscript">Custom
-                                                                        Script</label>
-                                                                </div>
+                                                                <select name="jenis" id="jenis"
+                                                                    class="form-control">
+                                                                    <option value="rakitan">Modem Rakitan</option>
+                                                                    <option value="hp">Modem HP</option>
+                                                                    <option value="orbit">Modem Huawei / Orbit</option>
+                                                                    <option value="hilink">Modem Hilink</option>
+                                                                    <option value="mf90">Modem mf90</option>
+                                                                    <option value="customscript">Custom Script</option>
+                                                                </select>
                                                             </div>
                                                             <div class="form-group">
                                                                 <label for="nama">Nama Modem:</label>
@@ -573,33 +557,15 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                                                         <div class="modal-body">
                                                             <div class="form-group" id="edit_radio">
                                                                 <label for="edit_jenis">Jenis Modem:</label><br>
-                                                                <div class="form-check form-check-inline">
-                                                                    <input class="form-check-input" type="radio"
-                                                                        name="edit_jenis" id="edit_rakitan"
-                                                                        value="rakitan" disabled>
-                                                                    <label class="form-check-label"
-                                                                        for="edit_rakitan">Modem Rakitan</label>
-                                                                </div>
-                                                                <div class="form-check form-check-inline">
-                                                                    <input class="form-check-input" type="radio"
-                                                                        name="edit_jenis" id="edit_hp" value="hp"
-                                                                        disabled>
-                                                                    <label class="form-check-label" for="edit_hp">Modem
-                                                                        HP</label>
-                                                                </div>
-                                                                <div class="form-check form-check-inline">
-                                                                    <input class="form-check-input" type="radio"
-                                                                        name="edit_jenis" id="edit_orbit" value="orbit"
-                                                                        disabled>
-                                                                    <label class="form-check-label"
-                                                                        for="edit_orbit">Modem Orbit</label>
-                                                                </div>
-                                                                <div class="form-check form-check-inline">
-                                                                    <input class="form-check-input" type="radio"
-                                                                        name="edit_jenis" id="edit_customscript" value="customscript">
-                                                                    <label class="form-check-label" for="edit_customscript">Custom
-                                                                        Script</label>
-                                                                </div>
+                                                                <select name="edit_jenis" id="edit_jenis"
+                                                                    class="form-control">
+                                                                    <option value="rakitan">Modem Rakitan</option>
+                                                                    <option value="hp">Modem HP</option>
+                                                                    <option value="orbit">Modem Huawei / Orbit</option>
+                                                                    <option value="hilink">Modem Hilink</option>
+                                                                    <option value="mf90">Modem mf90</option>
+                                                                    <option value="customscript">Custom Script</option>
+                                                                </select>
                                                             </div>
                                                             <div class="form-group">
                                                                 <label for="edit_nama">Nama Modem:</label>
@@ -739,14 +705,24 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
             $('#edit_devicemodem').val(modem.devicemodem);
             $('#edit_delayping').val(modem.delayping);
             $('#edit_script').val(modem.script);
-            $('input[name="edit_jenis"][value="' + modem.jenis + '"]').prop('checked', true);
-            $('#edit_radio').hide();
+            $('#edit_jenis').val(modem.jenis);
+
             if (modem.jenis === 'rakitan') {
                 $('#edit_rakitan_field').show();
                 $('#edit_orbit_field').hide();
                 $('#edit_hp_field').hide();
                 $('#edit_customscript_field').hide();
             } else if (modem.jenis === 'orbit') {
+                $('#edit_rakitan_field').hide();
+                $('#edit_orbit_field').show();
+                $('#edit_hp_field').hide();
+                $('#edit_customscript_field').hide();
+            } else if (modem.jenis === 'hilink') {
+                $('#edit_rakitan_field').hide();
+                $('#edit_orbit_field').show();
+                $('#edit_hp_field').hide();
+                $('#edit_customscript_field').hide();
+            } else if (modem.jenis === 'mf90') {
                 $('#edit_rakitan_field').hide();
                 $('#edit_orbit_field').show();
                 $('#edit_hp_field').hide();
@@ -762,6 +738,7 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                 $('#edit_hp_field').hide();
                 $('#edit_customscript_field').show();
             }
+            
             $('#editIndex').val(index);
             $('#editModemModal').modal('show');
         }
@@ -773,66 +750,78 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
         }
 
         $(document).ready(function () {
-            // Sembunyikan bidang non-rakitan dan non-orbit secara default
+            // Sembunyikan semua bidang secara default
             $('#rakitan_field, #orbit_field, #hp_field, #customscript_field').hide();
 
             // Tampilkan bidang rakitan saat halaman dimuat karena itu default
             $('#rakitan_field').show();
 
-            $('#rakitan').change(function () {
-                if ($(this).is(':checked')) {
+            $('#jenis').change(function () {
+                var jenis = $(this).val();
+                if (jenis === 'rakitan') {
                     $('#rakitan_field').show();
                     $('#orbit_field').hide();
                     $('#hp_field').hide();
                     $('#customscript_field').hide();
-                }
-            });
-
-            $('#hp').change(function () {
-                if ($(this).is(':checked')) {
-                    $('#rakitan_field, #orbit_field').hide();
+                } else if (jenis === 'hp') {
+                    $('#rakitan_field').hide();
+                    $('#orbit_field').hide();
                     $('#hp_field').show();
                     $('#customscript_field').hide();
-                }
-            });
-
-            $('#orbit').change(function () {
-                if ($(this).is(':checked')) {
-                    $('#orbit_field').show();
+                } else if (jenis === 'orbit') {
                     $('#rakitan_field').hide();
+                    $('#orbit_field').show();
                     $('#hp_field').hide();
                     $('#customscript_field').hide();
-                }
-            });
-
-            $('#customscript').change(function () {
-                if ($(this).is(':checked')) {
-                    $('#orbit_field').hide();
+                } else if (jenis === 'hilink') {
                     $('#rakitan_field').hide();
+                    $('#orbit_field').show();
+                    $('#hp_field').hide();
+                    $('#customscript_field').hide();
+                } else if (jenis === 'mf90') {
+                    $('#rakitan_field').hide();
+                    $('#orbit_field').show();
+                    $('#hp_field').hide();
+                    $('#customscript_field').hide();
+                } else if (jenis === 'customscript') {
+                    $('#rakitan_field').hide();
+                    $('#orbit_field').hide();
                     $('#hp_field').hide();
                     $('#customscript_field').show();
                 }
             });
 
-            // Menampilkan bidang sesuai dengan pilihan radio button yang terpilih saat edit
-            $('input[name="edit_jenis"]').change(function () {
-                if ($(this).val() === 'rakitan') {
+            // Menampilkan bidang sesuai dengan pilihan combobox yang terpilih saat edit
+            $('#edit_jenis').change(function () {
+                var jenis = $(this).val();
+                if (jenis === 'rakitan') {
                     $('#edit_rakitan_field').show();
                     $('#edit_orbit_field').hide();
                     $('#edit_hp_field').hide();
                     $('#edit_customscript_field').hide();
-                } else if ($(this).val() === 'hp') {
-                    $('#edit_rakitan_field, #edit_orbit_field').hide();
+                } else if (jenis === 'hp') {
+                    $('#edit_rakitan_field').hide();
+                    $('#edit_orbit_field').hide();
                     $('#edit_hp_field').show();
                     $('#edit_customscript_field').hide();
-                } else if ($(this).val() === 'orbit') {
-                    $('#edit_orbit_field').show();
+                } else if (jenis === 'orbit') {
                     $('#edit_rakitan_field').hide();
+                    $('#edit_orbit_field').show();
                     $('#edit_hp_field').hide();
                     $('#edit_customscript_field').hide();
-                } else if ($(this).val() === 'customscript') {
-                    $('#edit_orbit_field').hide();
+                } else if (jenis === 'hilink') {
                     $('#edit_rakitan_field').hide();
+                    $('#edit_orbit_field').show();
+                    $('#edit_hp_field').hide();
+                    $('#edit_customscript_field').hide();
+                } else if (jenis === 'mf90') {
+                    $('#edit_rakitan_field').hide();
+                    $('#edit_orbit_field').show();
+                    $('#edit_hp_field').hide();
+                    $('#edit_customscript_field').hide();
+                } else if (jenis === 'customscript') {
+                    $('#edit_rakitan_field').hide();
+                    $('#edit_orbit_field').hide();
                     $('#edit_hp_field').hide();
                     $('#edit_customscript_field').show();
                 }
@@ -858,7 +847,7 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
 
         // Function to validate form fields
         function validateFormTambah() {
-            var jenis = document.querySelector('input[name="jenis"]:checked');
+            var jenis = document.getElementById("jenis").value;
             var nama = document.getElementById("nama").value.trim();
             var cobaping = document.getElementById("cobaping").value.trim();
             var portmodem = document.getElementById("portmodem").value.trim();
@@ -873,7 +862,7 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
             var delayping = document.getElementById("delayping").value.trim();
             var script = document.getElementById("script").value.trim();
 
-            if (!jenis) {
+            if (jenis === "") {
                 alert("Pilih jenis modem!");
                 return false;
             }
@@ -885,9 +874,9 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                 alert("Percobaan gagal ping harus diisi!");
                 return false;
             }
-            if (jenis.value === "orbit") {
+            if (jenis === "orbit") {
                 if (iporbit === "" || usernameorbit === "" || passwordorbit === "") {
-                    alert("Semua bidang IP Modem, Username, dan Password harus diisi untuk modem orbit!");
+                    alert("Semua bidang IP Modem, Username, dan Password harus diisi untuk modem!");
                     return false;
                 }
             }
@@ -905,8 +894,9 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
             }
             return true;
         }
+
         function validateFormEdit() {
-            var jenis = document.querySelector('input[name="edit_jenis"]:checked');
+            var jenis = document.getElementById("edit_jenis").value;
             var nama = document.getElementById("edit_nama").value.trim();
             var cobaping = document.getElementById("edit_cobaping").value.trim();
             var portmodem = document.getElementById("edit_portmodem").value.trim();
@@ -921,7 +911,7 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
             var delayping = document.getElementById("edit_delayping").value.trim();
             var script = document.getElementById("edit_script").value.trim();
 
-            if (!jenis) {
+            if (jenis === "") {
                 alert("Pilih jenis modem!");
                 return false;
             }
@@ -933,9 +923,9 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                 alert("Percobaan gagal ping harus diisi!");
                 return false;
             }
-            if (jenis.value === "orbit") {
+            if (jenis === "orbit") {
                 if (iporbit === "" || usernameorbit === "" || passwordorbit === "") {
-                    alert("Semua bidang IP Modem, Username, dan Password harus diisi untuk modem orbit!");
+                    alert("Semua bidang IP Modem, Username, dan Password harus diisi untuk modem!");
                     return false;
                 }
             }
