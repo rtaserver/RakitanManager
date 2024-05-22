@@ -1,30 +1,34 @@
 #!/bin/bash
 # set -e
 
-oIns="opkg install"
-InsTxt="Installing"
+# Daftar paket yang perlu diinstal
+packages=(
+    "git"
+    "git-http"
+    "modemmanager"
+    "python3-pip"
+    "bc"
+    "screen"
+    "adb"
+    "httping"
+    "jq"
+)
 
-chkIPK () {
-	unset gbsPkg
-	unset p7Pkg
-	unset p8Pkg
-
-	gbsPkg=$( opkg list-installed | grep -c "^git -\|^git-http -\|^bc -\|^screen -\|^httping -\|^adb -" )
-	p7Pkg=$( opkg list-installed | grep -c "^php7-cli -\|^php7-mod-curl -" )
-	p8Pkg=$( opkg list-installed | grep -c "^php8-cli -\|^php8-mod-curl -" )
-		
-	# Checking if packages installed
-	if [[ $gbsPkg -lt 5 ]] && [[ $p7Pkg -lt 2 || $p8Pkg -lt 2 ]]; then
-		echo -e "All/some required packages is not installed correctly or something wrong...."
-		echo -e "Updating package repositories for Rakitan Manager..."
-		opkg update
-	fi
+# Fungsi untuk memeriksa dan menginstal paket
+check_and_install() {
+    local package="$1"
+    if opkg list-installed | grep -q "^$package -"; then
+        echo "$package sudah terpasang."
+    else
+        echo "$package belum terpasang. Menginstal $package..."
+        opkg update && opkg install "$package"
+        if [ $? -eq 0 ]; then
+            echo "$package berhasil diinstal."
+        else
+            echo "Gagal menginstal $package."
+        fi
+    fi
 }
-
-insIPK () {
-	if [[ $(opkg list-installed | grep -c "^$1 -") == "0" ]]; then $oIns $1; fi
-}
-
 
 DIR="/tmp"
 clear
@@ -142,49 +146,12 @@ gagal_install(){
 download_packages() {
     echo "Update dan instal prerequisites"
 
-    chkIPK
-
-    # Try install git, git-http, bc, screen is not installed
-	if [[ $gbsPkg -lt 4 ]]; then
-		echo -e "Try to install modemmanager, python3-pip, bc, screen, adb, httping, jq if not installed..." 
-        insIPK git
-        insIPK git-http
-		insIPK modemmanager
-		insIPK python3-pip
-		insIPK bc
-		insIPK screen
-		insIPK adb
-		insIPK httping
-        insIPK jq
-
-	else
-		echo -e "Package: modemmanager, python3-pip, bc, screen, adb, httping, jq  already installed." 
-	fi
+    for pkg in "${packages[@]}"; do
+        check_and_install "$pkg"
+    done
 
     sleep 1
     clear
-
-    # Try install PHP if php8/php7 is not installed
-	if [[ $(ls {/bin,/usr/bin,/usr/sbin} | grep -c "^php8-cli\|^php7-cli") -lt 1 ]] && [[ $(ls /usr/lib/php* | grep -c "^curl.so") -lt 1 ]]; then
-		# install php7 if php8 is not available on the repo
-		if [[ $(opkg list | grep -c "^php8-cli -") == 0 ]];then
-			# Try install php7
-			echo -e "Try to install php7 deps..." 
-			insIPK php7-cli
-			insIPK php7-mod-curl
-		else
-			# Try install php8
-			echo -e "Try to install php8 deps..."
-			insIPK php8-cli
-			insIPK php8-mod-curl
-		fi
-	else
-		echo -e "Package: PHP packages already installed." 
-	fi
-	
-    sleep 1
-	# Rechecking all required packages
-	chkIPK
 
     # Configure uhttpd
     uci set uhttpd.main.index_page='index.php'
