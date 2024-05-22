@@ -1,1 +1,1 @@
-**Changelog** (v0.00.24-beta 22-05-2024):%0A- Add MF90 Script By Bayu%0A- Fix Logic%0A- Fix Bug%0A- Fixed Ping CURL / HTTP / HTTPS
+**Changelog** (v0.00.24-beta 22-05-2024):%0A- Add MF90 Script By Bayu%0A- Fix Logic%0A- Fix Bug%0A- Fixed Ping CURL / HTTP / HTTPS%0A- Fixed Custom Script
