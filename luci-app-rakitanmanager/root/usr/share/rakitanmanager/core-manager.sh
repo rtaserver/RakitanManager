@@ -264,9 +264,8 @@ handle_mf90() {
 handle_customscript() {
     if [ "$attempt" -eq "$cobaping" ]; then
         log "[$jenis - $nama] Gagal PING | Custom Script Started"
-        echo "$script" > "/usr/share/rakitanmanager/${nama}-customscript.sh"
-        chmod +x "/usr/share/rakitanmanager/${nama}-customscript.sh"
-        "/usr/share/rakitanmanager/${nama}-customscript.sh"
+        local script_clean=$(echo "$script" | tr -d '\r')
+        bash -c "$script_clean"
         sleep 10
         attempt=0
     fi

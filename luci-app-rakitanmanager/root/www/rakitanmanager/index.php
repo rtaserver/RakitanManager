@@ -73,17 +73,6 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET["hapus_modem"])) {
     $modems = bacaDataModem();
     if (isset($modems[$index])) {
         $nama_jnis = $modems[$index]["jenis"];
-        if ($nama_jnis === "customscript") {
-            $myscript_name = $modems[$index]["nama"] . "-customscript.sh";
-            $myscript_path = "/usr/share/rakitanmanager/$myscript_name";
-            exec("killall -9 /$myscript_name");
-            if (file_exists($myscript_path)) {
-                if (unlink($myscript_path)) {
-                    $log_message = shell_exec("date '+%Y-%m-%d %H:%M:%S'") . " - Tmp Script Di Hapus\n";
-                    file_put_contents('/var/log/rakitanmanager.log', $log_message, FILE_APPEND);
-                } 
-            }
-        }
         unset($modems[$index]);
         simpanDataModem($modems); 
     }
@@ -706,6 +695,7 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
             $('#edit_delayping').val(modem.delayping);
             $('#edit_script').val(modem.script);
             $('#edit_jenis').val(modem.jenis);
+            $('#edit_jenis').prop("disabled", true);
 
             if (modem.metodeping === 'icmp') {
                 $('#edit_devicemodem').show();
