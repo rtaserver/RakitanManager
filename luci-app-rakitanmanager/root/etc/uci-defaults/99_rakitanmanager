@@ -90,20 +90,6 @@ if [ -f "$mm3" ]; then
     chmod +x /usr/lib/ModemManager/connection.d/10-report-down-and-reconnect
 fi
 
-set_permissions() {
-    local directory="$1"
-    if [ -d "$directory" ]; then
-        find "$directory" -type f -exec chmod 0755 {} +
-        local subdirs=$(find "$directory" -type d)
-        for subdir in $subdirs; do
-            set_permissions "$subdir"
-        done
-    else
-        echo "Direktori $directory tidak ditemukan."
-    fi
-}
-set_permissions "/usr/share/rakitanmanager"
-
 #Restore
 if [ -f "/tmp/rakitanmanager.bak" ]; then
 	mv -f "/tmp/rakitanmanager.bak" "/etc/config/rakitanmanager" >/dev/null 2>&1
@@ -113,5 +99,5 @@ if [ -f "/tmp/rakitanmanager.bak" ]; then
 	rm -rf "/tmp/data_modem.json.bak" >/dev/null 2>&1
 	rm -rf "/tmp/bot_message.txt.bak" >/dev/null 2>&1
 fi
-
+uci set rakitanmanager.cfg.enabled='0' && uci commit rakitanmanager
 exit
