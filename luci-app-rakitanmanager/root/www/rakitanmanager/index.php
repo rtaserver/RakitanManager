@@ -707,6 +707,12 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
             $('#edit_script').val(modem.script);
             $('#edit_jenis').val(modem.jenis);
 
+            if (modem.metodeping === 'icmp') {
+                $('#edit_devicemodem').show();
+            } else {
+                $('#edit_devicemodem').hide();
+            }
+
             if (modem.jenis === 'rakitan') {
                 $('#edit_rakitan_field').show();
                 $('#edit_orbit_field').hide();
@@ -788,6 +794,24 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                     $('#orbit_field').hide();
                     $('#hp_field').hide();
                     $('#customscript_field').show();
+                }
+            });
+
+            $('#metodeping').change(function () {
+                var metode = $(this).val();
+                if (metode === 'icmp') {
+                    $('#devicemodem').show();
+                } else {
+                $('#devicemodem').hide();
+                }
+            });
+
+            $('#edit_metodeping').change(function () {
+                var metode = $(this).val();
+                if (metode === 'icmp') {
+                    $('#edit_devicemodem').show();
+                } else {
+                $('#edit_devicemodem').hide();
                 }
             });
 

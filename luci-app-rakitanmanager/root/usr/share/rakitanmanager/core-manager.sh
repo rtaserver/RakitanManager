@@ -93,6 +93,10 @@ perform_ping() {
                 port_tcp=80
                 port_http=80
                 port_https=443
+            else
+                port_tcp=$xport
+                port_http=$xport
+                port_https=$xport
             fi
             ping_success=false
 
@@ -106,28 +110,27 @@ perform_ping() {
                     fi
                     ;;
                 curl)
-                    local cv_type=$(echo "$xhost" | sed 's|https|http|g')
-                    if [[ $(curl --interface ${devicemodem} -si ${cv_type} | grep -c 'Date:') == "1" ]]; then
-                        log "[$jenis - $nama] CURL ping to $pinghost on interface $devicemodem succeeded"
+                    if [[ $(curl -si --max-time 3 "http://${xhost}:${port_http}" | grep -c 'Date:') == "1" ]]; then
+                        log "[$jenis - $nama] CURL ping to $pinghost succeeded"
                         ping_success=true
                     else
-                        log "[$jenis - $nama] CURL ping to $pinghost on interface $devicemodem failed"
+                        log "[$jenis - $nama] CURL ping to $pinghost failed"
                     fi
                     ;;
                 http)
-                    if curl -Is --max-time 3 "http://${xhost}:${port_http}" --interface ${devicemodem} >/dev/null; then
-                        log "[$jenis - $nama] HTTP ping to $pinghost on interface $devicemodem succeeded"
+                    if curl -Is --max-time 3 "http://${xhost}:${port_http}" >/dev/null; then
+                        log "[$jenis - $nama] HTTP ping to $pinghost succeeded"
                         ping_success=true
                     else
-                        log "[$jenis - $nama] HTTP ping to $pinghost on interface $devicemodem failed"
+                        log "[$jenis - $nama] HTTP ping to $pinghost failed"
                     fi
                     ;;
                 https)
-                    if curl -Is --max-time 3 "https://${xhost}:${port_https}" --interface ${devicemodem} >/dev/null; then
-                        log "[$jenis - $nama] HTTPS ping to $pinghost on interface $devicemodem succeeded"
+                    if curl -Is --max-time 3 "https://${xhost}:${port_https}" >/dev/null; then
+                        log "[$jenis - $nama] HTTPS ping to $pinghost succeeded"
                         ping_success=true
                     else
-                        log "[$jenis - $nama] HTTPS ping to $pinghost on interface $devicemodem failed"
+                        log "[$jenis - $nama] HTTPS ping to $pinghost failed"
                     fi
                     ;;
             esac

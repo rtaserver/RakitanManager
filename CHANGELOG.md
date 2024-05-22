@@ -4,6 +4,7 @@
 - Add MF90 Script By Bayu
 - Fix Logic
 - Fix Bug
+- Fixed Ping CURL / HTTP / HTTPS
 
 **Changelog** (v0.00.23-beta 19-05-2024):
 - Perbaikan Ping Di HTTPS Dan HTTP
