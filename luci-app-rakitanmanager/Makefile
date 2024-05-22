@@ -37,6 +37,10 @@ define Build/Prepare
 	chmod 0755 $(PKG_BUILD_DIR)/root/usr/share/rakitanmanager/modem-hp.sh
 	chmod 0755 $(PKG_BUILD_DIR)/root/usr/share/rakitanmanager/modem-rakitan.sh
   	chmod 0755 $(PKG_BUILD_DIR)/root/usr/share/rakitanmanager/modem-orbit.py
+	chmod 0755 $(PKG_BUILD_DIR)/root/usr/share/rakitanmanager/plugins/adb-deviceinfo.sh
+	chmod 0755 $(PKG_BUILD_DIR)/root/usr/share/rakitanmanager/plugins/adb-sms.sh
+	chmod 0755 $(PKG_BUILD_DIR)/root/usr/share/rakitanmanager/plugins/service-openclash.sh
+	chmod 0755 $(PKG_BUILD_DIR)/root/usr/share/rakitanmanager/plugins/systeminfo.sh
 	chmod 0755 $(PKG_BUILD_DIR)/root/etc/uci-defaults/99_rakitanmanager
 	exit 0
 endef
@@ -71,6 +75,10 @@ define Package/$(PKG_NAME)/postinst
 	chmod 0755 /usr/share/rakitanmanager/modem-hp.sh
 	chmod 0755 /usr/share/rakitanmanager/modem-rakitan.sh
     chmod 0755 /usr/share/rakitanmanager/modem-orbit.py
+	chmod 0755 /usr/share/rakitanmanager/plugins/adb-deviceinfo.sh
+	chmod 0755 /usr/share/rakitanmanager/plugins/adb-sms.sh
+	chmod 0755 /usr/share/rakitanmanager/plugins/service-openclash.sh
+	chmod 0755 /root/usr/share/rakitanmanager/plugins/systeminfo.sh
 	chmod 0755 /etc/init.d/rakitanmanager
 	exit 0
 endef
