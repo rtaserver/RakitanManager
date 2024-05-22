@@ -49,19 +49,22 @@ fi
 
 if [ "$2" = "myip" ]; then
     # Jalankan perintah adb untuk mendapatkan informasi jaringan perangkat
-    network_info=$(adb -s ${IPX} shell ip addr show)
+    for IPX in ${ADBID}
+    do
+        network_info=$(adb -s "${IPX} shell ip addr show")
 
-    # Cari baris yang berisi alamat IP
-    ip_address_line=$(echo "$network_info" | grep 'inet ' | grep -v '127.0.0.1')
+        # Cari baris yang berisi alamat IP
+        ip_address_line=$(echo "$network_info" | grep 'inet ' | grep -v '127.0.0.1')
 
-    # Jika ditemukan baris yang berisi alamat IP
-    if [ -n "$ip_address_line" ]; then
-        # Ambil alamat IP dari baris tersebut
-        ip_address=$(echo "$ip_address_line" | awk '{print $2}')
-        echo "$ip_address"
-        exit 0
-    else
-        log "Tidak dapat menemukan alamat IP perangkat."
-        exit 1
-    fi
+        # Jika ditemukan baris yang berisi alamat IP
+        if [ -n "$ip_address_line" ]; then
+            # Ambil alamat IP dari baris tersebut
+            ip_address=$(echo "$ip_address_line" | awk '{print $2}')
+            echo "$ip_address"
+            exit 0
+        else
+            log "Tidak dapat menemukan alamat IP perangkat."
+            exit 1
+        fi
+    done
 fi
