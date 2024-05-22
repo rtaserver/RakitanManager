@@ -99,5 +99,5 @@ if [ -f "/tmp/rakitanmanager.bak" ]; then
 	rm -rf "/tmp/data_modem.json.bak" >/dev/null 2>&1
 	rm -rf "/tmp/bot_message.txt.bak" >/dev/null 2>&1
 fi
-
+uci set rakitanmanager.cfg.enabled='0' && uci commit rakitanmanager
 exit
