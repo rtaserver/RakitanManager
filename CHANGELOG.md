@@ -1,8 +1,9 @@
 # What's New!
 
-**Changelog** (v0.00.26-beta 23-05-2024):
+**Changelog** (v0.00.27-beta 23-05-2024):
 - Fix Modem Hilink
 - Fix Log Modem HP
+- Typo Modem Hilink
 
 **Changelog** (v0.00.25-beta 22-05-2024):
 - Add MF90 Script By Bayu
