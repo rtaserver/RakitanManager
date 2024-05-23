@@ -1,1 +1,1 @@
-**Changelog** (v0.00.26-beta 23-05-2024):%0A- Fix Modem Hilink%0A- Fix Log Modem HP
+**Changelog** (v0.00.27-beta 23-05-2024):%0A- Fix Modem Hilink%0A- Fix Log Modem HP%0A- Typo Modem Hilink
