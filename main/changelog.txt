@@ -1,1 +1,1 @@
-**Changelog** (v0.00.25-beta 22-05-2024):%0A- Add MF90 Script By Bayu%0A- Fix Logic%0A- Fix Bug%0A- Fixed Ping CURL / HTTP / HTTPS%0A- Fixed Custom Script%0A- Typo Script Modem HP%0A%0ANOTE :%0AJika Gagal Ping Coba Gunakan CURL/HTTP/S%0ATambahkan Port Di Belakang Bug%0AContoh : google.com:443
+**Changelog** (v0.00.27-beta 23-05-2024):%0A- Fix Modem Hilink%0A- Fix Log Modem HP%0A- Typo Modem Hilink
