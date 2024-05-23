@@ -1,5 +1,9 @@
 # What's New!
 
+**Changelog** (v0.00.26-beta 23-05-2024):
+- Fix Modem Hilink
+- Fix Log Modem HP
+
 **Changelog** (v0.00.25-beta 22-05-2024):
 - Add MF90 Script By Bayu
 - Fix Logic

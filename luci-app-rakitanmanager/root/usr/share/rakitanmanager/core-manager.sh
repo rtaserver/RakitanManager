@@ -201,7 +201,8 @@ handle_hp() {
     if [ "$attempt" -eq "$cobaping" ]; then
         log "[$jenis - $nama] Gagal PING | Restart Network Started"
         "$RAKITANMANAGERDIR/modem-hp.sh" "$androidid" restart
-        new_ip=$("$RAKITANMANAGERDIR/modem-hp.sh" "$androidid" myip)
+        myipresult=$("$RAKITANMANAGERDIR/modem-hp.sh" "$androidid" myip)
+        new_ip=$(echo "$myipresult" | grep "New IP" | awk -F": " '{print $2}')
         if [ -z "$new_ip" ]; then
             new_ip="Changed"
         fi
