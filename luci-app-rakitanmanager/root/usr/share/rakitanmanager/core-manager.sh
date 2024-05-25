@@ -62,6 +62,7 @@ perform_ping() {
     local metodeping=$(jq -r '.metodeping' <<< "$modem_data")
     local host=$(jq -r '.hostbug' <<< "$modem_data")
     local androidid=$(jq -r '.androidid' <<< "$modem_data")
+    local modpes=$(jq -r '.modpes' <<< "$modem_data")
     local devicemodem=$(jq -r '.devicemodem' <<< "$modem_data")
     local delayping=$(jq -r '.delayping' <<< "$modem_data")
     local portmodem=$(jq -r '.portmodem' <<< "$modem_data")
@@ -174,7 +175,7 @@ handle_rakitan() {
     if [ "$attempt" -eq "$cobaping" ]; then
         log "[$jenis - $nama] Gagal PING | Renew IP Started"
         "$RAKITANMANAGERDIR/modem-rakitan.sh" renew "$devicemodem" "$portmodem" "$interface"
-        new_ip=$(ifconfig "$devicemodem" | grep inet | grep -v inet6 | awk '{print $2}')
+        new_ip=$(ifconfig wwan0 | grep inet | grep -v inet6 | awk '{print $2}')
         if [ -z "$new_ip" ]; then
             new_ip="Changed"
         fi
@@ -185,7 +186,7 @@ handle_rakitan() {
     elif [ "$attempt" -eq $((cobaping + 1)) ]; then
         log "[$jenis - $nama] Gagal PING | Restart Modem Started"
         "$RAKITANMANAGERDIR/modem-rakitan.sh" restart "$devicemodem" "$portmodem" "$interface"
-        new_ip=$(ifconfig "$devicemodem" | grep inet | grep -v inet6 | awk '{print $2}')
+        new_ip=$(ifconfig wwan0 | grep inet | grep -v inet6 | awk '{print $2}')
         if [ -z "$new_ip" ]; then
             new_ip="Changed"
         fi
@@ -200,8 +201,14 @@ handle_rakitan() {
 handle_hp() {
     if [ "$attempt" -eq "$cobaping" ]; then
         log "[$jenis - $nama] Gagal PING | Restart Network Started"
-        "$RAKITANMANAGERDIR/modem-hp.sh" "$androidid" restart
-        new_ip=$("$RAKITANMANAGERDIR/modem-hp.sh" "$androidid" myip)
+        if [ "$modpes" = "modpesv1" ]; then
+            "$RAKITANMANAGERDIR/modem-hp.sh" "$androidid" restart v1
+        fi
+        if [ "$modpes" = "modpesv2" ]; then
+            "$RAKITANMANAGERDIR/modem-hp.sh" "$androidid" restart v2
+        fi
+        myipresult=$("$RAKITANMANAGERDIR/modem-hp.sh" "$androidid" myip)
+        new_ip=$(echo "$myipresult" | grep "New IP" | awk -F": " '{print $2}')
         if [ -z "$new_ip" ]; then
             new_ip="Changed"
         fi
@@ -248,8 +255,9 @@ handle_hilink() {
 handle_mf90() {
     if [ "$attempt" -eq "$cobaping" ]; then
         log "[$jenis - $nama] Gagal PING | Restart Network Started"
-        mf90result=$("$RAKITANMANAGERDIR/modem-mf90.sh" "$iporbit" "$usernameorbit" "$passwordorbit")
+        mf90result=$("$RAKITANMANAGERDIR/modem-mf90.sh" "$iporbit" "$usernameorbit" "$passwordorbit" reboot)
         new_ip=$(echo "$mf90result" | grep "New IP" | awk -F": " '{print $2}')
+        "$RAKITANMANAGERDIR/modem-mf90.sh" "$iporbit" "$usernameorbit" "$passwordorbit" disable_wifi
         if [ -z "$new_ip" ]; then
             new_ip="Changed"
         fi

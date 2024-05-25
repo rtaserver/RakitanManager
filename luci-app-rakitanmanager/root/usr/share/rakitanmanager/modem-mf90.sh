@@ -59,6 +59,30 @@ login() {
     fi
 }
 
+disable_wifi() {
+    local payload="isTest=false&goformId=SET_WIFI_INFO&wifiEnabled=0"
+    log "Disabling WiFi..."
+    response=$(send_request "$payload")
+    if check_success "$response"; then
+        log "WiFi disabled successfully."
+    else
+        log "Failed to disable WiFi."
+        exit 1
+    fi
+}
+
+enable_wifi() {
+    local payload="isTest=false&goformId=SET_WIFI_INFO&wifiEnabled=1"
+    log "Enabling WiFi..."
+    response=$(send_request "$payload")
+    if check_success "$response"; then
+        log "WiFi enabled successfully."
+    else
+        log "Failed to enable WiFi."
+        exit 1
+    fi
+}
+
 reboot() {
     local payload="isTest=false&goformId=REBOOT_DEVICE"
     log "Reboot Modem..."
@@ -71,7 +95,38 @@ reboot() {
     fi
 }
 
+get_new_ip() {
+    log "Getting new IP address after reboot..."
+    sleep 60 # Waktu tunggu untuk reboot selesai
+    new_ip=$(adb shell ifconfig wlan0 | grep 'inet addr' | cut -d: -f2 | awk '{ print $1}')
+    log "New IP: $new_ip"
+    echo "New IP: $new_ip"
+}
+
+# Argumen untuk menentukan tindakan
+action="$4"
+
+# Login ke modem
 login
 sleep 2
-reboot
+
+case "$action" in
+    disable_wifi)
+        disable_wifi
+        ;;
+    enable_wifi)
+        enable_wifi
+        ;;
+    reboot)
+        reboot
+        get_new_ip
+        ;;
+    *)
+        log "Tindakan tidak valid: $action"
+        echo "Penggunaan: $0 <MODEM_IP> <USERNAME> <PASSWORD> <action>"
+        echo "Tindakan yang tersedia: disable_wifi, enable_wifi, reboot"
+        exit 1
+        ;;
+esac
+
 exit 0

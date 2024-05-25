@@ -38,6 +38,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["tambah_modem"])) {
         "metodeping" => $_POST["metodeping"],
         "hostbug" => $_POST["hostbug"],
         "androidid" => $_POST["androidid"],
+        "modpes" => $_POST["modpes"],
         "devicemodem" => $_POST["devicemodem"],
         "delayping" => $_POST["delayping"],
         "script" => $_POST["script"]
@@ -60,6 +61,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["edit_modem"])) {
         $modems[$index]["metodeping"] = $_POST["edit_metodeping"];
         $modems[$index]["hostbug"] = $_POST["edit_hostbug"];
         $modems[$index]["androidid"] = $_POST["edit_androidid"];
+        $modems[$index]["modpes"] = $_POST["edit_modpes"];
         $modems[$index]["devicemodem"] = $_POST["edit_devicemodem"];
         $modems[$index]["delayping"] = $_POST["edit_delayping"];
         $modems[$index]["script"] = $_POST["edit_script"];
@@ -476,6 +478,12 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                                                                     }
                                                                     ?>
                                                                 </select>
+                                                                <label for="modpes">Versi Modpes:</label>
+                                                                <select name="modpes" id="modpes"
+                                                                    class="form-control">
+                                                                    <option value="modpesv1">Mode Pesawat V1</option>
+                                                                    <option value="modpesv2">Mode Pesawat V2</option>
+                                                                </select>
                                                             </div>
                                                             <div class="form-group" id="customscript_field">
                                                                 <label for="script">Custom Script:</label>
@@ -614,6 +622,12 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                                                                     }
                                                                     ?>
                                                                 </select>
+                                                                <label for="edit_modpes">Versi Modpes:</label>
+                                                                <select name="edit_modpes" id="edit_modpes"
+                                                                    class="form-control">
+                                                                    <option value="modpesv1">Mode Pesawat V1</option>
+                                                                    <option value="modpesv2">Mode Pesawat V2</option>
+                                                                </select>
                                                             </div>
                                                             <div class="form-group" id="edit_customscript_field">
                                                                 <label for="edit_script">Custom Script:</label>
@@ -692,6 +706,7 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
             $('#edit_hostbug').val(modem.hostbug);
             $('#edit_androidid').val(modem.androidid);
             $('#edit_devicemodem').val(modem.devicemodem);
+            $('#edit_modpes').val(modem.modpes);
             $('#edit_delayping').val(modem.delayping);
             $('#edit_script').val(modem.script);
             $('#edit_jenis').val(modem.jenis);
@@ -873,6 +888,7 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
             var hostbug = document.getElementById("hostbug").value.trim();
             var androidid = document.getElementById("androidid").value.trim();
             var devicemodem = document.getElementById("devicemodem").value.trim();
+            var modpes = document.getElementById("modpes").value.trim();
             var delayping = document.getElementById("delayping").value.trim();
             var script = document.getElementById("script").value.trim();
 
@@ -922,6 +938,7 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
             var hostbug = document.getElementById("edit_hostbug").value.trim();
             var androidid = document.getElementById("edit_androidid").value.trim();
             var devicemodem = document.getElementById("edit_devicemodem").value.trim();
+            var modpes = document.getElementById("edit_modpes").value.trim();
             var delayping = document.getElementById("edit_delayping").value.trim();
             var script = document.getElementById("edit_script").value.trim();
 

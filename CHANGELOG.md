@@ -1,5 +1,25 @@
 # What's New!
 
+**Changelog** (v0.00.28-beta 25-05-2024):
+- Fix Modem Hilink
+- Fix Log Modem HP
+- Typo Modem Hilink
+- Penambahan Versi Untuk Modpes HP
+- Penambahan Disable Wifi Modem MF90
+
+**Changelog** (v0.00.25-beta 22-05-2024):
+- Add MF90 Script By Bayu
+- Fix Logic
+- Fix Bug
+- Fixed Ping CURL / HTTP / HTTPS
+- Fixed Custom Script
+- Typo Script Modem HP
+
+NOTE :
+Jika Gagal Ping Coba Gunakan CURL/HTTP/S
+Tambahkan Port Di Belakang Bug
+Contoh : google.com:443
+
 **Changelog** (v0.00.24-beta 22-05-2024):
 - Add MF90 Script By Bayu
 - Fix Logic
