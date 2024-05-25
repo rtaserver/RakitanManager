@@ -1,0 +1,40 @@
+name: Bug Report
+description: Report bugs you encounter to help us improve
+title: "[Bug]: "
+labels: bug
+
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Jelaskan bug yang Anda temui
+      description: Tolong jelaskan masalahnya sesederhana dan sejelas mungkin
+    validations:
+      required: true
+
+  - type: textarea
+    id: pics
+    attributes:
+      label: tangkapan layar
+      description: Jika berlaku, Anda dapat menambahkan tangkapan layar untuk menjelaskan masalah Anda dengan lebih baik
+    validations:
+      required: false
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Informasi terkait sistem
+      description: Isi informasi yang relevan untuk menentukan masalahnya dengan lebih baik
+      placeholder: |
+        - Versi Rakitan Manager :
+        - Branch :
+    validations:
+      required: true
+
+  - type: textarea
+    id: supplements
+    attributes:
+      label: Informasi lainnya
+      description: Informasi tambahan terkait bug ini
+    validations:
+      required: false
