@@ -163,10 +163,16 @@ download_packages() {
 
     echo "Setup Package For Python3"
     if which pip3 >/dev/null; then
-        if ! pip3 install --upgrade pip; then
-            echo -e "${CLRed}Error Upgrade pip"
-            echo -e "${CLRed}Setup Gagal | Mohon Coba Kembali"
-            gagal_install "upgrade pip"
+        pip_current_version=$(pip3 --version | awk '{print $2}')
+        pip_latest_version=$(pip3 install pip --upgrade --dry-run 2>&1 | grep 'pip-' | awk '{print $2}' | cut -d'-' -f2)
+        if [ "$pip_current_version" == "$pip_latest_version" ]; then
+            echo -e "${CLGreen}Pip sudah up-to-date dengan versi $pip_current_version"
+        else
+            if ! pip3 install --upgrade pip; then
+                echo -e "${CLRed}Error Upgrade pip"
+                echo -e "${CLRed}Setup Gagal | Mohon Coba Kembali"
+                gagal_install "upgrade pip"
+            fi
         fi
         # Instal paket 'requests' jika belum terinstal
         if ! pip3 show requests >/dev/null; then
