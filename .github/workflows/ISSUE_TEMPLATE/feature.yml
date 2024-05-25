@@ -1,0 +1,21 @@
+name: Permintaan Fitur
+description: Temukan ide untuk fitur baru untuk proyek ini
+title: "[Feature Request]: "
+labels: enhancement
+
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Jelaskan fitur baru yang Anda inginkan
+      description: Jelaskan fitur baru yang Anda inginkan atau masalah yang ingin Anda selesaikan dengan sesederhana dan sejelas mungkin
+    validations:
+      required: true
+
+  - type: textarea
+    id: supplements
+    attributes:
+      label: Informasi lainnya
+      description: Tambahkan informasi tambahan atau tangkapan layar tentang permintaan fitur di sini
+    validations:
+      required: false
