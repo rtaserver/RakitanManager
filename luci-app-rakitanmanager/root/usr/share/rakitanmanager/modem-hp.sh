@@ -32,11 +32,21 @@ if [ "$2" = "restart" ]; then
     do
         log "Menghubungkan ke perangkat ${IPX}..." 
         log "Mode pesawat akan diaktifkan dalam 3 detik..."
-        adb -s "$IPX" shell settings put global airplane_mode_on 1 &>/dev/null
+        if [ "$3" = "v1" ]; then
+            adb -s "$IPX" shell settings put global airplane_mode_on 1 &>/dev/null
+        fi
+        if [ "$3" = "v2" ]; then
+            adb -s "$IPX" shell cmd connectivity airplane-mode enable &>/dev/null
+        fi
         adb -s "$IPX" shell am broadcast -a android.intent.action.AIRPLANE_MODE --ez state true &>/dev/null
         sleep "3" &>/dev/null
         log "Menonaktifkan mode pesawat untuk mendapatkan IP baru dan jaringan yang diperbarui..."
-        adb -s "$IPX" shell settings put global airplane_mode_on 0 &>/dev/null
+        if [ "$3" = "v1" ]; then
+            adb -s "$IPX" shell settings put global airplane_mode_on 0 &>/dev/null
+        fi
+        if [ "$3" = "v2" ]; then
+            adb -s "$IPX" shell cmd connectivity airplane-mode disable &>/dev/null
+        fi
         adb -s "$IPX" shell am broadcast -a android.intent.action.AIRPLANE_MODE --ez state false &>/dev/null
         log "ID [${IPX}] : Penyegaran jaringan selesai...!!"
         exit 0
@@ -56,5 +66,6 @@ if [ "$2" = "myip" ]; then
         fi
         
         log "New IP: $ip_addr"
+        echo "New IP: $ip_addr"
     done
 fi
