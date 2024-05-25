@@ -163,6 +163,11 @@ download_packages() {
 
     echo "Setup Package For Python3"
     if which pip3 >/dev/null; then
+        if ! pip3 install --upgrade pip; then
+            echo -e "${CLRed}Error Upgrade pip"
+            echo -e "${CLRed}Setup Gagal | Mohon Coba Kembali"
+            gagal_install "upgrade pip"
+        fi
         # Instal paket 'requests' jika belum terinstal
         if ! pip3 show requests >/dev/null; then
             echo "Installing package 'requests'"
