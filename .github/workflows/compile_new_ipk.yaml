@@ -1,15 +1,20 @@
 name: Compile The New Version RakitanManager
 
 on: 
-  push:
-    branches:
-      - dev
-    paths:
-      - 'luci-app-rakitanmanager/Makefile'
+  # push:
+  #   branches:
+  #     - dev
+  #   paths:
+  #     - 'luci-app-rakitanmanager/Makefile'
   workflow_dispatch:
     inputs:
       revision:
         description: "Revision IPK"
+        required: false
+        default: false
+        type: boolean
+      artifact:
+        description: "Upload Artifact Only"
         required: false
         default: false
         type: boolean
@@ -128,6 +133,7 @@ jobs:
           path: ${{ env.FIRMWARE }}/rakitanmanager/*.ipk
 
       - name: Add changelog info to new release description
+        if: ${{ github.event.inputs.revision == 'false' }}
         id: changelog
         shell: bash
         run: |
@@ -139,14 +145,17 @@ jobs:
           echo "CHANGELOG=$r" >> $GITHUB_OUTPUT 
 
       - name: Switch RakitanManager Repository to Package
+        if: ${{ github.event.inputs.revision == 'false' }}
         uses: actions/checkout@v4
         with:
           ref: package
 
       - name: Download temporary artifact
+        if: ${{ github.event.inputs.revision == 'false' }}
         uses: actions/download-artifact@v3
 
       - name: Commit and Push New Version
+        if: ${{ github.event.inputs.revision == 'false' }}
         run: |
           echo "${{ steps.changelog.outputs.CHANGELOG }}" > ./${{ github.ref_name }}/changelog.txt
           rm -rf ./${{ github.ref_name }}/luci-app-rakitanmanager_*
@@ -169,6 +178,7 @@ jobs:
           git push
 
       - name: Generate new tag & release
+        if: ${{ github.event.inputs.revision == 'false' }}
         uses: softprops/action-gh-release@v2.0.4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,5 +1,13 @@
 # What's New!
 
+**Changelog** (v0.00.29-beta 28-05-2024):
+- Change JSON To OpenWrt Config
+- Mengembalikan Metode Ping Lama
+    - HTTP Dengan Interface PING
+    - HTTPS Dengan Interface PING
+    - CURL Dengan Interface PING
+- 
+
 **Changelog** (v0.00.28-beta 25-05-2024):
 - Fix Modem Hilink
 - Fix Log Modem HP

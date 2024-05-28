@@ -8,7 +8,6 @@ log() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - $1"
 }
 
-
 # Ambil informasi perangkat
 DEVICE_INFO=$(ubus call system board)
 DEVICE_PROCESSOR=$(echo "$DEVICE_INFO" | jq -r '.system')
@@ -39,19 +38,33 @@ $(bash $RAKITANMANAGERDIR/plugins/systeminfo.sh)
 ==============="
 }
 
-# Baca file JSON
-json_file="/www/rakitanmanager/data_modem.json"
-if [ ! -f "$json_file" ]; then
-    log "File JSON tidak ditemukan."
-    exit 1
-fi
+# Parsing konfigurasi dan menjalankan fungsi-fungsi yang diperlukan
+parse_config() {
+    config_list=$(uci show rakitanmanager_datamodem | grep "^rakitanmanager" | cut -d'=' -f1)
+    for config in $config_list; do
+        id=$(uci get "$config.id" 2>/dev/null || echo "")
+        jenis=$(uci get "$config.jenis" 2>/dev/null || echo "")
+        nama=$(uci get "$config.nama" 2>/dev/null || echo "")
+        cobaping=$(uci get "$config.cobaping" 2>/dev/null || echo "")
+        portmodem=$(uci get "$config.portmodem" 2>/dev/null || echo "")
+        interface=$(uci get "$config.interface" 2>/dev/null || echo "")
+        iporbit=$(uci get "$config.iporbit" 2>/dev/null || echo "")
+        usernameorbit=$(uci get "$config.usernameorbit" 2>/dev/null || echo "")
+        passwordorbit=$(uci get "$config.passwordorbit" 2>/dev/null || echo "")
+        metodeping=$(uci get "$config.metodeping" 2>/dev/null || echo "")
+        hostbug=$(uci get "$config.hostbug" 2>/dev/null || echo "")
+        androidid=$(uci get "$config.androidid" 2>/dev/null || echo "")
+        modpes=$(uci get "$config.modpes" 2>/dev/null || echo "")
+        devicemodem=$(uci get "$config.devicemodem" 2>/dev/null || echo "")
+        delayping=$(uci get "$config.delayping" 2>/dev/null || echo "")
+        script=$(uci get "$config.script" 2>/dev/null || echo "")
 
-# Parsing JSON dan simpan ke array
-parse_json() {
-    modems=()
-    while IFS= read -r line; do
-        modems+=("$line")
-    done < <(jq -c '.modems[]' "$json_file")
+        # Pengecekan apakah semua nilai kosong
+        if [ -n "$id" ] || [ -n "$jenis" ] || [ -n "$nama" ] || [ -n "$cobaping" ] || [ -n "$portmodem" ] || [ -n "$interface" ] || [ -n "$iporbit" ] || [ -n "$usernameorbit" ] || [ -n "$passwordorbit" ] || [ -n "$metodeping" ] || [ -n "$hostbug" ] || [ -n "$androidid" ] || [ -n "$modpes" ] || [ -n "$devicemodem" ] || [ -n "$delayping" ] || [ -n "$script" ]; then
+            modem_data="{\"id\":\"$id\",\"jenis\":\"$jenis\",\"nama\":\"$nama\",\"cobaping\":\"$cobaping\",\"portmodem\":\"$portmodem\",\"interface\":\"$interface\",\"iporbit\":\"$iporbit\",\"usernameorbit\":\"$usernameorbit\",\"passwordorbit\":\"$passwordorbit\",\"metodeping\":\"$metodeping\",\"hostbug\":\"$hostbug\",\"androidid\":\"$androidid\",\"modpes\":\"$modpes\",\"devicemodem\":\"$devicemodem\",\"delayping\":\"$delayping\",\"script\":\"$script\"}"
+            perform_ping "$modem_data" &
+        fi
+    done
 }
 
 perform_ping() {
@@ -87,23 +100,11 @@ perform_ping() {
         status_Internet=false
 
         for pinghost in $host; do
-            local xhost=$(echo "${pinghost}" | cut -d':' -f1)
-            local xport=$(echo "${pinghost}" | cut -d':' -f2)
-
-            if [ -z "$xport" ]; then
-                port_tcp=80
-                port_http=80
-                port_https=443
-            else
-                port_tcp=$xport
-                port_http=$xport
-                port_https=$xport
-            fi
             ping_success=false
 
             case "$metodeping" in
                 icmp)
-                    if ping -q -c 3 -W 3 -I "${devicemodem}" "${xhost}" > /dev/null; then
+                    if ping -q -c 3 -W 3 -I "${devicemodem}" "${pinghost}" > /dev/null; then
                         log "[$jenis - $nama] ICMP ping to $pinghost on interface $devicemodem succeeded"
                         ping_success=true
                     else
@@ -111,27 +112,27 @@ perform_ping() {
                     fi
                     ;;
                 curl)
-                    if [[ $(curl -si --max-time 3 "http://${xhost}:${port_http}" | grep -c 'Date:') == "1" ]]; then
-                        log "[$jenis - $nama] CURL ping to $pinghost succeeded"
+                    if [[ $(curl --interface "${devicemodem}" -si --max-time 3 "http://${pinghost}" | grep -c 'Date:') == "1" ]]; then
+                        log "[$jenis - $nama] CURL ping to $pinghost on interface $devicemodem succeeded"
                         ping_success=true
                     else
-                        log "[$jenis - $nama] CURL ping to $pinghost failed"
+                        log "[$jenis - $nama] CURL ping to $pinghost on interface $devicemodem failed"
                     fi
                     ;;
                 http)
-                    if curl -Is --max-time 3 "http://${xhost}:${port_http}" >/dev/null; then
-                        log "[$jenis - $nama] HTTP ping to $pinghost succeeded"
+                    if curl --interface "${devicemodem}" -Is --max-time 3 "http://${xhost}:${port_http}" >/dev/null; then
+                        log "[$jenis - $nama] HTTP ping to $pinghost on interface $devicemodem succeeded"
                         ping_success=true
                     else
-                        log "[$jenis - $nama] HTTP ping to $pinghost failed"
+                        log "[$jenis - $nama] HTTP ping to $pinghost on interface $devicemodem failed"
                     fi
                     ;;
                 https)
-                    if curl -Is --max-time 3 "https://${xhost}:${port_https}" >/dev/null; then
-                        log "[$jenis - $nama] HTTPS ping to $pinghost succeeded"
+                    if curl --interface "${devicemodem}" -Is --max-time 3 "https://${xhost}:${port_https}" >/dev/null; then
+                        log "[$jenis - $nama] HTTPS ping to $pinghost on interface $devicemodem succeeded"
                         ping_success=true
                     else
-                        log "[$jenis - $nama] HTTPS ping to $pinghost failed"
+                        log "[$jenis - $nama] HTTPS ping to $pinghost on interface $devicemodem failed"
                     fi
                     ;;
             esac
@@ -280,11 +281,7 @@ handle_customscript() {
 }
 
 main() {
-    parse_json
-
-    for modem_data in "${modems[@]}"; do
-        perform_ping "$modem_data" &
-    done
+    parse_config
 }
 
 rakitanmanager_stop() {
