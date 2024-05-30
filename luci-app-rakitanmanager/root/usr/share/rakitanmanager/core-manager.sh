@@ -184,7 +184,7 @@ handle_rakitan() {
             TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/$new_ip/g" -e "s/\[NAMAMODEM\]/$nama/g")
             send_message "$TGMSG"
         fi
-    elif [ "$attempt" -eq $((cobaping + 1)) ]; then
+    elif [ "$attempt" -eq $((cobaping + 3)) ]; then
         log "[$jenis - $nama] Gagal PING | Restart Modem Started"
         "$RAKITANMANAGERDIR/modem-rakitan.sh" restart "$devicemodem" "$portmodem" "$interface"
         new_ip=$(ifconfig wwan0 | grep inet | grep -v inet6 | awk '{print $2}')

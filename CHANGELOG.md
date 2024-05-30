@@ -6,7 +6,21 @@
     - HTTP Dengan Interface PING
     - HTTPS Dengan Interface PING
     - CURL Dengan Interface PING
-- 
+- Auto Aktif Saat Boot Jika Status Sebelumnya Enable
+
+Tips:
+Jika Bug / Host / IP - Gagal Padahal Internet Dan Inject Bisa
+Gunakan Metode PING CURL / HTTP / HTTPS Ditambah Port
+
+Contoh:
+Bug Host : bug.com bug.com:80 bug.com:443
+Bug IP : 8.8.8.8 8.8.8.8:80 8.8.8.8:443
+
+Jika Metode Renew IP / Restart Modem Tidak Bekerja
+Coba Gunakan CustomScript. Masalah Script Bisa Tanyakan Pada Member
+Atau Chat Saya Pribadi
+Jika Terdapat Error Atau Bug. Silahkan Chat Saya
+Insyaallah Saya Bantu Jika Tidak Sibuk :)
 
 **Changelog** (v0.00.28-beta 25-05-2024):
 - Fix Modem Hilink

@@ -342,6 +342,61 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
     </div>
 </div>
 
+<?php
+    $file_path = 'modal_status.txt';
+    $show_modal = true;
+
+    // Periksa apakah file ada dan baca statusnya
+    if (file_exists($file_path)) {
+        $file_content = file_get_contents($file_path);
+        $status_data = json_decode($file_content, true);
+        $last_shown_date = $status_data['last_shown_date'] ?? '';
+        
+        if ($last_shown_date == date('Y-m-d')) {
+            $show_modal = false;
+        }
+    }
+
+    // Set status jika checkbox dicentang dan form disubmit
+    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+        if (isset($_POST['dont_show'])) {
+            $status_data = ['last_shown_date' => date('Y-m-d')];
+            file_put_contents($file_path, json_encode($status_data));
+            $show_modal = false;
+        } else {
+            $show_modal = true;
+        }
+    }
+?>
+
+<div class="modal fade" id="myModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Ads / Donate Me :)</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form method="post" id="modalForm">
+                    <div class="text-center">
+                        <img src="./img/saweria.png" alt="Donate">
+                    </div>
+                    <br>
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="dontShow" name="dont_show">
+                        <label class="form-check-label" for="dontShow">Jangan tampilkan lagi hari ini</label>
+                    </div>
+                    <a href="https://saweria.co/rizkikotet" target="_blank" class="btn btn-primary">Saweria</a>
+                    <button type="submit" class="btn btn-primary" id="okButton" disabled>OK</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <body>
     <div id="app">
         <?php include ('navbar.php'); ?>
@@ -726,6 +781,28 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
         </form>
     </div>
     <?php include ("javascript.php"); ?>
+    <?php if ($show_modal): ?>
+    <script>
+        $(document).ready(function() {
+            $('#myModal').modal('show');
+        });
+    </script>
+    <?php endif; ?>
+
+    <script>
+        $('#modalForm').on('submit', function(e) {
+            if ($('#dontShow').is(':checked')) {
+                $('#myModal').modal('hide');
+            }
+        });
+        $('#dontShow').change(function() {
+            if ($(this).is(':checked')) {
+                $('#okButton').removeAttr('disabled');
+            } else {
+                $('#okButton').attr('disabled', 'disabled');
+            }
+        });
+    </script>
     <script>
         function editModem(index) {
             var modem = <?= json_encode($modems) ?>[index];

@@ -24,10 +24,10 @@ $url = end($url_array);
                 echo 'active'; ?>">
                 <a class="nav-link" href="telegram.php"><i class="fa fa-telegram"></i> Bot Telegram</a>
             </li>
-            <li class="nav-item <?php if ($url === 'pengaturan.php')
+            <!-- <li class="nav-item <?php if ($url === 'pengaturan.php')
                 echo 'active'; ?>">
                 <a class="nav-link" href="pengaturan.php"><i class="fa fa-gear"></i> Pengaturan</a>
-            </li>
+            </li> -->
             <li class="nav-item <?php if ($url === 'about.php')
                 echo 'active'; ?>">
                 <a class="nav-link" href="about.php"><i class="fa fa-info"></i> About</a>
