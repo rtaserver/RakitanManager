@@ -93,10 +93,10 @@ fi
 #Restore
 if [ -f "/tmp/rakitanmanager.bak" ]; then
 	mv -f "/tmp/rakitanmanager.bak" "/etc/config/rakitanmanager" >/dev/null 2>&1
-    mv -f "/tmp/data_modem.json.bak" "/www/rakitanmanager/data_modem.json" >/dev/null 2>&1
+    mv -f "/tmp/rakitanmanager_datamodem.bak" "/etc/config/rakitanmanager_datamodem" >/dev/null 2>&1
     mv -f "/tmp/bot_message.txt.bak" "/www/rakitanmanager/bot_message.txt" >/dev/null 2>&1
 	rm -rf "/tmp/rakitanmanager.bak" >/dev/null 2>&1
-	rm -rf "/tmp/data_modem.json.bak" >/dev/null 2>&1
+	rm -rf "/tmp/rakitanmanager_datamodem.bak" >/dev/null 2>&1
 	rm -rf "/tmp/bot_message.txt.bak" >/dev/null 2>&1
 fi
 uci set rakitanmanager.cfg.enabled='0' && uci commit rakitanmanager

@@ -8,7 +8,7 @@ start_service() {
     if pidof core-manager.sh > /dev/null; then
         echo "RakitanManager is already running."
     else
-        if [ "$(uci get rakitanmanager.cfg.startup)" = "1" ]; then
+        if [ "$(uci get rakitanmanager.cfg.enabled)" = "1" ]; then
             /usr/share/rakitanmanager/core-manager.sh -s
         fi        
     fi

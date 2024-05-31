@@ -3,23 +3,56 @@
 // Fungsi untuk membaca data modem dari file JSON
 function bacaDataModem()
 {
-    $file = 'data_modem.json';
+    $file = '/etc/config/rakitanmanager_datamodem';
+    $modems = [];
+
     if (file_exists($file)) {
-        $data = file_get_contents($file);
-        $decoded_data = json_decode($data, true);
-        if (isset($decoded_data['modems'])) {
-            return $decoded_data['modems'];
+        $lines = file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        $modem = [];
+
+        foreach ($lines as $line) {
+            if (preg_match('/^config rakitanmanager \'(\d+)\'/', $line, $matches)) {
+                if (!empty($modem)) {
+                    $modems[] = $modem;
+                }
+                $modem = ['id' => $matches[1]];
+            } elseif (preg_match('/^\toption (\w+) \'(.*)\'$/', $line, $matches)) {
+                $modem[$matches[1]] = $matches[2];
+            }
+        }
+
+        if (!empty($modem)) {
+            $modems[] = $modem;
         }
     }
-    return [];
+
+    return $modems;
 }
 
-// Fungsi untuk menyimpan data modem ke file JSON
 function simpanDataModem($modems)
 {
-    $file = 'data_modem.json';
-    $data = json_encode(['modems' => $modems], JSON_PRETTY_PRINT);
-    file_put_contents($file, $data);
+    $file = '/etc/config/rakitanmanager_datamodem';
+    $config = '';
+    foreach ($modems as $index => $modem) {
+        $config .= "config rakitanmanager '{$index}'\n";
+        $config .= "\toption id '$index'\n";
+        $config .= "\toption jenis '{$modem['jenis']}'\n";
+        $config .= "\toption nama '{$modem['nama']}'\n";
+        $config .= "\toption cobaping '{$modem['cobaping']}'\n";
+        $config .= "\toption portmodem '{$modem['portmodem']}'\n";
+        $config .= "\toption interface '{$modem['interface']}'\n";
+        $config .= "\toption iporbit '{$modem['iporbit']}'\n";
+        $config .= "\toption usernameorbit '{$modem['usernameorbit']}'\n";
+        $config .= "\toption passwordorbit '{$modem['passwordorbit']}'\n";
+        $config .= "\toption metodeping '{$modem['metodeping']}'\n";
+        $config .= "\toption hostbug '{$modem['hostbug']}'\n";
+        $config .= "\toption androidid '{$modem['androidid']}'\n";
+        $config .= "\toption modpes '{$modem['modpes']}'\n";
+        $config .= "\toption devicemodem '{$modem['devicemodem']}'\n";
+        $config .= "\toption delayping '{$modem['delayping']}'\n";
+        $config .= "\toption script '{$modem['script']}'\n\n";
+    }
+    file_put_contents($file, $config);
 }
 
 
@@ -51,6 +84,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["edit_modem"])) {
     $index = $_POST["index"];
     $modems = bacaDataModem();
     if (isset($modems[$index])) {
+        $modems[$index]["jenis"] = $_POST["edit_jenis"];
         $modems[$index]["nama"] = $_POST["edit_nama"];
         $modems[$index]["cobaping"] = $_POST["edit_cobaping"];
         $modems[$index]["portmodem"] = $_POST["edit_portmodem"];
@@ -74,9 +108,9 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET["hapus_modem"])) {
     $index = $_GET["hapus_modem"];
     $modems = bacaDataModem();
     if (isset($modems[$index])) {
-        $nama_jnis = $modems[$index]["jenis"];
         unset($modems[$index]);
-        simpanDataModem($modems); 
+        $modems = array_values($modems); // Re-index array to avoid gaps
+        simpanDataModem($modems);
     }
 }
 
@@ -303,6 +337,63 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                         class="btn btn-primary">Download Dan Update</a>
                 <?php endif; ?>
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<?php
+    $file_path = 'modal_status.txt';
+    $show_modal = true;
+
+    // Periksa apakah file ada dan baca statusnya
+    if (file_exists($file_path)) {
+        $file_content = file_get_contents($file_path);
+        $status_data = json_decode($file_content, true);
+        $last_shown_date = $status_data['last_shown_date'] ?? '';
+        
+        if ($last_shown_date == date('Y-m-d')) {
+            $show_modal = false;
+        }
+    }
+
+    // Set status jika checkbox dicentang dan form disubmit
+    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+        if (isset($_POST['dont_show'])) {
+            $status_data = ['last_shown_date' => date('Y-m-d')];
+            file_put_contents($file_path, json_encode($status_data));
+            $show_modal = false;
+        } else {
+            $status_data = ['last_shown_date' => date('Y-m-d')];
+            file_put_contents($file_path, json_encode($status_data));
+            $show_modal = false;
+        }
+    }
+?>
+
+<div class="modal fade" id="myModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Ads / Donate Me :)</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form method="post" id="modalForm">
+                    <div class="text-center">
+                        <img src="./img/saweria.png" alt="Donate">
+                    </div>
+                    <br>
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="dontShow" name="dont_show">
+                        <label class="form-check-label" for="dontShow">Jangan tampilkan lagi hari ini</label>
+                    </div>
+                    <a href="https://saweria.co/rizkikotet" target="_blank" class="btn btn-primary">Saweria</a>
+                    <button type="submit" class="btn btn-primary" id="okButton" disabled>OK</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </form>
             </div>
         </div>
     </div>
@@ -692,6 +783,28 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
         </form>
     </div>
     <?php include ("javascript.php"); ?>
+    <?php if ($show_modal): ?>
+    <script>
+        $(document).ready(function() {
+            $('#myModal').modal('show');
+        });
+    </script>
+    <?php endif; ?>
+
+    <script>
+        $('#modalForm').on('submit', function(e) {
+            if ($('#dontShow').is(':checked')) {
+                $('#myModal').modal('hide');
+            }
+        });
+        $('#dontShow').change(function() {
+            if ($(this).is(':checked')) {
+                $('#okButton').removeAttr('disabled');
+            } else {
+                $('#okButton').attr('disabled', 'disabled');
+            }
+        });
+    </script>
     <script>
         function editModem(index) {
             var modem = <?= json_encode($modems) ?>[index];
@@ -710,13 +823,13 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
             $('#edit_delayping').val(modem.delayping);
             $('#edit_script').val(modem.script);
             $('#edit_jenis').val(modem.jenis);
-            $('#edit_jenis').prop("disabled", true);
+            //$('#edit_jenis').prop("disabled", true);
 
-            if (modem.metodeping === 'icmp') {
-                $('#edit_devicemodem').show();
-            } else {
-                $('#edit_devicemodem').hide();
-            }
+            // if (modem.metodeping === 'icmp') {
+            //     $('#edit_devicemodem').show();
+            // } else {
+            //     $('#edit_devicemodem').hide();
+            // }
 
             if (modem.jenis === 'rakitan') {
                 $('#edit_rakitan_field').show();
@@ -802,23 +915,23 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                 }
             });
 
-            $('#metodeping').change(function () {
-                var metode = $(this).val();
-                if (metode === 'icmp') {
-                    $('#devicemodem').show();
-                } else {
-                $('#devicemodem').hide();
-                }
-            });
+            // $('#metodeping').change(function () {
+            //     var metode = $(this).val();
+            //     if (metode === 'icmp') {
+            //         $('#devicemodem').show();
+            //     } else {
+            //     $('#devicemodem').hide();
+            //     }
+            // });
 
-            $('#edit_metodeping').change(function () {
-                var metode = $(this).val();
-                if (metode === 'icmp') {
-                    $('#edit_devicemodem').show();
-                } else {
-                $('#edit_devicemodem').hide();
-                }
-            });
+            // $('#edit_metodeping').change(function () {
+            //     var metode = $(this).val();
+            //     if (metode === 'icmp') {
+            //         $('#edit_devicemodem').show();
+            //     } else {
+            //     $('#edit_devicemodem').hide();
+            //     }
+            // });
 
             // Menampilkan bidang sesuai dengan pilihan combobox yang terpilih saat edit
             $('#edit_jenis').change(function () {

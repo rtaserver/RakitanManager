@@ -57,12 +57,29 @@ if [ "$2" = "myip" ]; then
     # Jalankan perintah adb untuk mendapatkan informasi jaringan perangkat
     for IPX in ${ADBID}
     do
-        ip_output=$(adb -s "$IPX" shell ip addr show)
-        ip_addr=$(echo "$ip_output" | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | awk '{print $2}' | head -n 1)
-        
-        # Jika alamat IP kosong, tetapkan "Tidak tersedia"
-        if [[ -z "$ip_addr" ]]; then
-            ip_addr="Unavailable"
+        # Coba mendapatkan IP dari SIM 1
+        ip_output_sim1=$(adb -s "$IPX" shell ip addr show | grep 'rmnet_data0')
+        ip_addr_sim1=$(echo "$ip_output_sim1" | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | awk '{print $2}' | head -n 1)
+
+        if [[ -n "$ip_addr_sim1" ]]; then
+            ip_addr="$ip_addr_sim1"
+        else
+            # Jika IP dari SIM 1 tidak ditemukan, coba mendapatkan IP dari SIM 2
+            ip_output_sim2=$(adb -s "$IPX" shell ip addr show | grep 'rmnet_data1')
+            ip_addr_sim2=$(echo "$ip_output_sim2" | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | awk '{print $2}' | head -n 1)
+
+            if [[ -n "$ip_addr_sim2" ]]; then
+                ip_addr="$ip_addr_sim2"
+            else
+                # Jika IP dari SIM 2 juga tidak ditemukan, coba mendapatkan IP dari jaringan internet lainnya
+                ip_output=$(adb -s "$IPX" shell ip addr show)
+                ip_addr=$(echo "$ip_output" | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | awk '{print $2}' | head -n 1)
+                
+                # Jika alamat IP masih kosong, tetapkan "Unavailable"
+                if [[ -z "$ip_addr" ]]; then
+                    ip_addr="Unavailable"
+                fi
+            fi
         fi
         
         log "New IP: $ip_addr"
