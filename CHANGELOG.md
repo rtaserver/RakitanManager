@@ -1,6 +1,6 @@
 # What's New!
 
-**Changelog** (v0.00.30-beta 31-05-2024):
+**Changelog** (v0.00.31-beta 31-05-2024):
 - Change JSON To OpenWrt Config
 - Mengembalikan Metode Ping Lama
     - HTTP Dengan Interface PING
@@ -13,6 +13,9 @@
 Tips:
 Jika Bug / Host / IP - Gagal Padahal Internet Dan Inject Bisa
 Gunakan Metode PING CURL / HTTP / HTTPS Ditambah Port
+
+Tips Tambahan:
+Jika Masih Gagal Ping Device Untuk Ping Pilih Jangan Gunakan | Default
 
 Contoh:
 Bug Host : bug.com bug.com:80 bug.com:443

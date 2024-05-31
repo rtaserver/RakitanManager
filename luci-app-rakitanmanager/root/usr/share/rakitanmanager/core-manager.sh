@@ -104,37 +104,73 @@ perform_ping() {
 
             case "$metodeping" in
                 icmp)
-                    if ping -q -c 3 -W 3 -I "${devicemodem}" "${pinghost}" > /dev/null; then
-                        log "[$jenis - $nama] ICMP ping to $pinghost on interface $devicemodem succeeded"
-                        ping_success=true
+                    if [ "$devicemodem" = "disabled" ]; then
+                        if ping -q -c 3 -W 3 "${pinghost}" > /dev/null; then
+                            log "[$jenis - $nama] ICMP ping to $pinghost succeeded"
+                            ping_success=true
+                        else
+                            log "[$jenis - $nama] ICMP ping to $pinghost failed"
+                        fi
                     else
-                        log "[$jenis - $nama] ICMP ping to $pinghost on interface $devicemodem failed"
+                        if ping -q -c 3 -W 3 -I "${devicemodem}" "${pinghost}" > /dev/null; then
+                            log "[$jenis - $nama] ICMP ping to $pinghost on interface $devicemodem succeeded"
+                            ping_success=true
+                        else
+                            log "[$jenis - $nama] ICMP ping to $pinghost on interface $devicemodem failed"
+                        fi
                     fi
-                    ;;
+                ;;
                 curl)
-                    if [[ $(curl --interface "${devicemodem}" -si --max-time 3 "http://${pinghost}" | grep -c 'Date:') == "1" ]]; then
-                        log "[$jenis - $nama] CURL ping to $pinghost on interface $devicemodem succeeded"
-                        ping_success=true
+                    if [ "$devicemodem" = "disabled" ]; then
+                        if [[ $(curl -si --max-time 3 "http://${pinghost}" | grep -c 'Date:') == "1" ]]; then
+                            log "[$jenis - $nama] CURL ping to $pinghost succeeded"
+                            ping_success=true
+                        else
+                            log "[$jenis - $nama] CURL ping to $pinghost failed"
+                        fi
                     else
-                        log "[$jenis - $nama] CURL ping to $pinghost on interface $devicemodem failed"
+                        if [[ $(curl --interface "${devicemodem}" -si --max-time 3 "http://${pinghost}" | grep -c 'Date:') == "1" ]]; then
+                            log "[$jenis - $nama] CURL ping to $pinghost on interface $devicemodem succeeded"
+                            ping_success=true
+                        else
+                            log "[$jenis - $nama] CURL ping to $pinghost on interface $devicemodem failed"
+                        fi
                     fi
-                    ;;
+                ;;
                 http)
-                    if curl --interface "${devicemodem}" -Is --max-time 3 "http://${xhost}:${port_http}" >/dev/null; then
-                        log "[$jenis - $nama] HTTP ping to $pinghost on interface $devicemodem succeeded"
-                        ping_success=true
+                    if [ "$devicemodem" = "disabled" ]; then
+                        if curl -Is --max-time 3 "http://${xhost}:${port_http}" >/dev/null; then
+                            log "[$jenis - $nama] HTTP ping to $pinghost succeeded"
+                            ping_success=true
+                        else
+                            log "[$jenis - $nama] HTTP ping to $pinghost failed"
+                        fi
                     else
-                        log "[$jenis - $nama] HTTP ping to $pinghost on interface $devicemodem failed"
+                        if curl --interface "${devicemodem}" -Is --max-time 3 "http://${xhost}:${port_http}" >/dev/null; then
+                            log "[$jenis - $nama] HTTP ping to $pinghost on interface $devicemodem succeeded"
+                            ping_success=true
+                        else
+                            log "[$jenis - $nama] HTTP ping to $pinghost on interface $devicemodem failed"
+                        fi
                     fi
-                    ;;
+                ;;
                 https)
-                    if curl --interface "${devicemodem}" -Is --max-time 3 "https://${xhost}:${port_https}" >/dev/null; then
-                        log "[$jenis - $nama] HTTPS ping to $pinghost on interface $devicemodem succeeded"
-                        ping_success=true
+                    if [ "$devicemodem" = "disabled" ]; then
+                        if curl -Is --max-time 3 "https://${xhost}:${port_https}" >/dev/null; then
+                            log "[$jenis - $nama] HTTPS ping to $pinghost succeeded"
+                            ping_success=true
+                        else
+                            log "[$jenis - $nama] HTTPS ping to $pinghost failed"
+                        fi
                     else
-                        log "[$jenis - $nama] HTTPS ping to $pinghost on interface $devicemodem failed"
+                        if curl --interface "${devicemodem}" -Is --max-time 3 "https://${xhost}:${port_https}" >/dev/null; then
+                            log "[$jenis - $nama] HTTPS ping to $pinghost on interface $devicemodem succeeded"
+                            ping_success=true
+                        else
+                            log "[$jenis - $nama] HTTPS ping to $pinghost on interface $devicemodem failed"
+                        fi
                     fi
-                    ;;
+                ;;
             esac
 
             if [ "$ping_success" = true ]; then

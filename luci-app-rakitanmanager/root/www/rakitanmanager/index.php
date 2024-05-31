@@ -601,6 +601,7 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                                                                     PING:</label>
                                                                 <select name="devicemodem" id="devicemodem"
                                                                     class="form-control">
+                                                                    <option value="disabled">Jangan Gunakan | Default</option>
                                                                     <?php
                                                                     foreach ($interfaces as $devicemodem) {
                                                                         echo "<option value=\"$devicemodem\"";
@@ -744,6 +745,7 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                                                                     PING:</label>
                                                                 <select name="edit_devicemodem" id="edit_devicemodem"
                                                                     class="form-control">
+                                                                    <option value="disabled">Jangan Gunakan | Default</option>
                                                                     <?php
                                                                     foreach ($interfaces as $devicemodem) {
                                                                         echo "<option value=\"$devicemodem\"";
@@ -818,6 +820,7 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
             $('#edit_metodeping').val(modem.metodeping);
             $('#edit_hostbug').val(modem.hostbug);
             $('#edit_androidid').val(modem.androidid);
+            $('#edit_dontdeviceping').val(modem.dontdeviceping);
             $('#edit_devicemodem').val(modem.devicemodem);
             $('#edit_modpes').val(modem.modpes);
             $('#edit_delayping').val(modem.delayping);
@@ -825,11 +828,11 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
             $('#edit_jenis').val(modem.jenis);
             //$('#edit_jenis').prop("disabled", true);
 
-            // if (modem.metodeping === 'icmp') {
-            //     $('#edit_devicemodem').show();
-            // } else {
-            //     $('#edit_devicemodem').hide();
-            // }
+            if (modem.dontdeviceping === false) {
+                $('#edit_devicemodem').show();
+            } else {
+                $('#edit_devicemodem').hide();
+            }
 
             if (modem.jenis === 'rakitan') {
                 $('#edit_rakitan_field').show();
@@ -915,23 +918,23 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                 }
             });
 
-            // $('#metodeping').change(function () {
-            //     var metode = $(this).val();
-            //     if (metode === 'icmp') {
-            //         $('#devicemodem').show();
-            //     } else {
-            //     $('#devicemodem').hide();
-            //     }
-            // });
+            $('#dontdeviceping').change(function () {
+                var metode = $(this).val();
+                if (metode === false) {
+                    $('#devicemodem').show();
+                } else {
+                $('#devicemodem').hide();
+                }
+            });
 
-            // $('#edit_metodeping').change(function () {
-            //     var metode = $(this).val();
-            //     if (metode === 'icmp') {
-            //         $('#edit_devicemodem').show();
-            //     } else {
-            //     $('#edit_devicemodem').hide();
-            //     }
-            // });
+            $('#edit_dontdeviceping').change(function () {
+                var metode = $(this).val();
+                if (metode === false) {
+                    $('#edit_devicemodem').show();
+                } else {
+                $('#edit_devicemodem').hide();
+                }
+            });
 
             // Menampilkan bidang sesuai dengan pilihan combobox yang terpilih saat edit
             $('#edit_jenis').change(function () {
@@ -1000,6 +1003,7 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
             var metodeping = document.getElementById("metodeping").value.trim();
             var hostbug = document.getElementById("hostbug").value.trim();
             var androidid = document.getElementById("androidid").value.trim();
+            var dontdeviceping = document.getElementById("dontdeviceping").value.trim();
             var devicemodem = document.getElementById("devicemodem").value.trim();
             var modpes = document.getElementById("modpes").value.trim();
             var delayping = document.getElementById("delayping").value.trim();
@@ -1050,6 +1054,7 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
             var metodeping = document.getElementById("edit_metodeping").value.trim();
             var hostbug = document.getElementById("edit_hostbug").value.trim();
             var androidid = document.getElementById("edit_androidid").value.trim();
+            var dontdeviceping = document.getElementById("edit_dontdeviceping").value.trim();
             var devicemodem = document.getElementById("edit_devicemodem").value.trim();
             var modpes = document.getElementById("edit_modpes").value.trim();
             var delayping = document.getElementById("edit_delayping").value.trim();
