@@ -7,6 +7,8 @@
     - HTTPS Dengan Interface PING
     - CURL Dengan Interface PING
 - Auto Aktif Saat Boot Jika Status Sebelumnya Enable
+- Fixed Show IP HP
+- Fixed Modal Show
 
 Tips:
 Jika Bug / Host / IP - Gagal Padahal Internet Dan Inject Bisa
