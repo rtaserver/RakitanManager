@@ -364,7 +364,9 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
             file_put_contents($file_path, json_encode($status_data));
             $show_modal = false;
         } else {
-            $show_modal = true;
+            $status_data = ['last_shown_date' => date('Y-m-d')];
+            file_put_contents($file_path, json_encode($status_data));
+            $show_modal = false;
         }
     }
 ?>

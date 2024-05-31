@@ -1,6 +1,6 @@
 # What's New!
 
-**Changelog** (v0.00.29-beta 28-05-2024):
+**Changelog** (v0.00.30-beta 31-05-2024):
 - Change JSON To OpenWrt Config
 - Mengembalikan Metode Ping Lama
     - HTTP Dengan Interface PING
