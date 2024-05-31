@@ -33,6 +33,9 @@
                         <p class="text-center m-0">Luci-app-rakitanmanager : <a href="https://github.com/rtaserver/RakitanManager"><i>RTA SERVER</i></a></p>
                         <p class="text-center m-0">Developer : <a href="https://t.me/Rizki_Kotet"><i>Rizki Kotet</i></a></p>
                         <br>
+                        <p class="text-center m-0">Official Facebook Group : <a href="https://www.facebook.com/groups/indowrt"><i>IndoWrt</i></a></p>
+                        <p class="text-center m-0">Official Discord : <a href="https://discord.gg/Z6z297Rt"><i>DBAI</i></a></p>
+                        <br>
                         <div class="text-center">
                             <img src="./img/saweria.png" alt="Donate">
                         </div>
