@@ -2,6 +2,7 @@
 
 **Changelog** (v0.00.32-beta 02-06-2024):
 - Fixed Cuustom Script
+- Add More Port AT
 
 Tips:
 Jika Bug / Host / IP - Gagal Padahal Internet Dan Inject Bisa

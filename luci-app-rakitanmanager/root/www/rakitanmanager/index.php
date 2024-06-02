@@ -491,10 +491,18 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                                                                     <option value="/dev/ttyUSB1">/dev/ttyUSB1</option>
                                                                     <option value="/dev/ttyUSB2">/dev/ttyUSB2</option>
                                                                     <option value="/dev/ttyUSB3">/dev/ttyUSB3</option>
+                                                                    <option value="/dev/ttyUSB4">/dev/ttyUSB4</option>
+                                                                    <option value="/dev/ttyUSB5">/dev/ttyUSB5</option>
+                                                                    <option value="/dev/ttyUSB6">/dev/ttyUSB6</option>
+                                                                    <option value="/dev/ttyUSB7">/dev/ttyUSB7</option>
                                                                     <option value="/dev/ttyACM0">/dev/ttyACM0</option>
                                                                     <option value="/dev/ttyACM1">/dev/ttyACM1</option>
                                                                     <option value="/dev/ttyACM2">/dev/ttyACM2</option>
                                                                     <option value="/dev/ttyACM3">/dev/ttyACM3</option>
+                                                                    <option value="/dev/ttyACM4">/dev/ttyACM4</option>
+                                                                    <option value="/dev/ttyACM5">/dev/ttyACM5</option>
+                                                                    <option value="/dev/ttyACM6">/dev/ttyACM6</option>
+                                                                    <option value="/dev/ttyACM7">/dev/ttyACM7</option>
                                                                 </select>
                                                                 <label for="interface">Interface Modem Manager:</label>
                                                                 <select name="interface" id="interface"
@@ -635,10 +643,18 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                                                                     <option value="/dev/ttyUSB1">/dev/ttyUSB1</option>
                                                                     <option value="/dev/ttyUSB2">/dev/ttyUSB2</option>
                                                                     <option value="/dev/ttyUSB3">/dev/ttyUSB3</option>
+                                                                    <option value="/dev/ttyUSB4">/dev/ttyUSB4</option>
+                                                                    <option value="/dev/ttyUSB5">/dev/ttyUSB5</option>
+                                                                    <option value="/dev/ttyUSB6">/dev/ttyUSB6</option>
+                                                                    <option value="/dev/ttyUSB7">/dev/ttyUSB7</option>
                                                                     <option value="/dev/ttyACM0">/dev/ttyACM0</option>
                                                                     <option value="/dev/ttyACM1">/dev/ttyACM1</option>
                                                                     <option value="/dev/ttyACM2">/dev/ttyACM2</option>
                                                                     <option value="/dev/ttyACM3">/dev/ttyACM3</option>
+                                                                    <option value="/dev/ttyACM4">/dev/ttyACM4</option>
+                                                                    <option value="/dev/ttyACM5">/dev/ttyACM5</option>
+                                                                    <option value="/dev/ttyACM6">/dev/ttyACM6</option>
+                                                                    <option value="/dev/ttyACM7">/dev/ttyACM7</option>
                                                                 </select>
                                                                 <label for="edit_interface">Interface Modem
                                                                     Manager:</label>
