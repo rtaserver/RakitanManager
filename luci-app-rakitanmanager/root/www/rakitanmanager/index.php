@@ -3,7 +3,7 @@
 // Fungsi untuk membaca data modem dari file JSON
 function bacaDataModem()
 {
-    $file = 'use/share/rakitanmanager/data-modem.json';
+    $file = '/usr/share/rakitanmanager/data-modem.json';
     if (file_exists($file)) {
         $data = file_get_contents($file);
         $decoded_data = json_decode($data, true);
@@ -17,7 +17,7 @@ function bacaDataModem()
 // Fungsi untuk menyimpan data modem ke file JSON
 function simpanDataModem($modems)
 {
-    $file = 'use/share/rakitanmanager/data-modem.json';
+    $file = '/usr/share/rakitanmanager/data-modem.json';
     $data = json_encode(['modems' => $modems], JSON_PRETTY_PRINT);
     file_put_contents($file, $data);
 }
