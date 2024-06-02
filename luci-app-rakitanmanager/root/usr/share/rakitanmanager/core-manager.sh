@@ -39,32 +39,12 @@ $(bash $RAKITANMANAGERDIR/plugins/systeminfo.sh)
 }
 
 # Parsing konfigurasi dan menjalankan fungsi-fungsi yang diperlukan
+json_file="/usr/share/rakitanmanager/data-modem.json"
 parse_config() {
-    config_list=$(uci show rakitanmanager_datamodem | grep "^rakitanmanager" | cut -d'=' -f1)
-    for config in $config_list; do
-        id=$(uci get "$config.id" 2>/dev/null || echo "")
-        jenis=$(uci get "$config.jenis" 2>/dev/null || echo "")
-        nama=$(uci get "$config.nama" 2>/dev/null || echo "")
-        cobaping=$(uci get "$config.cobaping" 2>/dev/null || echo "")
-        portmodem=$(uci get "$config.portmodem" 2>/dev/null || echo "")
-        interface=$(uci get "$config.interface" 2>/dev/null || echo "")
-        iporbit=$(uci get "$config.iporbit" 2>/dev/null || echo "")
-        usernameorbit=$(uci get "$config.usernameorbit" 2>/dev/null || echo "")
-        passwordorbit=$(uci get "$config.passwordorbit" 2>/dev/null || echo "")
-        metodeping=$(uci get "$config.metodeping" 2>/dev/null || echo "")
-        hostbug=$(uci get "$config.hostbug" 2>/dev/null || echo "")
-        androidid=$(uci get "$config.androidid" 2>/dev/null || echo "")
-        modpes=$(uci get "$config.modpes" 2>/dev/null || echo "")
-        devicemodem=$(uci get "$config.devicemodem" 2>/dev/null || echo "")
-        delayping=$(uci get "$config.delayping" 2>/dev/null || echo "")
-        script=$(uci get "$config.script" 2>/dev/null || echo "")
-
-        # Pengecekan apakah semua nilai kosong
-        if [ -n "$id" ] || [ -n "$jenis" ] || [ -n "$nama" ] || [ -n "$cobaping" ] || [ -n "$portmodem" ] || [ -n "$interface" ] || [ -n "$iporbit" ] || [ -n "$usernameorbit" ] || [ -n "$passwordorbit" ] || [ -n "$metodeping" ] || [ -n "$hostbug" ] || [ -n "$androidid" ] || [ -n "$modpes" ] || [ -n "$devicemodem" ] || [ -n "$delayping" ] || [ -n "$script" ]; then
-            modem_data="{\"id\":\"$id\",\"jenis\":\"$jenis\",\"nama\":\"$nama\",\"cobaping\":\"$cobaping\",\"portmodem\":\"$portmodem\",\"interface\":\"$interface\",\"iporbit\":\"$iporbit\",\"usernameorbit\":\"$usernameorbit\",\"passwordorbit\":\"$passwordorbit\",\"metodeping\":\"$metodeping\",\"hostbug\":\"$hostbug\",\"androidid\":\"$androidid\",\"modpes\":\"$modpes\",\"devicemodem\":\"$devicemodem\",\"delayping\":\"$delayping\",\"script\":\"$script\"}"
-            perform_ping "$modem_data" &
-        fi
-    done
+    modems=()
+    while IFS= read -r line; do
+        modems+=("$line")
+    done < <(jq -c '.modems[]' "$json_file")
 }
 
 perform_ping() {
@@ -318,6 +298,9 @@ handle_customscript() {
 
 main() {
     parse_config
+    for modem_data in "${modems[@]}"; do
+        perform_ping "$modem_data" &
+    done
 }
 
 rakitanmanager_stop() {
