@@ -2,7 +2,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-rakitanmanager
-PKG_VERSION:=0.00.30
+PKG_VERSION:=0.00.32
 PKG_RELEASE:=beta
 PKG_MAINTAINER:=rtaserver <https://github.com/rtaserver/RakitanManager>
 
@@ -58,7 +58,7 @@ define Package/$(PKG_NAME)/preinst
 #!/bin/sh
 	if [ -f "/etc/config/rakitanmanager" ]; then
 		cp -f "/etc/config/rakitanmanager" "/tmp/rakitanmanager.bak" >/dev/null 2>&1
-		cp -f "/etc/config/rakitanmanager_datamodem" "/tmp/rakitanmanager_datamodem.bak" >/dev/null 2>&1
+		cp -f "/usr/share/rakitanmanager/data-modem.json" "/tmp/data-modem.json.bak" >/dev/null 2>&1
 		cp -f "/www/rakitanmanager/bot_message.txt" "/tmp/bot_message.txt.bak" >/dev/null 2>&1
 	fi
 	exit 0
@@ -90,7 +90,7 @@ define Package/$(PKG_NAME)/prerm
         /usr/share/rakitanmanager/core-manager.sh -k
     fi
 	cp -f "/etc/config/rakitanmanager" "/tmp/rakitanmanager.bak" >/dev/null 2>&1
-	cp -f "/etc/config/rakitanmanager_datamodem" "/tmp/rakitanmanager_datamodem.bak" >/dev/null 2>&1
+	cp -f "/usr/share/rakitanmanager/data-modem.json" "/tmp/data-modem.json.bak" >/dev/null 2>&1
 	cp -f "/www/rakitanmanager/bot_message.txt" "/tmp/bot_message.txt.bak" >/dev/null 2>&1
 	exit 0
 endef

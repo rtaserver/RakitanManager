@@ -3,58 +3,24 @@
 // Fungsi untuk membaca data modem dari file JSON
 function bacaDataModem()
 {
-    $file = '/etc/config/rakitanmanager_datamodem';
-    $modems = [];
-
+    $file = 'use/share/rakitanmanager/data-modem.json';
     if (file_exists($file)) {
-        $lines = file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-        $modem = [];
-
-        foreach ($lines as $line) {
-            if (preg_match('/^config rakitanmanager \'(\d+)\'/', $line, $matches)) {
-                if (!empty($modem)) {
-                    $modems[] = $modem;
-                }
-                $modem = ['id' => $matches[1]];
-            } elseif (preg_match('/^\toption (\w+) \'(.*)\'$/', $line, $matches)) {
-                $modem[$matches[1]] = $matches[2];
-            }
-        }
-
-        if (!empty($modem)) {
-            $modems[] = $modem;
+        $data = file_get_contents($file);
+        $decoded_data = json_decode($data, true);
+        if (isset($decoded_data['modems'])) {
+            return $decoded_data['modems'];
         }
     }
-
-    return $modems;
+    return [];
 }
 
+// Fungsi untuk menyimpan data modem ke file JSON
 function simpanDataModem($modems)
 {
-    $file = '/etc/config/rakitanmanager_datamodem';
-    $config = '';
-    foreach ($modems as $index => $modem) {
-        $config .= "config rakitanmanager '{$index}'\n";
-        $config .= "\toption id '$index'\n";
-        $config .= "\toption jenis '{$modem['jenis']}'\n";
-        $config .= "\toption nama '{$modem['nama']}'\n";
-        $config .= "\toption cobaping '{$modem['cobaping']}'\n";
-        $config .= "\toption portmodem '{$modem['portmodem']}'\n";
-        $config .= "\toption interface '{$modem['interface']}'\n";
-        $config .= "\toption iporbit '{$modem['iporbit']}'\n";
-        $config .= "\toption usernameorbit '{$modem['usernameorbit']}'\n";
-        $config .= "\toption passwordorbit '{$modem['passwordorbit']}'\n";
-        $config .= "\toption metodeping '{$modem['metodeping']}'\n";
-        $config .= "\toption hostbug '{$modem['hostbug']}'\n";
-        $config .= "\toption androidid '{$modem['androidid']}'\n";
-        $config .= "\toption modpes '{$modem['modpes']}'\n";
-        $config .= "\toption devicemodem '{$modem['devicemodem']}'\n";
-        $config .= "\toption delayping '{$modem['delayping']}'\n";
-        $config .= "\toption script '{$modem['script']}'\n\n";
-    }
-    file_put_contents($file, $config);
+    $file = 'use/share/rakitanmanager/data-modem.json';
+    $data = json_encode(['modems' => $modems], JSON_PRETTY_PRINT);
+    file_put_contents($file, $data);
 }
-
 
 // Periksa apakah ada pengiriman formulir tambah modem
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["tambah_modem"])) {
@@ -601,6 +567,7 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                                                                     PING:</label>
                                                                 <select name="devicemodem" id="devicemodem"
                                                                     class="form-control">
+                                                                    <option value="disabled">Jangan Gunakan | Default</option>
                                                                     <?php
                                                                     foreach ($interfaces as $devicemodem) {
                                                                         echo "<option value=\"$devicemodem\"";
@@ -744,6 +711,7 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                                                                     PING:</label>
                                                                 <select name="edit_devicemodem" id="edit_devicemodem"
                                                                     class="form-control">
+                                                                    <option value="disabled">Jangan Gunakan | Default</option>
                                                                     <?php
                                                                     foreach ($interfaces as $devicemodem) {
                                                                         echo "<option value=\"$devicemodem\"";
@@ -824,12 +792,6 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
             $('#edit_script').val(modem.script);
             $('#edit_jenis').val(modem.jenis);
             //$('#edit_jenis').prop("disabled", true);
-
-            // if (modem.metodeping === 'icmp') {
-            //     $('#edit_devicemodem').show();
-            // } else {
-            //     $('#edit_devicemodem').hide();
-            // }
 
             if (modem.jenis === 'rakitan') {
                 $('#edit_rakitan_field').show();
@@ -914,24 +876,6 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                     $('#customscript_field').show();
                 }
             });
-
-            // $('#metodeping').change(function () {
-            //     var metode = $(this).val();
-            //     if (metode === 'icmp') {
-            //         $('#devicemodem').show();
-            //     } else {
-            //     $('#devicemodem').hide();
-            //     }
-            // });
-
-            // $('#edit_metodeping').change(function () {
-            //     var metode = $(this).val();
-            //     if (metode === 'icmp') {
-            //         $('#edit_devicemodem').show();
-            //     } else {
-            //     $('#edit_devicemodem').hide();
-            //     }
-            // });
 
             // Menampilkan bidang sesuai dengan pilihan combobox yang terpilih saat edit
             $('#edit_jenis').change(function () {
