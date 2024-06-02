@@ -65,7 +65,6 @@
         </form>
     </div>
     <?php include ("javascript.php"); ?>
-    <script src="js/index.js"></script>
 </body>
 
 </html>
