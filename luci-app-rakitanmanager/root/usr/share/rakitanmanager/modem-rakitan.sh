@@ -29,8 +29,9 @@ if [ "$1" = "restart" ]; then
     log "IP Saat Ini: $IP"
     echo AT^RESET | atinout - "$PORTMODEM" - >/dev/null
     log "Mohon Tunggu.. Sedang Mendapatkan IP Baru."
+    sleep 20
     ifup "$INTERFACEMODEM" 
-    sleep 35
+    sleep 20
     IP=$(ifconfig "$DEVICEMODEM" | grep inet | grep -v inet6 | awk '{print $2}')
     log "New IP: $IP"
     exit 0
