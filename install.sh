@@ -18,7 +18,6 @@ packages=(
 # Fungsi untuk memeriksa dan menginstal paket
 check_and_install() {
     local package="$1"
-    opkg update
     if opkg list-installed | grep -q "^$package -"; then
         echo "$package sudah terpasang."
     else
@@ -358,6 +357,8 @@ while true; do
         echo -e
         sleep 3
         clear
+        opkg update
+        clear
         install_upgrade_main
         ;;
 
@@ -366,6 +367,8 @@ while true; do
         echo -e
         sleep 3
         clear
+        opkg update
+        clear
         install_upgrade_dev
         ;;
 
@@ -373,6 +376,8 @@ while true; do
         echo -e Proses Install / Upgrade Packages, mohon ditunggu
         echo -e
         sleep 3
+        clear
+        opkg update
         clear
         download_packages
         ;;
