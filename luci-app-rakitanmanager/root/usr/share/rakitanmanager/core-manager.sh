@@ -192,7 +192,7 @@ handle_rakitan() {
     if [ "$attempt" -eq "$cobaping" ]; then
         log "[$jenis - $nama] Gagal PING | Renew IP Started"
         "$RAKITANMANAGERDIR/modem-rakitan.sh" renew "$devicemodem" "$portmodem" "$interface"
-        new_ip=$(ubus call network.interface.$INTERFACEMODEM status | jsonfilter -e '@["ipv4-address"][0].address')
+        new_ip=$(ubus call network.interface.$interface status | jsonfilter -e '@["ipv4-address"][0].address')
         if [ -z "$new_ip" ]; then
             new_ip="Changed"
         fi
@@ -203,7 +203,7 @@ handle_rakitan() {
     # elif [ "$attempt" -eq $((cobaping + 3)) ]; then
     #     log "[$jenis - $nama] Gagal PING | Restart Modem Started"
     #     "$RAKITANMANAGERDIR/modem-rakitan.sh" restart "$devicemodem" "$portmodem" "$interface"
-    #     new_ip=$(ubus call network.interface.$INTERFACEMODEM status | jsonfilter -e '@["ipv4-address"][0].address')
+    #     new_ip=$(ubus call network.interface.$interface status | jsonfilter -e '@["ipv4-address"][0].address')
     #     if [ -z "$new_ip" ]; then
     #         new_ip="Changed"
     #     fi
