@@ -3,6 +3,7 @@
 
 # Daftar paket yang perlu diinstal
 packages=(
+    "curl"
     "git"
     "git-http"
     "modemmanager"
@@ -17,11 +18,12 @@ packages=(
 # Fungsi untuk memeriksa dan menginstal paket
 check_and_install() {
     local package="$1"
+    opkg update
     if opkg list-installed | grep -q "^$package -"; then
         echo "$package sudah terpasang."
     else
         echo "$package belum terpasang. Menginstal $package..."
-        opkg update && opkg install "$package"
+        opkg install "$package"
         if [ $? -eq 0 ]; then
             echo "$package berhasil diinstal."
         else
