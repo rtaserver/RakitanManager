@@ -49,6 +49,8 @@ parse_config() {
 
 perform_ping() {
     local modem_data="$1"
+    local index="$2"
+    local status=$(jq -r '.status' <<< "$modem_data")
     local cobaping=$(jq -r '.cobaping' <<< "$modem_data")
     local nama=$(jq -r '.nama' <<< "$modem_data")
     local jenis=$(jq -r '.jenis' <<< "$modem_data")
@@ -75,6 +77,10 @@ perform_ping() {
         if [ "$log_size" -gt "$max_size" ]; then
             echo -n "" > "$log_file"
             log "Log dibersihkan karena melebihi ukuran maksimum."
+        fi
+
+        if [ "$status" = "-1" ]; then
+            break
         fi
 
         status_Internet=false
@@ -182,7 +188,12 @@ perform_ping() {
                     handle_customscript
                     ;;
             esac
+
+            update_status "$index" "2"
+
             attempt=$((attempt + 1))
+        else
+        update_status "$index" "1"
         fi
         sleep "$delayping"
     done
@@ -296,10 +307,28 @@ handle_customscript() {
     fi
 }
 
+update_status() {
+    local index="$1"
+    local status="$2"
+    if [[ -z "$index" ]] || [[ -z "$status" ]]; then
+        return
+    fi
+
+    local ip_gateway=$(ip address show br-lan | grep -w 'inet' 2>/dev/null | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | tr -d '\n')
+    if [ -z "$ip_gateway" ]; then
+        ip_gateway=$(uci -q get network.lan.ipaddr | awk -F '/' '{print $1}' 2>/dev/null | tr -d '\n')
+    fi
+
+    curl -sL -m 5 --retry 2 -o /dev/null -X GET "http://$ip_gateway:80/rakitanmanager?update_status=$index&status=$status"
+}
+
 main() {
     parse_config
+
+    i=0
     for modem_data in "${modems[@]}"; do
-        perform_ping "$modem_data" &
+        perform_ping "$modem_data" "$i" &
+        ((i++))
     done
 }
 
