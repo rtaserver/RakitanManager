@@ -877,68 +877,11 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                 $('#edit_hp_field').hide();
                 $('#edit_customscript_field').show();
             }
-            
-            $('#editIndex').val(index);
-            $('#editModemModal').modal('show');
-        }
-        
-        
-        function disableModem(index) {
-            var modem = <?= json_encode($modems) ?>[index];
-            $('#edit_status').val(modem.nama);
-            $('#edit_cobaping').val(modem.cobaping);
-            $('#edit_portmodem').val(modem.portmodem);
-            $('#edit_interface').val(modem.interface);
-            $('#edit_iporbit').val(modem.iporbit);
-            $('#edit_usernameorbit').val(modem.usernameorbit);
-            $('#edit_passwordorbit').val(modem.passwordorbit);
-            $('#edit_metodeping').val(modem.metodeping);
-            $('#edit_hostbug').val(modem.hostbug);
-            $('#edit_androidid').val(modem.androidid);
-            $('#edit_devicemodem').val(modem.devicemodem);
-            $('#edit_modpes').val(modem.modpes);
-            $('#edit_delayping').val(modem.delayping);
-            $('#edit_script').val(modem.script);
-            $('#edit_jenis').val(modem.jenis);
-            //$('#edit_jenis').prop("disabled", true);
 
-            if (modem.jenis === 'rakitan') {
-                $('#edit_rakitan_field').show();
-                $('#edit_orbit_field').hide();
-                $('#edit_hp_field').hide();
-                $('#edit_customscript_field').hide();
-            } else if (modem.jenis === 'orbit') {
-                $('#edit_rakitan_field').hide();
-                $('#edit_orbit_field').show();
-                $('#edit_hp_field').hide();
-                $('#edit_customscript_field').hide();
-            } else if (modem.jenis === 'hilink') {
-                $('#edit_rakitan_field').hide();
-                $('#edit_orbit_field').show();
-                $('#edit_hp_field').hide();
-                $('#edit_customscript_field').hide();
-            } else if (modem.jenis === 'mf90') {
-                $('#edit_rakitan_field').hide();
-                $('#edit_orbit_field').show();
-                $('#edit_hp_field').hide();
-                $('#edit_customscript_field').hide();
-            } else if (modem.jenis === 'hp') {
-                $('#edit_rakitan_field').hide();
-                $('#edit_orbit_field').hide();
-                $('#edit_hp_field').show();
-                $('#edit_customscript_field').hide();
-            } else if (modem.jenis === 'customscript') {
-                $('#edit_rakitan_field').hide();
-                $('#edit_orbit_field').hide();
-                $('#edit_hp_field').hide();
-                $('#edit_customscript_field').show();
-            }
-            
             $('#editIndex').val(index);
             $('#editModemModal').modal('show');
         }
-        
-        
+
         function updateStatus(index) {
             window.location.href = '?update_status=' + index;
         }
