@@ -86,8 +86,8 @@ if [ -f "$mm3" ]; then
     if [ -f "$mm2" ]; then
         rm /usr/lib/ModemManager/connection.d/10-report-down-and-reconnect
     fi
-    mv "/usr/lib/ModemManager/connection.d/rakitanmanager" "/usr/lib/ModemManager/connection.d/10-report-down-and-reconnect"
-    chmod +x /usr/lib/ModemManager/connection.d/10-report-down-and-reconnect
+    mv "/usr/lib/ModemManager/connection.d/rakitanmanager" "/usr/lib/ModemManager/connection.d/10-report-down"
+    chmod +x /usr/lib/ModemManager/connection.d/10-report-down
 fi
 
 #Restore

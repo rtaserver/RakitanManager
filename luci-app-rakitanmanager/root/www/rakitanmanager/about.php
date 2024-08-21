@@ -47,6 +47,5 @@
     </div>
 </div>
 <?php include("javascript.php"); ?>
-<script src="js/about.js"></script>
 </body>
 </html>

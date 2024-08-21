@@ -3,6 +3,7 @@
 
 # Daftar paket yang perlu diinstal
 packages=(
+    "curl"
     "git"
     "git-http"
     "modemmanager"
@@ -21,7 +22,7 @@ check_and_install() {
         echo "$package sudah terpasang."
     else
         echo "$package belum terpasang. Menginstal $package..."
-        opkg update && opkg install "$package"
+        opkg install "$package"
         if [ $? -eq 0 ]; then
             echo "$package berhasil diinstal."
         else
@@ -356,6 +357,8 @@ while true; do
         echo -e
         sleep 3
         clear
+        opkg update
+        clear
         install_upgrade_main
         ;;
 
@@ -364,6 +367,8 @@ while true; do
         echo -e
         sleep 3
         clear
+        opkg update
+        clear
         install_upgrade_dev
         ;;
 
@@ -371,6 +376,8 @@ while true; do
         echo -e Proses Install / Upgrade Packages, mohon ditunggu
         echo -e
         sleep 3
+        clear
+        opkg update
         clear
         download_packages
         ;;

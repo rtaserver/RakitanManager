@@ -1,8 +1,11 @@
 #!/bin/sh
 
+# SPDX-License-Identifier: CC0-1.0
+# 2022 Aleksander Morgado <aleksander@aleksander.es>
+#
 # Automatically report to netifd that the underlying modem
-# is really disconnected and reconnect if interface was up
-
+# is really disconnected
+#
 # require program name and at least 4 arguments
 [ $# -lt 4 ] && exit 1
 
@@ -13,8 +16,8 @@ STATE="$4"
 
 [ "${STATE}" = "disconnected" ] || exit 0
 
-. /usr/share/ModemManager/modemmanager.common
 . /lib/netifd/netifd-proto.sh
+. /usr/share/ModemManager/modemmanager.common
 INCLUDE_ONLY=1 . /lib/netifd/proto/modemmanager.sh
 
 MODEM_STATUS=$(mmcli --modem="${MODEM_PATH}" --output-keyvalue)
@@ -26,12 +29,12 @@ MODEM_DEVICE=$(modemmanager_get_field "${MODEM_STATUS}" "modem.generic.device")
 CFG=$(mm_get_modem_config "${MODEM_DEVICE}")
 [ -n "${CFG}" ] || exit 3
 
-IFUP=$(ifstatus ${CFG} | jsonfilter -e '@.up')
+IFUP=$(ifstatus "${CFG}" | jsonfilter -e "@.up")
 
-logger -t "modemmanager" "interface ${CFG} (network device ${INTERFACE}) ${STATE}"
-proto_init_update $INTERFACE 0
-proto_send_update $CFG
-
-[ "${IFUP}" = "true" ] && ifup ${CFG}
+[ "${IFUP}" = "true" ] && {
+	mm_log "info" "Reconnecting '${CFG}' on '${STATE}' event"
+	ubus call network.interface down "{ 'interface': '${CFG}'}"
+	ubus call network.interface up "{ 'interface': '${CFG}'}"
+}
 
 exit 0

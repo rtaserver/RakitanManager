@@ -1,5 +1,20 @@
 # What's New!
 
+**Changelog** (v0.00.35-beta 21-08-2024):
+- Tambahin fitur untuk disable modem
+- Tambahin status setiap modem yang gagal pin dan bakal update warna list sesuai status modem
+- Update icon untuk menu edit, dikarenakan bakal jelek kalo nambahin button disable modem nya.
+- Marge Full Request #67 By @rsmnarts
+
+**Changelog** (v0.00.34-beta 08-08-2024):
+- Update Package
+- Hapus Auto Restart Modem Rakitan
+- Ganti Script ModemManager
+
+Gk Banyak Yang Berubah :v Lagi Fokus Duniawi
+Bentar Lagi Istri Saya Mau Melahirkan Anak Pertama Saya
+Semoga Selamat Dan Di Lancarkan. Amiin
+
 **Changelog** (v0.00.32-beta 02-06-2024):
 - Fixed Cuustom Script
 - Add More Port AT

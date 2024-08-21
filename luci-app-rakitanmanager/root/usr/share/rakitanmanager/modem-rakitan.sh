@@ -13,25 +13,26 @@ PORTMODEM="$3"
 INTERFACEMODEM="$4"
 
 if [ "$1" = "renew" ]; then
-    IP=$(ifconfig "$DEVICEMODEM" | grep inet | grep -v inet6 | awk '{print $2}')
+    IP=$(ubus call network.interface.$INTERFACEMODEM status | jsonfilter -e '@["ipv4-address"][0].address')
     log "IP Saat Ini: $IP"
     echo AT+CFUN=4 | atinout - "$PORTMODEM" - >/dev/null
     log "Mohon Tunggu.. Sedang Mendapatkan IP Baru."
     ifup "$INTERFACEMODEM" 
     sleep 20
-    IP=$(ifconfig "$DEVICEMODEM" | grep inet | grep -v inet6 | awk '{print $2}')
+    IP=$(ubus call network.interface.$INTERFACEMODEM status | jsonfilter -e '@["ipv4-address"][0].address')
     log "New IP: $IP"
     exit 0
 fi
 
-if [ "$1" = "restart" ]; then
-    IP=$(ifconfig "$DEVICEMODEM" | grep inet | grep -v inet6 | awk '{print $2}')
-    log "IP Saat Ini: $IP"
-    echo AT^RESET | atinout - "$PORTMODEM" - >/dev/null
-    log "Mohon Tunggu.. Sedang Mendapatkan IP Baru."
-    ifup "$INTERFACEMODEM" 
-    sleep 35
-    IP=$(ifconfig "$DEVICEMODEM" | grep inet | grep -v inet6 | awk '{print $2}')
-    log "New IP: $IP"
-    exit 0
-fi
+# if [ "$1" = "restart" ]; then
+#     IP=$(ubus call network.interface.$INTERFACEMODEM status | jsonfilter -e '@["ipv4-address"][0].address')
+#     log "IP Saat Ini: $IP"
+#     echo AT^RESET | atinout - "$PORTMODEM" - >/dev/null
+#     log "Mohon Tunggu.. Sedang Mendapatkan IP Baru."
+#     sleep 20
+#     ifup "$INTERFACEMODEM" 
+#     sleep 20
+#     IP=$(ubus call network.interface.$INTERFACEMODEM status | jsonfilter -e '@["ipv4-address"][0].address')
+#     log "New IP: $IP"
+#     exit 0
+# fi
