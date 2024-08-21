@@ -40,7 +40,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["tambah_modem"])) {
         "modpes" => $_POST["modpes"],
         "devicemodem" => $_POST["devicemodem"],
         "delayping" => $_POST["delayping"],
-        "script" => $_POST["script"]
+        "script" => $_POST["script"],
+        "status" => 0
     ];
     simpanDataModem($modems);
 }
@@ -67,6 +68,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["edit_modem"])) {
         $modems[$index]["script"] = $_POST["edit_script"];
         simpanDataModem($modems);
     }
+}
+
+
+// Periksa apakah ada permintaan update status
+if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET["update_status"])) {
+    $index = $_GET["update_status"];
+    $modems = bacaDataModem();
+    if (isset($modems[$index])) {
+        if (isset($_GET["status"])) {
+            // Set status from $_POST parameter
+            $modems[$index]["status"] = (int) $_GET["status"];
+        } else {
+            // Toggle between 0 (enabled) and -1 (disabled)
+            $modems[$index]["status"] = ($modems[$index]["status"] ?? 0) == 0 ? -1 : 0;
+        }
+
+        $modems = array_values($modems); // Re-index array to avoid gaps
+        simpanDataModem($modems);
+    }
+
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit;
 }
 
 // Periksa apakah ada permintaan penghapusan modem
@@ -422,19 +445,33 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    <?php foreach ($modems as $index => $modem): ?>
-                                                        <tr>
+                                                     <?php 
+                                                        foreach ($modems as $index => $modem):
+                                                            $status = match($modem["status"] ?? null) {
+                                                                -1 => 'bg-secondary text-white', // disabled
+                                                                // 1 => 'bg-primary', // connected
+                                                                2 => 'bg-warning', // disconnected
+                                                                default => '',        // Default, no class
+                                                            };
+                                                            
+                                                        ?>
+                                                        <tr class="<?= $status ?>">
                                                             <td><?= $modem["nama"] ?></td>
                                                             <td><?= $modem["jenis"] ?></td>
                                                             <td><?= $modem["metodeping"] ?></td>
                                                             <td><?= $modem["hostbug"] ?></td>
                                                             <td>
+                                                                <button type="button" class="btn btn-dark btn-sm" 
+                                                                    onclick="updateStatus(<?= $index ?>)" <?php if ($rakitanmanager_status == 1)
+                                                                          echo 'disabled'; ?>>
+                                                                    <i class="fa <?= ($modem['status'] ?? 0) ? 'fa-ban' : 'fa-check' ?>"></i>
+                                                                </button>
                                                                 <button type="button" class="btn btn-primary btn-sm"
                                                                     onclick="editModem(<?= $index ?>)" <?php if ($rakitanmanager_status == 1)
-                                                                          echo 'disabled'; ?>>Edit</button>
+                                                                          echo 'disabled'; ?>><i class="fa fa-pencil"></i></button>
                                                                 <button type="button" class="btn btn-danger btn-sm"
                                                                     onclick="hapusModem(<?= $index ?>)" <?php if ($rakitanmanager_status == 1)
-                                                                          echo 'disabled'; ?>>Hapus</button>
+                                                                          echo 'disabled'; ?>><i class="fa fa-trash"></i></button>
                                                             </td>
                                                         </tr>
                                                     <?php endforeach; ?>
@@ -840,9 +877,13 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                 $('#edit_hp_field').hide();
                 $('#edit_customscript_field').show();
             }
-            
+
             $('#editIndex').val(index);
             $('#editModemModal').modal('show');
+        }
+
+        function updateStatus(index) {
+            window.location.href = '?update_status=' + index;
         }
 
         function hapusModem(index) {
