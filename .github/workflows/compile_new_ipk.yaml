@@ -122,7 +122,7 @@ jobs:
           echo "FIRMWARE=$PWD" >> $GITHUB_ENV
       
       - name: Delivering Package
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: luci-app-rakitanmanager-release
           path: ${{ env.FIRMWARE }}/rakitanmanager/*.ipk
@@ -144,7 +144,7 @@ jobs:
           ref: package
 
       - name: Download temporary artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
 
       - name: Commit and Push New Version
         run: |
