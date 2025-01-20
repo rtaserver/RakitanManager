@@ -1,5 +1,12 @@
 # What's New!
 
+**Changelog** (v0.00.36-beta 20-01-2025):
+- Fixed Error PHP
+  https://www.facebook.com/groups/indowrt/posts/1492622441389960?locale=id_ID
+- Improve Restart Modem Rakitan | By Mbah Andi
+
+Mohon Maaf Sebelumnya. saya sudah lama ninggalin ini Project
+
 **Changelog** (v0.00.35-beta 21-08-2024):
 - Tambahin fitur untuk disable modem
 - Tambahin status setiap modem yang gagal pin dan bakal update warna list sesuai status modem
