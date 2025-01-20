@@ -445,36 +445,55 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                     <?php 
-                                                        foreach ($modems as $index => $modem):
-                                                            $status = match($modem["status"] ?? null) {
-                                                                -1 => 'bg-secondary text-white', // disabled
-                                                                // 1 => 'bg-primary', // connected
-                                                                2 => 'bg-warning', // disconnected
-                                                                default => '',        // Default, no class
-                                                            };
-                                                            
-                                                        ?>
-                                                        <tr class="<?= $status ?>">
-                                                            <td><?= $modem["nama"] ?></td>
-                                                            <td><?= $modem["jenis"] ?></td>
-                                                            <td><?= $modem["metodeping"] ?></td>
-                                                            <td><?= $modem["hostbug"] ?></td>
-                                                            <td>
-                                                                <button type="button" class="btn btn-dark btn-sm" 
-                                                                    onclick="updateStatus(<?= $index ?>)" <?php if ($rakitanmanager_status == 1)
-                                                                          echo 'disabled'; ?>>
-                                                                    <i class="fa <?= ($modem['status'] ?? 0) ? 'fa-ban' : 'fa-check' ?>"></i>
-                                                                </button>
-                                                                <button type="button" class="btn btn-primary btn-sm"
-                                                                    onclick="editModem(<?= $index ?>)" <?php if ($rakitanmanager_status == 1)
-                                                                          echo 'disabled'; ?>><i class="fa fa-pencil"></i></button>
-                                                                <button type="button" class="btn btn-danger btn-sm"
-                                                                    onclick="hapusModem(<?= $index ?>)" <?php if ($rakitanmanager_status == 1)
-                                                                          echo 'disabled'; ?>><i class="fa fa-trash"></i></button>
-                                                            </td>
-                                                        </tr>
-                                                    <?php endforeach; ?>
+                                                <?php 
+                                                foreach ($modems as $index => $modem):
+                                                    // Pengecekan versi PHP dan penerapan status yang sesuai
+                                                    if (version_compare(PHP_VERSION, '8.0.0', '>=')) {
+                                                        // Untuk PHP 8+, menggunakan match
+                                                        $status = match($modem["status"] ?? null) {
+                                                            -1 => 'bg-secondary text-white', // disabled
+                                                            // 1 => 'bg-primary', // connected
+                                                            2 => 'bg-warning', // disconnected
+                                                            default => '',        // Default, no class
+                                                        };
+                                                    } else {
+                                                        // Untuk PHP 7, menggunakan switch
+                                                        $status = '';
+                                                        switch ($modem["status"] ?? null) {
+                                                            case -1:
+                                                                $status = 'bg-secondary text-white'; // disabled
+                                                                break;
+                                                            // case 1:
+                                                            //     $status = 'bg-primary'; // connected
+                                                            case 2:
+                                                                $status = 'bg-warning'; // disconnected
+                                                                break;
+                                                            default:
+                                                                $status = ''; // Default, no class
+                                                                break;
+                                                        }
+                                                    }
+                                                ?>
+                                                <tr class="<?= $status ?>">
+                                                    <td><?= $modem["nama"] ?></td>
+                                                    <td><?= $modem["jenis"] ?></td>
+                                                    <td><?= $modem["metodeping"] ?></td>
+                                                    <td><?= $modem["hostbug"] ?></td>
+                                                    <td>
+                                                        <button type="button" class="btn btn-dark btn-sm" 
+                                                            onclick="updateStatus(<?= $index ?>)" <?php if ($rakitanmanager_status == 1)
+                                                            echo 'disabled'; ?>>
+                                                            <i class="fa <?= ($modem['status'] ?? 0) ? 'fa-ban' : 'fa-check' ?>"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-primary btn-sm"
+                                                            onclick="editModem(<?= $index ?>)" <?php if ($rakitanmanager_status == 1)
+                                                            echo 'disabled'; ?>><i class="fa fa-pencil"></i></button>
+                                                        <button type="button" class="btn btn-danger btn-sm"
+                                                            onclick="hapusModem(<?= $index ?>)" <?php if ($rakitanmanager_status == 1)
+                                                            echo 'disabled'; ?>><i class="fa fa-trash"></i></button>
+                                                    </td>
+                                                </tr>
+                                                <?php endforeach; ?>
                                                 </tbody>
                                             </table>
                                             <form method="POST" class="mt-5">
