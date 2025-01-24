@@ -6,10 +6,8 @@ on:
   workflow_dispatch:
   
 jobs:
-  Sync_package_to_main:
+  Sync_packages_to_main:
     runs-on: ubuntu-latest
-    outputs:
-      current_version: ${{ steps.current_version.outputs.version }}
     steps:
       - name: Apt Update
         env:
@@ -23,91 +21,18 @@ jobs:
         with:
           ref: package
 
-      - name: New Version
-        id: current_version
-        run: |
-          echo "version=$(sed -n 1p ./dev/version |awk -F '-' '{print $1}' |awk -F 'v' '{print $2}')" >> $GITHUB_OUTPUT
-          echo "Current Version: $(sed -n 1p ./dev/version |awk -F '-' '{print $1}' |awk -F 'v' '{print $2}')"
-
       - name: Sync dev package to main
-        id: sync
         run: |
           if [ -n "$(diff -r ./main/ ./dev/)" ]; then
             rm -rf ./main/README.md
-            rm -rf ./main/luci-app-rakitanmanager_*.ipk
+            rm -rf ./main/luci-app-openclash*
             rm -rf ./main/version
-            rm -rf ./main/changelog.txt
             cp -rf "./dev/." "./main/"
             git config user.name 'github-actions[bot]'
             git config user.email 'github-actions[bot]@users.noreply.github.com'
             git add .
             git commit -m "Release: Auto sync dev package"
             git push
-            echo "status=true" >> $GITHUB_OUTPUT
           else
-            echo "status=false" >> $GITHUB_OUTPUT
             echo "main package already sync to dev, exit"
           fi
-
-      - name: Generate new tag & release
-        if: steps.sync.outputs.status == 'true'
-        uses: softprops/action-gh-release@v2.0.4
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          make_latest: "true"
-          prerelease: false
-          files: "./main/luci-app-rakitanmanager_*.ipk"
-          tag_name: "v${{ steps.current_version.outputs.version }}-beta"
-          body: |
-            <h1 align="center">
-            <br>RakitanManager<br>
-          
-            </h1>
-            
-              <p align="center">
-              <a target="_blank" href="https://github.com/rtaserver/RakitanManager/tree/v${{ steps.current_version.outputs.version }}-beta">
-                <img src="https://img.shields.io/badge/source code-v${{ steps.current_version.outputs.version }}--beta-green.svg">
-              </a>
-              <a target="_blank" href="https://github.com/rtaserver/RakitanManager/releases/tag/v${{ steps.current_version.outputs.version }}-beta">
-                <img src="https://img.shields.io/badge/New Release-v${{ steps.current_version.outputs.version }}--beta-orange.svg">
-              </a>
-              </p>
-            
-            Installasi
-            ---
-            
-            
-            Menggunakan Terminal OpenWrt / TTYD / PuTTY
-            ```bash
-            # Copy Script Di Bawah Dan Paste Di Terminal
-            bash -c "$(wget -qO - 'https://raw.githubusercontent.com/rtaserver/RakitanManager/dev/install.sh')"
-            ```
-            
-            Manual Installasi
-            ```
-            1. Download File IPK
-            2. Install Beberapa Paket Yang Di Butuhkan Di Menu Software
-              Jangan Lupa Update List
-              - modemmanager
-              - python3-pip
-              - jq
-              - curl
-              - adb
-            3. Install Paket Python di Terminal OpenWrt / TTYD / PuTTY
-              - pip3 install requests
-              - pip3 install huawei-lte-api
-              Paste Satu Satu Di Atas Ke Terminal
-            4. Upload IPK Yang Sudah Di Download Ke Menu Software
-              Upload Packages. Kemudian Upload Dan Install
-            5. Atau Upload IPK Ke Folder Root OpeWrt
-              Kemudian Jalankan Perintah Ini Di Terminal
-              - opkg install /luci-app-rakitanmanager_*.ipk --force-reinstall
-            ```
-            
-            lisensi
-            ---
-            
-            
-            * [Apache License](https://github.com/rtaserver/RakitanManager/blob/main/LICENSE)
-            * pip3 [huawei-lte-api](https://github.com/Salamek/huawei-lte-api) by [Salamek](https://github.com/Salamek)

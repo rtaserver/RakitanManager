@@ -1,26 +1,16 @@
 name: Compile The New Version RakitanManager
 
 on: 
+  push:
+    branches:
+      - dev
+    paths:
+      - 'luci-app-rakitanmanager/Makefile'
   workflow_dispatch:
-    inputs:
-      revision:
-        description: "Revision IPK"
-        required: false
-        default: false
-        type: boolean
-
-env:
-  TZ: Asia/Jakarta
-  sdk_url: https://downloads.openwrt.org/releases/21.02.5/targets/x86/64/openwrt-sdk-21.02.5-x86-64_gcc-8.4.0_musl.Linux-x86_64.tar.xz
-  sdk_ver: 21.02
-  luci_ver: 19.07
-  FIRMWARE: $PWD
 
 jobs:
   Get-Version:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     outputs:
       version: ${{ steps.version.outputs.version }}
       current_version: ${{ steps.current_version.outputs.version }}
@@ -44,182 +34,85 @@ jobs:
       - name: Current Version
         id: current_version
         run: |
-          echo "version=$(sed -n 1p ./${{ github.ref_name }}/version |awk -F '-' '{print $1}' |awk -F 'v' '{print $2}')" >> $GITHUB_OUTPUT
-          echo "Current Version: $(sed -n 1p ./${{ github.ref_name }}/version |awk -F '-' '{print $1}' |awk -F 'v' '{print $2}')"
+          echo "version=$(sed -n 1p ./${{ github.ref_name }}/version |awk -F 'v' '{print $2}')" >> $GITHUB_OUTPUT
+          echo "Current Version: $(sed -n 1p ./${{ github.ref_name }}/version |awk -F 'v' '{print $2}')"
 
   Compile:
     runs-on: ubuntu-latest
     needs: Get-Version
-    if: ${{ github.event.inputs.revision == 'true' || needs.Get-Version.outputs.version != needs.Get-Version.outputs.current_version }}
+    if: ${{ needs.Get-Version.outputs.version != needs.Get-Version.outputs.current_version }}
     steps:
-      - name: Clone RakitanManager ${{ github.ref_name }} Repository
+      - name: Clone RakitanManager dev Repository
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref_name }}
 
-      - name: Install packages
+      - name: Apt Update
+        env:
+          DEBIAN_FRONTEND: noninteractive
         run: |
-          echo "Install packages"
-          sudo -E apt-get -qq update
-          sudo -E apt-get -qq install build-essential clang flex bison g++ gawk gcc-multilib g++-multilib gettext git libncurses5-dev libssl-dev rsync unzip zlib1g-dev file wget
-          sudo -E apt-get -qq autoremove --purge
-          sudo -E apt-get -qq clean
-  
-      - name: Cache openwrt SDK
-        id: cache-sdk
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.FIRMWARE }}/sdk
-          key: openwrt-sdk-${{ env.sdk_ver }}
+          sudo apt-get update
+          sudo apt-get -y install curl git tar zstd
 
-      - name: Initialization environment
-        if: steps.cache-sdk.outputs.cache-hit != 'true'
+      - name: Install OpenWrt SDK
         run: |
-          wget ${{ env.sdk_url }}
-          file_name=$(echo ${{env.sdk_url}} | awk -F/ '{print $NF}')
-          mkdir sdk && tar -xJf $file_name -C ./sdk --strip-components=1
-          cd sdk
-          echo "src-git base https://github.com/openwrt/openwrt.git;openwrt-${{ env.sdk_ver }}" > feeds.conf
-          echo "src-git packages https://github.com/openwrt/packages.git;openwrt-${{ env.sdk_ver }}" >> feeds.conf
-          echo "src-git luci https://github.com/openwrt/luci.git;openwrt-${{ env.sdk_ver }}" >> feeds.conf
-          echo "src-git routing https://git.openwrt.org/feed/routing.git;openwrt-${{ env.sdk_ver }}"  >> feeds.conf
-          echo "src-git rakitanmanager https://github.com/rtaserver/RakitanManager.git;${{ github.ref_name }}" >> feeds.conf
-          ./scripts/feeds update -a
-          echo "CONFIG_PACKAGE_luci-app-rakitanmanager=m" > .config
-          ./scripts/feeds install -d n luci-app-rakitanmanager
-          make download -j8
-
-      - name: Configure rakitanmanager
-        run: |
-          cd sdk
-          ./scripts/feeds update rakitanmanager
-          ./scripts/feeds install luci-app-rakitanmanager
-          echo "CONFIG_ALL_NONSHARED=n" > .config
-          echo "CONFIG_ALL_KMODS=n" >> .config
-          echo "CONFIG_ALL=n" >> .config
-          echo "CONFIG_AUTOREMOVE=n" >> .config
-          echo "CONFIG_LUCI_LANG_zh_Hans=n" >> .config
-          echo "CONFIG_PACKAGE_luci-app-rakitanmanager=m" >> .config
-          make defconfig
-  
-      - name: Compile rakitanmanager
-        id: compile
-        run: |
-          cd sdk
-          echo "make package/luci-app-rakitanmanager/{clean,compile} -j$(nproc)"
-          make package/luci-app-rakitanmanager/{clean,compile} -j$(nproc)
-          mv bin/packages/x86_64/rakitanmanager/ ../
-          rm .config .config.old
-          cd ../rakitanmanager
-          for i in $(ls); do mv $i luci-${{ env.luci_ver }}_$i; done
           cd ..
-          echo "status=success" >> $GITHUB_OUTPUT
-          echo "FIRMWARE=$PWD" >> $GITHUB_ENV
+          mkdir tmp
+          curl -SLk --connect-timeout 30 --retry 2 "https://archive.openwrt.org/chaos_calmer/15.05.1/ar71xx/generic/OpenWrt-SDK-15.05.1-ar71xx-generic_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64.tar.bz2" -o "./tmp/SDK.tar.bz2"
+          cd \tmp
+          tar xjf SDK.tar.bz2
+          mv "OpenWrt-SDK-15.05.1-ar71xx-generic_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64" "SDK"
       
-      - name: Delivering Package
-        uses: actions/upload-artifact@v4
-        with:
-          name: luci-app-rakitanmanager-release
-          path: ${{ env.FIRMWARE }}/rakitanmanager/*.ipk
-
-      - name: Add changelog info to new release description
-        id: changelog
-        shell: bash
+      - name: Install OpenWrt SNAPSHPT SDK
         run: |
-          cd /home/runner/work/RakitanManager/RakitanManager/
-          r=$(awk '/^\*\*Changelog\*\*/ {if(found) exit; found=1} found' CHANGELOG.md)
-          r="${r//'%'/'%25'}"
-          r="${r//$'\n'/'%0A'}"
-          r="${r//$'\r'/'%0D'}"  
-          echo "CHANGELOG=$r" >> $GITHUB_OUTPUT 
+          cd ..
+          curl -SLk --connect-timeout 30 --retry 2 "https://downloads.openwrt.org/snapshots/targets/x86/64/openwrt-sdk-x86-64_gcc-13.3.0_musl.Linux-x86_64.tar.zst" -o "./tmp/SNAPSDK.tar.zst"
+          cd \tmp
+          zstd -d SNAPSDK.tar.zst
+          tar xf SNAPSDK.tar
+          mv "openwrt-sdk-x86-64_gcc-13.3.0_musl.Linux-x86_64" "SNAPSDK"
+
+      - name: Copy RakitanManager Source Codes
+        run: |
+          cd ..
+          mkdir -p tmp/SDK/package/luci-app-rakitanmanager
+          mkdir -p tmp/SNAPSDK/package/luci-app-rakitanmanager
+          cp -rf "./RakitanManager/luci-app-rakitanmanager/." "./tmp/SDK/package/luci-app-rakitanmanager/"
+          cp -rf "./RakitanManager/luci-app-rakitanmanager/." "./tmp/SNAPSDK/package/luci-app-rakitanmanager/"
+
+      - name: Compile RakitanManager IPK
+        run: |
+          cd ..
+          cd tmp/SDK
+          make package/luci-app-rakitanmanager/compile V=99
+      
+      - name: Compile RakitanManager APK
+        run: |
+          cd ..
+          cd tmp/SNAPSDK
+          make defconfig
+          make package/luci-app-rakitanmanager/compile V=99
 
       - name: Switch RakitanManager Repository to Package
         uses: actions/checkout@v4
         with:
           ref: package
 
-      - name: Download temporary artifact
-        uses: actions/download-artifact@v4
-
       - name: Commit and Push New Version
         run: |
-          echo "${{ steps.changelog.outputs.CHANGELOG }}" > ./${{ github.ref_name }}/changelog.txt
-          rm -rf ./${{ github.ref_name }}/luci-app-rakitanmanager_*
-          echo "v${{ needs.Get-Version.outputs.version }}-beta" > ./${{ github.ref_name }}/version
-          echo "https://img.shields.io/badge/New Release-v${{ needs.Get-Version.outputs.version }}--beta-orange.svg" >> ./${{ github.ref_name }}/version
+          rm -rf ./${{ github.ref_name }}/luci-app-rakitanmanager*
+          echo "v${{ needs.Get-Version.outputs.version }}" > ./${{ github.ref_name }}/version
+          echo "https://img.shields.io/badge/New Release-v${{ needs.Get-Version.outputs.version }}-orange.svg" >> ./${{ github.ref_name }}/version
           cd ..
-          cp /home/runner/work/RakitanManager/RakitanManager/luci-app-rakitanmanager-release/*.ipk ./RakitanManager/${{ github.ref_name }}/luci-app-rakitanmanager_${{ needs.Get-Version.outputs.version }}-beta_all.ipk
-          rm -rf /home/runner/work/RakitanManager/RakitanManager/luci-app-rakitanmanager-release/
-          sed -i -E "s/RakitanManager\/tree\/v(.*)-beta/RakitanManager\/tree\/v${{ needs.Get-Version.outputs.version }}-beta/g" ./RakitanManager/${{ github.ref_name }}/README.md
-          sed -i -E "s/RakitanManager\/releases\/tag\/v(.*)-beta/RakitanManager\/releases\/tag\/v${{ needs.Get-Version.outputs.version }}-beta/g" ./RakitanManager/${{ github.ref_name }}/README.md
-          sed -i -E "s/source code-v(.*)--beta-green/source code-v${{ needs.Get-Version.outputs.version }}--beta-green/g" ./RakitanManager/${{ github.ref_name }}/README.md
-          sed -i -E "s/New Release-v(.*)--beta-orange/New Release-v${{ needs.Get-Version.outputs.version }}--beta-orange/g" ./RakitanManager/${{ github.ref_name }}/README.md
+          cp "./tmp/SDK/bin/ar71xx/packages/base/luci-app-rakitanmanager_${{ needs.Get-Version.outputs.version }}_all.ipk" "./RakitanManager/${{ github.ref_name }}/luci-app-rakitanmanager_${{ needs.Get-Version.outputs.version }}_all.ipk"
+          cp "./tmp/SNAPSDK/bin/packages/x86_64/base/luci-app-rakitanmanager-${{ needs.Get-Version.outputs.version }}.apk" "./RakitanManager/${{ github.ref_name }}/luci-app-rakitanmanager-${{ needs.Get-Version.outputs.version }}.apk"
+          sed -i -E "s/RakitanManager\/tree\/v(.*)/RakitanManager\/tree\/v${{ needs.Get-Version.outputs.version }}/g" ./RakitanManager/${{ github.ref_name }}/README.md
+          sed -i -E "s/RakitanManager\/releases\/tag\/v(.*)/RakitanManager\/releases\/tag\/v${{ needs.Get-Version.outputs.version }}/g" ./RakitanManager/${{ github.ref_name }}/README.md
+          sed -i -E "s/source code-v(.*)-green/source code-v${{ needs.Get-Version.outputs.version }}-green/g" ./RakitanManager/${{ github.ref_name }}/README.md
+          sed -i -E "s/New Release-v(.*)-orange/New Release-v${{ needs.Get-Version.outputs.version }}-orange/g" ./RakitanManager/${{ github.ref_name }}/README.md
           cd \RakitanManager
-          HASH=$(sha256sum "./${{ github.ref_name }}/luci-app-rakitanmanager_${{ needs.Get-Version.outputs.version }}-beta_all.ipk" | awk '{print $1}')
-          echo "$HASH" > ./${{ github.ref_name }}/hash.txt
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
           git add .
-          git commit -m "Auto Release: v${{ needs.Get-Version.outputs.version }}-beta"
+          git commit -m "Auto Release: v${{ needs.Get-Version.outputs.version }}"
           git push
-
-      - name: Generate new tag & release
-        uses: softprops/action-gh-release@v2.0.4
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          prerelease:  ${{ github.ref_name == 'dev' && 'true' || 'false' }}
-          files: "./${{ github.ref_name }}/luci-app-rakitanmanager_*.ipk"
-          tag_name: "v${{ needs.Get-Version.outputs.version }}-beta"
-          body: |
-            <h1 align="center">
-            <br>RakitanManager<br>
-          
-            </h1>
-            
-              <p align="center">
-              <a target="_blank" href="https://github.com/rtaserver/RakitanManager/tree/v${{ needs.Get-Version.outputs.version }}-beta">
-                <img src="https://img.shields.io/badge/source code-v${{ needs.Get-Version.outputs.version }}--beta-green.svg">
-              </a>
-              <a target="_blank" href="https://github.com/rtaserver/RakitanManager/releases/tag/v${{ needs.Get-Version.outputs.version }}-beta">
-                <img src="https://img.shields.io/badge/New Release-v${{ needs.Get-Version.outputs.version }}--beta-orange.svg">
-              </a>
-              </p>
-            
-            Installasi
-            ---
-            
-            
-            Menggunakan Terminal OpenWrt / TTYD / PuTTY
-            ```bash
-            # Copy Script Di Bawah Dan Paste Di Terminal
-            bash -c "$(wget -qO - 'https://raw.githubusercontent.com/rtaserver/RakitanManager/${{ github.ref_name }}/install.sh')"
-            ```
-            
-            Manual Installasi
-            ```
-            1. Download File IPK
-            2. Install Beberapa Paket Yang Di Butuhkan Di Menu Software
-              Jangan Lupa Update List
-              - modemmanager
-              - python3-pip
-              - jq
-              - curl
-              - adb
-            3. Install Paket Python di Terminal OpenWrt / TTYD / PuTTY
-              - pip3 install requests
-              - pip3 install huawei-lte-api
-              Paste Satu Satu Di Atas Ke Terminal
-            4. Upload IPK Yang Sudah Di Download Ke Menu Software
-              Upload Packages. Kemudian Upload Dan Install
-            5. Atau Upload IPK Ke Folder Root OpeWrt
-              Kemudian Jalankan Perintah Ini Di Terminal
-              - opkg install /luci-app-rakitanmanager_*.ipk --force-reinstall
-            ```
-            
-            lisensi
-            ---
-            
-            
-            * [Apache License](https://github.com/rtaserver/RakitanManager/blob/main/LICENSE)
-            * pip3 [huawei-lte-api](https://github.com/Salamek/huawei-lte-api) by [Salamek](https://github.com/Salamek)
