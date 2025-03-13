@@ -1,5 +1,9 @@
 # What's New!
 
+**Changelog** (v0.00.37-beta 13-04-2025):
+- Fix Modem Rakitan IP Tidak Berubah
+- Fix Instalasi Script
+
 **Changelog** (v0.00.36-beta 20-01-2025):
 - Fixed Error PHP
   https://www.facebook.com/groups/indowrt/posts/1492622441389960?locale=id_ID
