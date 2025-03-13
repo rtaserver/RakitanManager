@@ -36,7 +36,7 @@ if [ "$1" = "renew" ]; then
         fi
     done < <(echo "$modem_info")
     log "Mohon Tunggu.. Sedang Mendapatkan IP Baru."
-    sleep 20
+    sleep 35
     if ifup "$INTERFACEMODEM"; then
         log "Interface $INTERFACEMODEM berhasil diaktifkan"
     else
