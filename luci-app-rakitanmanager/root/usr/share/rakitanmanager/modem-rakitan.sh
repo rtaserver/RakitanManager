@@ -29,20 +29,21 @@ if [ "$1" = "renew" ]; then
         log "Nama Modem : $modem_name"
         log "Nomer Modem : $modem_number"
 
-        if mmcli -m -$modem_number -r &>/dev/null; then
+        if mmcli -m $modem_number -r &>/dev/null; then
             log "Modem $modem_number berhasil di-restart"
         else
             log "Gagal restart modem $modem_number"
         fi
     done < <(echo "$modem_info")
     log "Mohon Tunggu.. Sedang Mendapatkan IP Baru."
+    sleep 20
     if ifup "$INTERFACEMODEM"; then
         log "Interface $INTERFACEMODEM berhasil diaktifkan"
     else
         log "Gagal mengaktifkan interface $INTERFACEMODEM"
         exit 1
     fi
-    sleep 20
+    sleep 5
     NEW_IP=$(ubus call network.interface.$INTERFACEMODEM status | jsonfilter -e '@["ipv4-address"][0].address')
     if [ "$IP" != "$NEW_IP" ]; then
         log "New IP: $NEW_IP"
