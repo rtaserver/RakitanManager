@@ -1,0 +1,38 @@
+name: build-packages
+
+on:
+  push:
+    branches: [ dev ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: ${{ matrix.arch }}-${{ matrix.branch }} build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+          - x86_64
+        branch:
+          - openwrt-23.05
+          - openwrt-24.10
+          - SNAPSHOT
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: build
+        uses: openwrt/gh-action-sdk@main
+        env:
+          ARCH: ${{ matrix.arch }}-${{ matrix.branch }}
+          FEEDNAME: rakitanmanager
+          PACKAGES: luci-app-rakitanmanager
+          NO_REFRESH_CHECK: true
+
+      - name: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: rakitanmanager_${{ matrix.arch }}-${{ matrix.branch }}
+          path: bin/packages/${{ matrix.arch }}/rakitanmanager
