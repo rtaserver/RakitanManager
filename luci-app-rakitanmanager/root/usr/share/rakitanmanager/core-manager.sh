@@ -1,12 +1,18 @@
 #!/bin/bash
 # Copyright 2024 RTA SERVER
 
-log_file="/var/log/rakitanmanager.log"
-exec 1>>"$log_file" 2>&1
-
-log() {
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1"
-}
+# Source common utilities
+UTILS_DIR="$(dirname "$0")"
+if [ -f "$UTILS_DIR/utils.sh" ]; then
+    source "$UTILS_DIR/utils.sh"
+else
+    # Fallback logging if utils.sh not found
+    log_file="/var/log/rakitanmanager.log"
+    exec 1>>"$log_file" 2>&1
+    log() {
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - $1"
+    }
+fi
 
 # Ambil informasi perangkat
 DEVICE_INFO=$(ubus call system board)
@@ -124,37 +130,21 @@ perform_ping() {
                     fi
                 ;;
                 http)
-                    if [ "$devicemodem" = "disabled" ]; then
-                        if curl -Is --max-time 3 "http://${xhost}:${port_http}" >/dev/null; then
-                            log "[$jenis - $nama] HTTP ping to $pinghost succeeded"
-                            ping_success=true
-                        else
-                            log "[$jenis - $nama] HTTP ping to $pinghost failed"
-                        fi
+                    # Use utility function for HTTP ping
+                    if ping_func "$pinghost" "http" 3; then
+                        log "[$jenis - $nama] HTTP ping to $pinghost succeeded"
+                        ping_success=true
                     else
-                        if curl --interface "${devicemodem}" -Is --max-time 3 "http://${xhost}:${port_http}" >/dev/null; then
-                            log "[$jenis - $nama] HTTP ping to $pinghost on interface $devicemodem succeeded"
-                            ping_success=true
-                        else
-                            log "[$jenis - $nama] HTTP ping to $pinghost on interface $devicemodem failed"
-                        fi
+                        log "[$jenis - $nama] HTTP ping to $pinghost failed"
                     fi
                 ;;
                 https)
-                    if [ "$devicemodem" = "disabled" ]; then
-                        if curl -Is --max-time 3 "https://${xhost}:${port_https}" >/dev/null; then
-                            log "[$jenis - $nama] HTTPS ping to $pinghost succeeded"
-                            ping_success=true
-                        else
-                            log "[$jenis - $nama] HTTPS ping to $pinghost failed"
-                        fi
+                    # Use utility function for HTTPS ping
+                    if ping_func "$pinghost" "https" 3; then
+                        log "[$jenis - $nama] HTTPS ping to $pinghost succeeded"
+                        ping_success=true
                     else
-                        if curl --interface "${devicemodem}" -Is --max-time 3 "https://${xhost}:${port_https}" >/dev/null; then
-                            log "[$jenis - $nama] HTTPS ping to $pinghost on interface $devicemodem succeeded"
-                            ping_success=true
-                        else
-                            log "[$jenis - $nama] HTTPS ping to $pinghost on interface $devicemodem failed"
-                        fi
+                        log "[$jenis - $nama] HTTPS ping to $pinghost failed"
                     fi
                 ;;
             esac
@@ -202,16 +192,21 @@ perform_ping() {
 handle_rakitan() {
     if [ "$attempt" -eq "$cobaping" ]; then
         log "[$jenis - $nama] Gagal PING | Renew IP Started"
-        "$RAKITANMANAGERDIR/modem-rakitan.sh" renew "$devicemodem" "$portmodem" "$interface"
-        new_ip=$(ubus call network.interface.$interface status | jsonfilter -e '@["ipv4-address"][0].address')
-        if [ -z "$new_ip" ]; then
-            new_ip="Changed"
+        if "$RAKITANMANAGERDIR/modem-rakitan.sh" renew "$devicemodem" "$portmodem" "$interface"; then
+            sleep 5
+            new_ip=$(get_ip_address "$interface")
+            if [ -z "$new_ip" ]; then
+                new_ip="Changed"
+            fi
+            log "[$jenis - $nama] IP renewed to: $new_ip"
+            if [ "$(uci -q get rakitanmanager.telegram.enabled)" = "1" ]; then
+                TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/$new_ip/g" -e "s/\[NAMAMODEM\]/$nama/g")
+                send_message "$TGMSG"
+            fi
+            attempt=0
+        else
+            log "[$jenis - $nama] Failed to renew IP"
         fi
-        if [ "$(uci -q get rakitanmanager.telegram.enabled)" = "1" ]; then
-            TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/$new_ip/g" -e "s/\[NAMAMODEM\]/$nama/g")
-            send_message "$TGMSG"
-        fi
-        attempt=0
     fi
 }
 
@@ -219,70 +214,104 @@ handle_hp() {
     if [ "$attempt" -eq "$cobaping" ]; then
         log "[$jenis - $nama] Gagal PING | Restart Network Started"
         if [ "$modpes" = "modpesv1" ]; then
-            "$RAKITANMANAGERDIR/modem-hp.sh" "$androidid" restart v1
+            if "$RAKITANMANAGERDIR/modem-hp.sh" "$androidid" restart v1; then
+                sleep 10
+                myipresult=$("$RAKITANMANAGERDIR/modem-hp.sh" "$androidid" myip)
+                new_ip=$(echo "$myipresult" | grep "New IP" | awk -F": " '{print $2}')
+                if [ -z "$new_ip" ]; then
+                    new_ip="Changed"
+                fi
+                log "[$jenis - $nama] HP modem IP renewed to: $new_ip"
+                if [ "$(uci -q get rakitanmanager.telegram.enabled)" = "1" ]; then
+                    TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/$new_ip/g" -e "s/\[NAMAMODEM\]/$nama/g")
+                    send_message "$TGMSG"
+                fi
+                attempt=0
+            else
+                log "[$jenis - $nama] Failed to restart HP modem"
+            fi
+        elif [ "$modpes" = "modpesv2" ]; then
+            if "$RAKITANMANAGERDIR/modem-hp.sh" "$androidid" restart v2; then
+                sleep 10
+                myipresult=$("$RAKITANMANAGERDIR/modem-hp.sh" "$androidid" myip)
+                new_ip=$(echo "$myipresult" | grep "New IP" | awk -F": " '{print $2}')
+                if [ -z "$new_ip" ]; then
+                    new_ip="Changed"
+                fi
+                log "[$jenis - $nama] HP modem IP renewed to: $new_ip"
+                if [ "$(uci -q get rakitanmanager.telegram.enabled)" = "1" ]; then
+                    TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/$new_ip/g" -e "s/\[NAMAMODEM\]/$nama/g")
+                    send_message "$TGMSG"
+                fi
+                attempt=0
+            else
+                log "[$jenis - $nama] Failed to restart HP modem"
+            fi
+        else
+            log "[$jenis - $nama] Invalid modpes version: $modpes"
         fi
-        if [ "$modpes" = "modpesv2" ]; then
-            "$RAKITANMANAGERDIR/modem-hp.sh" "$androidid" restart v2
-        fi
-        myipresult=$("$RAKITANMANAGERDIR/modem-hp.sh" "$androidid" myip)
-        new_ip=$(echo "$myipresult" | grep "New IP" | awk -F": " '{print $2}')
-        if [ -z "$new_ip" ]; then
-            new_ip="Changed"
-        fi
-        if [ "$(uci -q get rakitanmanager.telegram.enabled)" = "1" ]; then
-            TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/$new_ip/g" -e "s/\[NAMAMODEM\]/$nama/g")
-            send_message "$TGMSG"
-        fi
-        attempt=0
     fi
 }
 
 handle_orbit() {
     if [ "$attempt" -eq "$cobaping" ]; then
         log "[$jenis - $nama] Gagal PING | Restart Network Started"
-        orbitresult=$(python3 "$RAKITANMANAGERDIR/modem-orbit.py" "$iporbit" "$usernameorbit" "$passwordorbit")
-        new_ip=$(echo "$orbitresult" | grep "New IP" | awk -F": " '{print $2}')
-        if [ -z "$new_ip" ]; then
-            new_ip="Changed"
+        if orbitresult=$(python3 "$RAKITANMANAGERDIR/modem-orbit.py" "$iporbit" "$usernameorbit" "$passwordorbit" 2>&1); then
+            new_ip=$(echo "$orbitresult" | grep "New IP" | awk -F": " '{print $2}')
+            if [ -z "$new_ip" ]; then
+                new_ip="Changed"
+            fi
+            log "[$jenis - $nama] Orbit modem IP renewed to: $new_ip"
+            if [ "$(uci -q get rakitanmanager.telegram.enabled)" = "1" ]; then
+                TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/$new_ip/g" -e "s/\[NAMAMODEM\]/$nama/g")
+                send_message "$TGMSG"
+            fi
+            attempt=0
+        else
+            log "[$jenis - $nama] Failed to renew Orbit modem IP: $orbitresult"
         fi
-        if [ "$(uci -q get rakitanmanager.telegram.enabled)" = "1" ]; then
-            TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/$new_ip/g" -e "s/\[NAMAMODEM\]/$nama/g")
-            send_message "$TGMSG"
-        fi
-        attempt=0
     fi
 }
 
 handle_hilink() {
     if [ "$attempt" -eq "$cobaping" ]; then
         log "[$jenis - $nama] Gagal PING | Restart Network Started"
-        hilinkresult=$("$RAKITANMANAGERDIR/modem-hilink.sh" "$iporbit" "$usernameorbit" "$passwordorbit")
-        new_ip=$(echo "$hilinkresult" | grep "New IP" | awk -F": " '{print $2}')
-        if [ -z "$new_ip" ]; then
-            new_ip="Changed"
+        if hilinkresult=$("$RAKITANMANAGERDIR/modem-hilink.sh" "$iporbit" "$usernameorbit" "$passwordorbit" 2>&1); then
+            new_ip=$(echo "$hilinkresult" | grep "New IP" | awk -F": " '{print $2}')
+            if [ -z "$new_ip" ]; then
+                new_ip="Changed"
+            fi
+            log "[$jenis - $nama] Hilink modem IP renewed to: $new_ip"
+            if [ "$(uci -q get rakitanmanager.telegram.enabled)" = "1" ]; then
+                TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/$new_ip/g" -e "s/\[NAMAMODEM\]/$nama/g")
+                send_message "$TGMSG"
+            fi
+            attempt=0
+        else
+            log "[$jenis - $nama] Failed to renew Hilink modem IP: $hilinkresult"
         fi
-        if [ "$(uci -q get rakitanmanager.telegram.enabled)" = "1" ]; then
-            TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/$new_ip/g" -e "s/\[NAMAMODEM\]/$nama/g")
-            send_message "$TGMSG"
-        fi
-        attempt=0
     fi
 }
 
 handle_mf90() {
     if [ "$attempt" -eq "$cobaping" ]; then
         log "[$jenis - $nama] Gagal PING | Restart Network Started"
-        mf90result=$("$RAKITANMANAGERDIR/modem-mf90.sh" "$iporbit" "$usernameorbit" "$passwordorbit" reboot)
-        new_ip=$(echo "$mf90result" | grep "New IP" | awk -F": " '{print $2}')
-        "$RAKITANMANAGERDIR/modem-mf90.sh" "$iporbit" "$usernameorbit" "$passwordorbit" disable_wifi
-        if [ -z "$new_ip" ]; then
-            new_ip="Changed"
+        if mf90result=$("$RAKITANMANAGERDIR/modem-mf90.sh" "$iporbit" "$usernameorbit" "$passwordorbit" reboot 2>&1); then
+            new_ip=$(echo "$mf90result" | grep "New IP" | awk -F": " '{print $2}')
+            if [ -z "$new_ip" ]; then
+                new_ip="Changed"
+            fi
+            log "[$jenis - $nama] MF90 modem IP renewed to: $new_ip"
+            # Disable WiFi after reboot
+            "$RAKITANMANAGERDIR/modem-mf90.sh" "$iporbit" "$usernameorbit" "$passwordorbit" disable_wifi
+            if [ "$(uci -q get rakitanmanager.telegram.enabled)" = "1" ]; then
+                TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/$new_ip/g" -e "s/\[NAMAMODEM\]/$nama/g")
+                send_message "$TGMSG"
+            fi
+            attempt=0
+        else
+            log "[$jenis - $nama] Failed to renew MF90 modem IP: $mf90result"
         fi
-        if [ "$(uci -q get rakitanmanager.telegram.enabled)" = "1" ]; then
-            TGMSG=$(echo "$CUSTOM_MESSAGE" | sed -e "s/\[IP\]/$new_ip/g" -e "s/\[NAMAMODEM\]/$nama/g")
-            send_message "$TGMSG"
-        fi
-        attempt=0
     fi
 }
 
@@ -290,9 +319,13 @@ handle_customscript() {
     if [ "$attempt" -eq "$cobaping" ]; then
         log "[$jenis - $nama] Gagal PING | Custom Script Started"
         local script_clean=$(echo "$script" | tr -d '\r')
-        bash -c "$script_clean"
-        sleep 10
-        attempt=0
+        if bash -c "$script_clean"; then
+            log "[$jenis - $nama] Custom script executed successfully"
+            sleep 10
+            attempt=0
+        else
+            log "[$jenis - $nama] Custom script execution failed"
+        fi
     fi
 }
 

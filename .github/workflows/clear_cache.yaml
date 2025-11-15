@@ -30,6 +30,8 @@ jobs:
     - name: Clean jsDelivr Cache
       run: |
           for i in ${{ steps.changed_files.outputs.added_modified }}; do
-             # echo ${{ steps.changed_files.outputs.all }}
-             curl -sL --retry 3 https://purge.jsdelivr.net/gh/rtaserver/RakitanManager@${{ github.ref_name }}/$i
+             echo "Purging cache for: $i"
+             if ! curl -sL --retry 3 --max-time 10 https://purge.jsdelivr.net/gh/rtaserver/RakitanManager@${{ github.ref_name }}/$i; then
+               echo "Failed to purge cache for $i, continuing..."
+             fi
           done

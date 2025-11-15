@@ -1,3 +1,4 @@
+
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-rakitanmanager
@@ -91,6 +92,21 @@ define Package/$(PKG_NAME)/postinst
     sed -i 's/\r$//' /usr/share/rakitanmanager/plugins/adb-sms.sh
     sed -i 's/\r$//' /usr/share/rakitanmanager/plugins/service-openclash.sh
     sed -i 's/\r$//' /usr/share/rakitanmanager/plugins/systeminfo.sh
+    echo "Setup ModemManager"
+    mm1="/usr/lib/ModemManager/connection.d/10-report-down"
+    mm2="/usr/lib/ModemManager/connection.d/10-report-down-and-reconnect"
+    mm3="/usr/lib/ModemManager/connection.d/rakitanmanager"
+
+    if [ -f "$mm1" ]; then
+      rm /usr/lib/ModemManager/connection.d/10-report-down
+    fi
+    if [ -f "$mm3" ]; then
+      if [ -f "$mm2" ]; then
+        rm /usr/lib/ModemManager/connection.d/10-report-down-and-reconnect
+      fi
+      mv "/usr/lib/ModemManager/connection.d/rakitanmanager" "/usr/lib/ModemManager/connection.d/10-report-down"
+      chmod +x /usr/lib/ModemManager/connection.d/10-report-down
+    fi
 exit 0
 endef
 
