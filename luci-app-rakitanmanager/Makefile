@@ -1,40 +1,31 @@
-
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-rakitanmanager
 PKG_VERSION:=0.00.37
 PKG_RELEASE:=beta
 PKG_MAINTAINER:=rtaserver <https://github.com/rtaserver/RakitanManager>
+LUCI_TITLE:=LuCI support for Modem Manager
 LUCI_PKGARCH:=all
-LUCI_DEPENDS:=+python3-pip +jq +adb +bash +curl +unzip
+LUCI_DEPENDS:=+python3-pip +jq +adb +bash +curl +unzip +atinout
 
-PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
-
-include $(INCLUDE_DIR)/package.mk
+include $(TOPDIR)/feeds/luci/luci.mk
 
 define Package/$(PKG_NAME)/description
-    A LuCI support for Modem Manager
+	A LuCI support for Modem Manager
 endef
 
 define Build/Prepare
-    $(CP) $(CURDIR)/root $(PKG_BUILD_DIR)
-    $(CP) $(CURDIR)/luasrc $(PKG_BUILD_DIR)
-    sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-beta/g" $(PKG_BUILD_DIR)/root/www/rakitanmanager/curent.svg >/dev/null 2>&1
-    sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-beta/g" $(PKG_BUILD_DIR)/root/www/rakitanmanager/versionmain.txt >/dev/null 2>&1
-    sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-beta/g" $(PKG_BUILD_DIR)/root/www/rakitanmanager/versiondev.txt >/dev/null 2>&1
-    chmod 0755 $(PKG_BUILD_DIR)/root/etc/init.d/rakitanmanager
-    chmod 0755 $(PKG_BUILD_DIR)/root/usr/share/rakitanmanager/core-manager.sh
-    chmod 0755 $(PKG_BUILD_DIR)/root/usr/share/rakitanmanager/modem-hilink.sh
-    chmod 0755 $(PKG_BUILD_DIR)/root/usr/share/rakitanmanager/modem-mf90.sh
-    chmod 0755 $(PKG_BUILD_DIR)/root/usr/share/rakitanmanager/modem-hp.sh
-    chmod 0755 $(PKG_BUILD_DIR)/root/usr/share/rakitanmanager/modem-rakitan.sh
-    chmod 0755 $(PKG_BUILD_DIR)/root/usr/share/rakitanmanager/modem-orbit.py
-    chmod 0755 $(PKG_BUILD_DIR)/root/usr/share/rakitanmanager/plugins/adb-deviceinfo.sh
-    chmod 0755 $(PKG_BUILD_DIR)/root/usr/share/rakitanmanager/plugins/adb-sms.sh
-    chmod 0755 $(PKG_BUILD_DIR)/root/usr/share/rakitanmanager/plugins/service-openclash.sh
-    chmod 0755 $(PKG_BUILD_DIR)/root/usr/share/rakitanmanager/plugins/systeminfo.sh
-    chmod 0755 $(PKG_BUILD_DIR)/root/etc/uci-defaults/99_rakitanmanager
-exit 0
+	mkdir -p $(PKG_BUILD_DIR)
+	$(CP) $(CURDIR)/root $(PKG_BUILD_DIR)/
+	$(CP) $(CURDIR)/luasrc $(PKG_BUILD_DIR)/
+	sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-$(PKG_RELEASE)/g" $(PKG_BUILD_DIR)/root/www/rakitanmanager/curent.svg 2>/dev/null || true
+	sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-$(PKG_RELEASE)/g" $(PKG_BUILD_DIR)/root/www/rakitanmanager/versionmain.txt 2>/dev/null || true
+	sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-$(PKG_RELEASE)/g" $(PKG_BUILD_DIR)/root/www/rakitanmanager/versiondev.txt 2>/dev/null || true
+	find $(PKG_BUILD_DIR)/root/etc/init.d/ -type f -exec chmod 0755 {} \;
+	find $(PKG_BUILD_DIR)/root/usr/share/rakitanmanager/ -type f -name "*.sh" -exec chmod 0755 {} \;
+	find $(PKG_BUILD_DIR)/root/usr/share/rakitanmanager/ -type f -name "*.py" -exec chmod 0755 {} \;
+	find $(PKG_BUILD_DIR)/root/usr/share/rakitanmanager/plugins/ -type f -exec chmod 0755 {} \;
+	chmod 0755 $(PKG_BUILD_DIR)/root/etc/uci-defaults/99_rakitanmanager 2>/dev/null || true
 endef
 
 define Build/Configure
@@ -44,109 +35,104 @@ define Build/Compile
 endef
 
 define Package/$(PKG_NAME)/conffiles
+/etc/config/rakitanmanager
 endef
 
 define Package/$(PKG_NAME)/preinst
 #!/bin/sh
-    if [ -f "/etc/config/rakitanmanager" ]; then
-      cp -f "/etc/config/rakitanmanager" "/tmp/rakitanmanager.bak" >/dev/null 2>&1
-      cp -f "/usr/share/rakitanmanager/data-modem.json" "/tmp/data-modem.json.bak" >/dev/null 2>&1
-      cp -f "/www/rakitanmanager/bot_message.txt" "/tmp/bot_message.txt.bak" >/dev/null 2>&1
-    fi
+[ -f "/etc/config/rakitanmanager" ] && cp -f "/etc/config/rakitanmanager" "/tmp/rakitanmanager.bak" 2>/dev/null
+[ -f "/usr/share/rakitanmanager/data-modem.json" ] && cp -f "/usr/share/rakitanmanager/data-modem.json" "/tmp/data-modem.json.bak" 2>/dev/null
+[ -f "/www/rakitanmanager/bot_message.txt" ] && cp -f "/www/rakitanmanager/bot_message.txt" "/tmp/bot_message.txt.bak" 2>/dev/null
 exit 0
 endef
 
 define Package/$(PKG_NAME)/postinst
 #!/bin/sh
-    sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-beta/g" /www/rakitanmanager/curent.svg >/dev/null 2>&1
-    sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-beta/g" /www/rakitanmanager/versionmain.txt >/dev/null 2>&1
-    sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-beta/g" /www/rakitanmanager/versiondev.txt >/dev/null 2>&1
-    chmod 0755 /usr/share/rakitanmanager/core-manager.sh
-    chmod 0755 /usr/share/rakitanmanager/modem-hilink.sh
-    chmod 0755 /usr/share/rakitanmanager/modem-mf90.sh
-    chmod 0755 /usr/share/rakitanmanager/modem-hp.sh
-    chmod 0755 /usr/share/rakitanmanager/modem-rakitan.sh
-    chmod 0755 /usr/share/rakitanmanager/modem-orbit.py
-    chmod 0755 /usr/share/rakitanmanager/plugins/adb-deviceinfo.sh
-    chmod 0755 /usr/share/rakitanmanager/plugins/adb-sms.sh
-    chmod 0755 /usr/share/rakitanmanager/plugins/service-openclash.sh
-    chmod 0755 /root/usr/share/rakitanmanager/plugins/systeminfo.sh
-    chmod 0755 /etc/init.d/rakitanmanager
-    echo "Setup php uhttpd"
-    uci set uhttpd.main.index_page='index.php'
-    uci set uhttpd.main.interpreter='.php=/usr/bin/php-cgi'
-    uci commit uhttpd
-    /etc/init.d/uhttpd restart
-    echo "Setup php uhttpd Done"
-    pip3 install --upgrade pip
-    pip3 install requests
-    pip3 install huawei-lte-api
-    pip3 install datetime
-    pip3 install logging
-    sed -i 's/\r$//' /usr/share/rakitanmanager/core-manager.sh
-    sed -i 's/\r$//' /usr/share/rakitanmanager/modem-hilink.sh
-    sed -i 's/\r$//' /usr/share/rakitanmanager/modem-mf90.sh
-    sed -i 's/\r$//' /usr/share/rakitanmanager/modem-hp.sh
-    sed -i 's/\r$//' /usr/share/rakitanmanager/modem-rakitan.sh
-    sed -i 's/\r$//' /usr/share/rakitanmanager/plugins/adb-deviceinfo.sh
-    sed -i 's/\r$//' /usr/share/rakitanmanager/plugins/adb-sms.sh
-    sed -i 's/\r$//' /usr/share/rakitanmanager/plugins/service-openclash.sh
-    sed -i 's/\r$//' /usr/share/rakitanmanager/plugins/systeminfo.sh
-    echo "Setup ModemManager"
-    mm1="/usr/lib/ModemManager/connection.d/10-report-down"
-    mm2="/usr/lib/ModemManager/connection.d/10-report-down-and-reconnect"
-    mm3="/usr/lib/ModemManager/connection.d/rakitanmanager"
+[ -z "$${IPKG_INSTROOT}" ] || exit 0
 
-    if [ -f "$mm1" ]; then
-      rm /usr/lib/ModemManager/connection.d/10-report-down
-    fi
-    if [ -f "$mm3" ]; then
-      if [ -f "$mm2" ]; then
-        rm /usr/lib/ModemManager/connection.d/10-report-down-and-reconnect
-      fi
-      mv "/usr/lib/ModemManager/connection.d/rakitanmanager" "/usr/lib/ModemManager/connection.d/10-report-down"
-      chmod +x /usr/lib/ModemManager/connection.d/10-report-down
-    fi
+# Update version info
+sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-$(PKG_RELEASE)/g" /www/rakitanmanager/curent.svg 2>/dev/null || true
+sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-$(PKG_RELEASE)/g" /www/rakitanmanager/versionmain.txt 2>/dev/null || true
+sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-$(PKG_RELEASE)/g" /www/rakitanmanager/versiondev.txt 2>/dev/null || true
+
+# Set permissions
+chmod 0755 /usr/share/rakitanmanager/*.sh 2>/dev/null || true
+chmod 0755 /usr/share/rakitanmanager/*.py 2>/dev/null || true
+chmod 0755 /usr/share/rakitanmanager/plugins/*.sh 2>/dev/null || true
+chmod 0755 /etc/init.d/rakitanmanager 2>/dev/null || true
+
+# Setup PHP for uhttpd
+echo "Setting up PHP for uhttpd..."
+uci set uhttpd.main.index_page='index.php'
+uci set uhttpd.main.interpreter='.php=/usr/bin/php-cgi'
+uci commit uhttpd
+/etc/init.d/uhttpd restart
+
+# Install Python dependencies
+echo "Installing Python dependencies..."
+pip3 install --upgrade pip 2>/dev/null || true
+pip3 install requests huawei-lte-api datetime logging 2>/dev/null || true
+
+# Convert line endings from Windows to Unix
+find /usr/share/rakitanmanager -type f \( -name "*.sh" -o -name "*.py" \) -exec sed -i 's/\r$$//' {} \;
+
+# Setup ModemManager
+echo "Setting up ModemManager..."
+mm_dir="/usr/lib/ModemManager/connection.d"
+[ -d "$$mm_dir" ] || mkdir -p "$$mm_dir"
+
+[ -f "$$mm_dir/10-report-down" ] && rm -f "$$mm_dir/10-report-down"
+[ -f "$$mm_dir/10-report-down-and-reconnect" ] && rm -f "$$mm_dir/10-report-down-and-reconnect"
+
+if [ -f "$$mm_dir/rakitanmanager" ]; then
+	mv "$$mm_dir/rakitanmanager" "$$mm_dir/10-report-down"
+	chmod 0755 "$$mm_dir/10-report-down"
+fi
+
+# Enable service
+/etc/init.d/rakitanmanager enable 2>/dev/null || true
+
+echo "Installation completed successfully!"
 exit 0
 endef
 
 define Package/$(PKG_NAME)/prerm
 #!/bin/sh
-    PID1=$(pgrep -f /usr/share/rakitanmanager/core-manager.sh)
-    if [ "$PID1" ]  ; then
-        /usr/share/rakitanmanager/core-manager.sh -k
-    fi
-    if [ -f "/tmp/rakitanmanager.bak" ]; then
-      mv -f "/tmp/rakitanmanager.bak" "/etc/config/rakitanmanager" >/dev/null 2>&1
-      mv -f "/tmp/data-modem.json.bak" "/usr/share/rakitanmanager/data-modem.json" >/dev/null 2>&1
-      mv -f "/tmp/bot_message.txt.bak" "/www/rakitanmanager/bot_message.txt" >/dev/null 2>&1
-      rm -rf "/tmp/rakitanmanager.bak" >/dev/null 2>&1
-      rm -rf "/tmp/data-modem.json.bak" >/dev/null 2>&1
-      rm -rf "/tmp/bot_message.txt.bak" >/dev/null 2>&1
-    fi
-    uci set rakitanmanager.cfg.enabled='0' && uci commit rakitanmanager
+# Stop running service
+PID=$$(pgrep -f /usr/share/rakitanmanager/core-manager.sh)
+[ -n "$$PID" ] && /usr/share/rakitanmanager/core-manager.sh -k 2>/dev/null
+
+# Restore backup config
+[ -f "/tmp/rakitanmanager.bak" ] && mv -f "/tmp/rakitanmanager.bak" "/etc/config/rakitanmanager" 2>/dev/null
+[ -f "/tmp/data-modem.json.bak" ] && mv -f "/tmp/data-modem.json.bak" "/usr/share/rakitanmanager/data-modem.json" 2>/dev/null
+[ -f "/tmp/bot_message.txt.bak" ] && mv -f "/tmp/bot_message.txt.bak" "/www/rakitanmanager/bot_message.txt" 2>/dev/null
+
+# Clean up backup files
+rm -f /tmp/rakitanmanager.bak /tmp/data-modem.json.bak /tmp/bot_message.txt.bak 2>/dev/null
+
+# Disable service
+uci set rakitanmanager.cfg.enabled='0' 2>/dev/null && uci commit rakitanmanager 2>/dev/null
 exit 0
 endef
 
 define Package/$(PKG_NAME)/postrm
 #!/bin/sh
-    rm -rf /etc/config/rakitanmanager >/dev/null 2>&1
-    rm -rf /etc/init.d/rakitanmanager >/dev/null 2>&1
-    rm -rf /etc/uci-defaults/99_rakitanmanager >/dev/null 2>&1
-    rm -rf /usr/share/rakitanmanager >/dev/null 2>&1
-    rm -rf /tmp/log/rakitanmanager.log >/dev/null 2>&1
-    rm -rf /www/rakitanmanager >/dev/null 2>&1
+# Complete cleanup
+rm -rf /etc/config/rakitanmanager 2>/dev/null
+rm -rf /etc/init.d/rakitanmanager 2>/dev/null
+rm -rf /etc/uci-defaults/99_rakitanmanager 2>/dev/null
+rm -rf /usr/share/rakitanmanager 2>/dev/null
+rm -rf /tmp/log/rakitanmanager.log 2>/dev/null
+rm -rf /www/rakitanmanager 2>/dev/null
 exit 0
 endef
 
 define Package/$(PKG_NAME)/install
-    $(INSTALL_DIR) $(1)/usr/lib/lua/luci
-    $(INSTALL_DIR) $(1)/usr/share/rakitanmanager
-    $(INSTALL_DIR) $(1)/www/rakitanmanager
-    $(CP) $(PKG_BUILD_DIR)/root/* $(1)/
-    $(CP) $(PKG_BUILD_DIR)/luasrc/* $(1)/usr/lib/lua/luci/
+	$(INSTALL_DIR) $(1)/usr/lib/lua/luci
+	$(INSTALL_DIR) $(1)/usr/share/rakitanmanager
+	$(INSTALL_DIR) $(1)/www/rakitanmanager
+	$(CP) $(PKG_BUILD_DIR)/root/* $(1)/
+	$(CP) $(PKG_BUILD_DIR)/luasrc/* $(1)/usr/lib/lua/luci/
 endef
-
-include $(TOPDIR)/feeds/luci/luci.mk
 
 $(eval $(call BuildPackage,$(PKG_NAME)))
