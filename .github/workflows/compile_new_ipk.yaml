@@ -39,8 +39,8 @@ jobs:
 
   compile:
     runs-on: ubuntu-latest
-    needs: get-version
-    if: ${{ needs.get-version.outputs.new_version != needs.get-version.outputs.cur_version }}
+    needs: Get-Version
+    if: ${{ needs.Get-Version.outputs.version != needs.Get-Version.outputs.current_version }}
 
     steps:
       - name: Checkout dev
@@ -136,7 +136,7 @@ jobs:
 
       - name: Update package branch with new version
         run: |
-          VERSION="${{ needs.get-version.outputs.new_version }}"
+          VERSION="${{ needs.Get-Version.outputs.version }}"
 
           mkdir -p ./dev
           rm -rf ./dev/luci-app-rakitanmanager*
@@ -154,7 +154,7 @@ jobs:
 
       - name: Commit and push changes
         run: |
-          VERSION="${{ needs.get-version.outputs.new_version }}"
+          VERSION="${{ needs.Get-Version.outputs.version }}"
 
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
