@@ -2,6 +2,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-rakitanmanager
 PKG_VERSION:=0.00.37
+PKG_RELEASE:=1
 PKG_MAINTAINER:=rtaserver <https://github.com/rtaserver/RakitanManager>
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)

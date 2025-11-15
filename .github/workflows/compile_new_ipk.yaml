@@ -10,42 +10,31 @@ permissions:
   contents: write
 
 jobs:
-  get-version:
+  Get-Version:
     runs-on: ubuntu-latest
     outputs:
-      new_version: ${{ steps.newver.outputs.ver }}
-      cur_version: ${{ steps.curver.outputs.ver }}
+      version: ${{ steps.version.outputs.version }}
+      current_version: ${{ steps.current_version.outputs.version }}
     steps:
-      - name: Checkout dev
+      - name: Clone Repository
         uses: actions/checkout@v4
         with:
-          ref: dev
+          ref: ${{ github.ref_name }}
 
-      - name: Extract NEW version from Makefile
-        id: newver
+      - name: New Version
+        id: version
         run: |
-          VER=$(grep PKG_VERSION luci-app-rakitanmanager/Makefile | cut -d '=' -f2)
+          echo "version=$(grep 'PKG_VERSION:=' ./luci-app-rakitanmanager/Makefile |awk -F '=' '{print $2}')" >> $GITHUB_OUTPUT
 
-          { echo "ver=$VER"; } >> "$GITHUB_OUTPUT"
-          echo "New Version: $VER"
-
-      - name: Checkout package branch
+      - name: Clone Repository
         uses: actions/checkout@v4
         with:
           ref: package
-          path: pkg
 
-      - name: Extract CURRENT version from package branch
-        id: curver
+      - name: Current Version
+        id: current_version
         run: |
-          if [ -f ./pkg/dev/version ]; then
-            CV=$(head -1 ./pkg/dev/version | sed 's/v//g')
-          else
-            CV="0.0.0"
-          fi
-
-          { echo "ver=$CV"; } >> "$GITHUB_OUTPUT"
-          echo "Current Version: $CV"
+          echo "version=$(sed -n 1p ./${{ github.ref_name }}/version |awk -F 'v' '{print $2}')" >> $GITHUB_OUTPUT
 
 
   compile:
