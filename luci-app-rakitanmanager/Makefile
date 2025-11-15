@@ -60,8 +60,8 @@ endef
 define Package/$(PKG_NAME)/preinst
 #!/bin/sh
 	[ -f "/etc/config/rakitanmanager" ] && cp -f "/etc/config/rakitanmanager" "/tmp/rakitanmanager.bak" 2>/dev/null
-    [ -f "/usr/share/rakitanmanager/data-modem.json" ] && cp -f "/usr/share/rakitanmanager/data-modem.json" "/tmp/data-modem.json.bak" 2>/dev/null
-    [ -f "/www/rakitanmanager/bot_message.txt" ] && cp -f "/www/rakitanmanager/bot_message.txt" "/tmp/bot_message.txt.bak" 2>/dev/null
+	[ -f "/usr/share/rakitanmanager/data-modem.json" ] && cp -f "/usr/share/rakitanmanager/data-modem.json" "/tmp/data-modem.json.bak" 2>/dev/null
+	[ -f "/www/rakitanmanager/bot_message.txt" ] && cp -f "/www/rakitanmanager/bot_message.txt" "/tmp/bot_message.txt.bak" 2>/dev/null
 	exit 0
 endef
 
