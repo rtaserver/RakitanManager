@@ -1,205 +1,165 @@
-name: Compile The New Version RakitanManager
+name: Compile The New Version RakitanManager v1
 
 on:
   push:
-    branches:
-      - dev
-    paths:
-      - 'luci-app-rakitanmanager/Makefile'
+    branches: [ dev ]
+    paths: [ 'luci-app-rakitanmanager/Makefile' ]
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  Get-Version:
+  get-version:
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.version.outputs.version }}
-      current_version: ${{ steps.current_version.outputs.version }}
+      new_version: ${{ steps.newver.outputs.ver }}
+      cur_version: ${{ steps.curver.outputs.ver }}
     steps:
-      - name: Checkout dev branch
+      - name: Checkout dev
         uses: actions/checkout@v4
         with:
           ref: dev
 
-      - name: Get New Version
-        id: version
+      - name: Extract NEW version from Makefile
+        id: newver
         run: |
-          VERSION=$(grep 'PKG_VERSION:=' ./luci-app-rakitanmanager/Makefile | awk -F '=' '{print $2}')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "New Version: $VERSION"
+          VER=$(grep PKG_VERSION ./luci-app-rakitanmanager/Makefile | cut -d '=' -f2)
+          echo "ver=$VER" >> $GITHUB_OUTPUT
+          echo "New Version: $VER"
 
       - name: Checkout package branch
         uses: actions/checkout@v4
         with:
           ref: package
-          path: package-repo
+          path: pkg
 
-      - name: Get Current Version
-        id: current_version
+      - name: Extract CURRENT version from package branch
+        id: curver
         run: |
-          if [ -f ./package-repo/dev/version ]; then
-            CURRENT_VERSION=$(sed -n 1p ./package-repo/dev/version | awk -F 'v' '{print $2}')
+          if [ -f ./pkg/dev/version ]; then
+            CV=$(head -1 ./pkg/dev/version | sed 's/v//g')
           else
-            CURRENT_VERSION="0.0.0"
+            CV="0.0.0"
           fi
-          echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-          echo "Current Version: $CURRENT_VERSION"
+          echo "ver=$CV" >> $GITHUB_OUTPUT
+          echo "Current Version: $CV"
 
-  Compile:
+
+  compile:
     runs-on: ubuntu-latest
-    needs: Get-Version
-    if: ${{ needs.Get-Version.outputs.version != needs.Get-Version.outputs.current_version }}
+    needs: get-version
+    if: ${{ needs.get-version.outputs.new_version != needs.get-version.outputs.cur_version }}
+
     steps:
-      - name: Checkout dev branch
+      - name: Checkout dev
         uses: actions/checkout@v4
         with:
           ref: dev
 
-      - name: Setup dependencies
+      - name: Install Requirements
         run: |
           sudo apt-get update
-          sudo apt-get -y install curl git tar zstd build-essential libncurses-dev gawk gettext unzip file libssl-dev wget rsync
+          sudo apt-get install -y git wget curl tar zstd rsync gettext gawk unzip build-essential
 
-      - name: Cache OpenWrt SDKs
+      ###########################
+      #  SDK CACHE
+      ###########################
+      - name: Cache SDKs
         id: cache-sdk
         uses: actions/cache@v4
         with:
           path: |
-            ~/openwrt-sdk-stable
-            ~/openwrt-sdk-snapshot
-          key: openwrt-sdks-${{ runner.os }}-v1
-          restore-keys: |
-            openwrt-sdks-${{ runner.os }}-
+            ~/sdk-stable
+            ~/sdk-snapshot
+          key: sdk-cache-v3
 
-      - name: Cache OpenWrt Downloads (dl directory)
-        id: cache-dl
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/openwrt-sdk-stable/dl
-            ~/openwrt-sdk-snapshot/dl
-          key: openwrt-downloads-${{ runner.os }}-${{ hashFiles('**/Makefile') }}
-          restore-keys: |
-            openwrt-downloads-${{ runner.os }}-
-
-      - name: Cache Build artifacts
-        id: cache-build
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/openwrt-sdk-stable/staging_dir
-            ~/openwrt-sdk-stable/build_dir
-            ~/openwrt-sdk-snapshot/staging_dir
-            ~/openwrt-sdk-snapshot/build_dir
-          key: openwrt-build-${{ runner.os }}-${{ hashFiles('**/Makefile') }}
-          restore-keys: |
-            openwrt-build-${{ runner.os }}-
-
-      - name: Install OpenWrt Stable SDK (23.05.6)
+      ##############################
+      # SDK DOWNLOAD ONLY IF NEEDED
+      ##############################
+      - name: Download Stable SDK (23.05.6)
         if: steps.cache-sdk.outputs.cache-hit != 'true'
         run: |
-          mkdir -p ~/openwrt-sdk-stable
-          cd ~/openwrt-sdk-stable
-          curl -SLk --connect-timeout 30 --retry 3 "https://downloads.openwrt.org/releases/23.05.6/targets/x86/64/openwrt-sdk-23.05.6-x86-64_gcc-12.3.0_musl.Linux-x86_64.tar.xz" -o "sdk.tar.xz"
-          tar xf sdk.tar.xz --strip-components=1
-          rm sdk.tar.xz
+          mkdir -p ~/sdk-stable
+          cd ~/sdk-stable
+          wget -q https://downloads.openwrt.org/releases/23.05.6/targets/x86/64/openwrt-sdk-23.05.6-x86-64_gcc-12.3.0_musl.Linux-x86_64.tar.xz
+          tar xf openwrt-sdk-*.tar.xz --strip 1
+          rm *.tar.xz
 
-      - name: Install OpenWrt Snapshot SDK
+      - name: Download Snapshot SDK
         if: steps.cache-sdk.outputs.cache-hit != 'true'
         run: |
-          mkdir -p ~/openwrt-sdk-snapshot
-          cd ~/openwrt-sdk-snapshot
-          curl -SLk --connect-timeout 30 --retry 3 "https://downloads.openwrt.org/snapshots/targets/x86/64/openwrt-sdk-x86-64_gcc-14.3.0_musl.Linux-x86_64.tar.zst" -o "sdk.tar.zst"
-          zstd -d sdk.tar.zst
-          tar xf sdk.tar
-          rm sdk.tar sdk.tar.zst
-          # Handle the extracted directory name properly
-          shopt -s nullglob
-          DIRS=(openwrt-sdk-*)
-          if [ ${#DIRS[@]} -gt 0 ]; then
-            mv "${DIRS[0]}"/* . 
-            rmdir "${DIRS[0]}"
-          fi
+          mkdir -p ~/sdk-snapshot
+          cd ~/sdk-snapshot
+          wget -q https://downloads.openwrt.org/snapshots/targets/x86/64/openwrt-sdk-x86-64_gcc-14.3.0_musl.Linux-x86_64.tar.zst
+          zstd -d openwrt-sdk-*.tar.zst
+          tar xf openwrt-sdk-*.tar --strip 1
+          rm *.tar*
 
-      - name: Create dl directories if not exists
+      ##################################
+      # Copy Package into SDKs
+      ##################################
+      - name: Move RakitanManager source
         run: |
-          mkdir -p ~/openwrt-sdk-stable/dl
-          mkdir -p ~/openwrt-sdk-snapshot/dl
+          rm -rf ~/sdk-stable/package/luci-app-rakitanmanager
+          rm -rf ~/sdk-snapshot/package/luci-app-rakitanmanager
 
-      - name: Copy RakitanManager Source Codes
-        run: |
-          mkdir -p ~/openwrt-sdk-stable/package/luci-app-rakitanmanager
-          mkdir -p ~/openwrt-sdk-snapshot/package/luci-app-rakitanmanager
-          cp -rf ./luci-app-rakitanmanager/* ~/openwrt-sdk-stable/package/luci-app-rakitanmanager/
-          cp -rf ./luci-app-rakitanmanager/* ~/openwrt-sdk-snapshot/package/luci-app-rakitanmanager/
+          cp -r luci-app-rakitanmanager ~/sdk-stable/package/
+          cp -r luci-app-rakitanmanager ~/sdk-snapshot/package/
 
-      - name: Prepare LuCI feed for Stable SDK
+      ##################################
+      # FEEDS
+      ##################################
+      - name: Prepare LuCI feed - stable
         run: |
-          cd ~/openwrt-sdk-stable
-          mkdir -p feeds/luci
-          git clone --depth=1 --branch openwrt-23.05 https://github.com/openwrt/luci.git feeds/luci
+          cd ~/sdk-stable
+          [ -d feeds/luci ] || git clone --depth=1 -b openwrt-23.05 https://github.com/openwrt/luci feeds/luci
 
-      - name: Prepare LuCI feed for Snapshot SDK
+      - name: Prepare LuCI feed - snapshot
         run: |
-          cd ~/openwrt-sdk-snapshot
-          mkdir -p feeds/luci
-          git clone --depth=1 https://github.com/openwrt/luci.git feeds/luci
+          cd ~/sdk-snapshot
+          [ -d feeds/luci ] || git clone --depth=1 https://github.com/openwrt/luci feeds/luci
 
-      - name: Compile RakitanManager IPK (Stable)
+      ##################################
+      # BUILD BOTH TARGETS
+      ##################################
+      - name: Compile for Stable
         run: |
-          cd ~/openwrt-sdk-stable
+          cd ~/sdk-stable
           make defconfig
-          make package/luci-app-rakitanmanager/compile V=s -j$(nproc)
+          make package/luci-app-rakitanmanager/compile -j$(nproc) V=s
 
-      - name: Compile RakitanManager APK (Snapshot)
+      - name: Compile for Snapshot
         run: |
-          cd ~/openwrt-sdk-snapshot
+          cd ~/sdk-snapshot
           make defconfig
-          make package/luci-app-rakitanmanager/compile V=s -j$(nproc)
+          make package/luci-app-rakitanmanager/compile -j$(nproc) V=s
 
-      - name: Checkout package branch for push
+      ##################################
+      #  PUSH RESULT TO PACKAGE BRANCH
+      ##################################
+      - name: Checkout package branch
         uses: actions/checkout@v4
         with:
           ref: package
-          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Update package branch with new version
+      - name: Update package files
         run: |
-          VERSION=${{ needs.Get-Version.outputs.version }}
-          mkdir -p ./dev
-          rm -rf ./dev/luci-app-rakitanmanager*
-          echo "v$VERSION" > ./dev/version
-          echo "https://img.shields.io/badge/New Release-v$VERSION-orange.svg" >> ./dev/version
-          
-          # Copy compiled packages with error handling
-          if [ -f ~/openwrt-sdk-stable/bin/packages/x86_64/base/luci-app-rakitanmanager_${VERSION}_all.ipk ]; then
-            cp ~/openwrt-sdk-stable/bin/packages/x86_64/base/luci-app-rakitanmanager_${VERSION}_all.ipk ./dev/
-          else
-            echo "Warning: IPK file not found"
-            ls -la ~/openwrt-sdk-stable/bin/packages/x86_64/base/ || true
-          fi
-          
-          if [ -f ~/openwrt-sdk-snapshot/bin/packages/x86_64/base/luci-app-rakitanmanager-${VERSION}.apk ]; then
-            cp ~/openwrt-sdk-snapshot/bin/packages/x86_64/base/luci-app-rakitanmanager-${VERSION}.apk ./dev/
-          else
-            echo "Warning: APK file not found"
-            ls -la ~/openwrt-sdk-snapshot/bin/packages/x86_64/base/ || true
-          fi
-          
-          # Update README if it exists
-          if [ -f ./dev/README.md ]; then
-            sed -i "s/RakitanManager\/tree\/v.*/RakitanManager\/tree\/v$VERSION/g" ./dev/README.md
-            sed -i "s/RakitanManager\/releases\/tag\/v.*/RakitanManager\/releases\/tag\/v$VERSION/g" ./dev/README.md
-            sed -i "s/source code-v.*-green/source code-v$VERSION-green/g" ./dev/README.md
-            sed -i "s/New Release-v.*-orange/New Release-v$VERSION-orange/g" ./dev/README.md
-          fi
+          VER=${{ needs.get-version.outputs.new_version }}
 
-      - name: Commit and push changes
+          mkdir -p dev
+          rm -rf dev/luci-app-rakitanmanager*
+
+          echo "v$VER" > dev/version
+          echo "https://img.shields.io/badge/New Release-v$VER-orange.svg" >> dev/version
+
+          cp ~/sdk-stable/bin/packages/x86_64/base/luci-app-rakitanmanager_${VER}_all.ipk dev/ || echo "No IPK found"
+          cp ~/sdk-snapshot/bin/packages/x86_64/base/luci-app-rakitanmanager-${VER}.apk dev/ || echo "No APK found"
+
+      - name: Commit & Push
         run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
           git add .
-          git diff --staged --quiet || git commit -m "Auto Release: v${{ needs.Get-Version.outputs.version }}"
+          git commit -m "Auto Release v${{ needs.get-version.outputs.new_version }}" || true
           git push

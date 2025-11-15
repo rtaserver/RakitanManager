@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-rakitanmanager
-PKG_VERSION:=0.00.37-beta
+PKG_VERSION:=0.00.37
 PKG_RELEASE:=1
 
 PKG_MAINTAINER:=rtaserver <https://github.com/rtaserver/RakitanManager>
@@ -21,9 +21,9 @@ define Build/Prepare
 	$(CP) $(CURDIR)/luasrc $(PKG_BUILD_DIR)/
 
 	# Update version info
-	sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-$(PKG_RELEASE)/g" $(PKG_BUILD_DIR)/root/www/rakitanmanager/curent.svg 2>/dev/null || true
-	sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-$(PKG_RELEASE)/g" $(PKG_BUILD_DIR)/root/www/rakitanmanager/versionmain.txt 2>/dev/null || true
-	sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-$(PKG_RELEASE)/g" $(PKG_BUILD_DIR)/root/www/rakitanmanager/versiondev.txt 2>/dev/null || true
+	sed -i "s/v0.00.00/v$(PKG_VERSION)-$(PKG_RELEASE)/g" $(PKG_BUILD_DIR)/root/www/rakitanmanager/curent.svg 2>/dev/null || true
+	sed -i "s/v0.00.00/v$(PKG_VERSION)-$(PKG_RELEASE)/g" $(PKG_BUILD_DIR)/root/www/rakitanmanager/versionmain.txt 2>/dev/null || true
+	sed -i "s/v0.00.00/v$(PKG_VERSION)-$(PKG_RELEASE)/g" $(PKG_BUILD_DIR)/root/www/rakitanmanager/versiondev.txt 2>/dev/null || true
 
 	# Permissions
 	find $(PKG_BUILD_DIR)/root/etc/init.d/ -type f -exec chmod 0755 {} \;
@@ -56,9 +56,9 @@ define Package/$(PKG_NAME)/postinst
 [ -z "$${IPKG_INSTROOT}" ] || exit 0
 
 # Update version info
-sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-$(PKG_RELEASE)/g" /www/rakitanmanager/curent.svg 2>/dev/null || true
-sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-$(PKG_RELEASE)/g" /www/rakitanmanager/versionmain.txt 2>/dev/null || true
-sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-$(PKG_RELEASE)/g" /www/rakitanmanager/versiondev.txt 2>/dev/null || true
+sed -i "s/v0.00.00/v$(PKG_VERSION)-$(PKG_RELEASE)/g" /www/rakitanmanager/curent.svg 2>/dev/null || true
+sed -i "s/v0.00.00/v$(PKG_VERSION)-$(PKG_RELEASE)/g" /www/rakitanmanager/versionmain.txt 2>/dev/null || true
+sed -i "s/v0.00.00/v$(PKG_VERSION)-$(PKG_RELEASE)/g" /www/rakitanmanager/versiondev.txt 2>/dev/null || true
 
 # Set permissions
 chmod 0755 /usr/share/rakitanmanager/*.sh 2>/dev/null || true

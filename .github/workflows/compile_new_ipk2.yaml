@@ -1,4 +1,4 @@
-name: Compile The New Version RakitanManager
+name: Compile The New Version RakitanManager v2
 
 on: 
   push:
