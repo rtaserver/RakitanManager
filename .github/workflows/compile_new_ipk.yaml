@@ -24,8 +24,9 @@ jobs:
       - name: Extract NEW version from Makefile
         id: newver
         run: |
-          VER=$(grep PKG_VERSION ./luci-app-rakitanmanager/Makefile | cut -d '=' -f2)
-          echo "ver=$VER" >> $GITHUB_OUTPUT
+          VER=$(grep PKG_VERSION luci-app-rakitanmanager/Makefile | cut -d '=' -f2)
+
+          { echo "ver=$VER"; } >> "$GITHUB_OUTPUT"
           echo "New Version: $VER"
 
       - name: Checkout package branch
@@ -42,7 +43,8 @@ jobs:
           else
             CV="0.0.0"
           fi
-          echo "ver=$CV" >> $GITHUB_OUTPUT
+
+          { echo "ver=$CV"; } >> "$GITHUB_OUTPUT"
           echo "Current Version: $CV"
 
 
@@ -136,7 +138,7 @@ jobs:
           make package/luci-app-rakitanmanager/compile -j$(nproc) V=s
 
       ##################################
-      #  PUSH RESULT TO PACKAGE BRANCH
+      #  UPDATE PACKAGE BRANCH
       ##################################
       - name: Checkout package branch
         uses: actions/checkout@v4
@@ -145,39 +147,28 @@ jobs:
 
       - name: Update package branch with new version
         run: |
-          VERSION=${{ needs.Get-Version.outputs.version }}
+          VERSION="${{ needs.get-version.outputs.new_version }}"
+
           mkdir -p ./dev
           rm -rf ./dev/luci-app-rakitanmanager*
           echo "v$VERSION" > ./dev/version
           echo "https://img.shields.io/badge/New Release-v$VERSION-orange.svg" >> ./dev/version
           
-          # Copy compiled packages with error handling
-          if [ -f ~/openwrt-sdk-stable/bin/packages/x86_64/base/luci-app-rakitanmanager_${VERSION}_all.ipk ]; then
-            cp ~/openwrt-sdk-stable/bin/packages/x86_64/base/luci-app-rakitanmanager_${VERSION}_all.ipk ./dev/
-          else
-            echo "Warning: IPK file not found"
-            ls -la ~/openwrt-sdk-stable/bin/packages/x86_64/base/ || true
+          # Copy compiled packages
+          if [ -f ~/sdk-stable/bin/packages/x86_64/base/luci-app-rakitanmanager_${VERSION}_all.ipk ]; then
+            cp ~/sdk-stable/bin/packages/x86_64/base/luci-app-rakitanmanager_${VERSION}_all.ipk ./dev/
           fi
           
-          if [ -f ~/openwrt-sdk-snapshot/bin/packages/x86_64/base/luci-app-rakitanmanager-${VERSION}.apk ]; then
-            cp ~/openwrt-sdk-snapshot/bin/packages/x86_64/base/luci-app-rakitanmanager-${VERSION}.apk ./dev/
-          else
-            echo "Warning: APK file not found"
-            ls -la ~/openwrt-sdk-snapshot/bin/packages/x86_64/base/ || true
-          fi
-          
-          # Update README if it exists
-          if [ -f ./dev/README.md ]; then
-            sed -i "s/RakitanManager\/tree\/v.*/RakitanManager\/tree\/v$VERSION/g" ./dev/README.md
-            sed -i "s/RakitanManager\/releases\/tag\/v.*/RakitanManager\/releases\/tag\/v$VERSION/g" ./dev/README.md
-            sed -i "s/source code-v.*-green/source code-v$VERSION-green/g" ./dev/README.md
-            sed -i "s/New Release-v.*-orange/New Release-v$VERSION-orange/g" ./dev/README.md
+          if [ -f ~/sdk-snapshot/bin/packages/x86_64/base/luci-app-rakitanmanager-${VERSION}.apk ]; then
+            cp ~/sdk-snapshot/bin/packages/x86_64/base/luci-app-rakitanmanager-${VERSION}.apk ./dev/
           fi
 
       - name: Commit and push changes
         run: |
+          VERSION="${{ needs.get-version.outputs.new_version }}"
+
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
           git add .
-          git diff --staged --quiet || git commit -m "Auto Release: v${{ needs.Get-Version.outputs.version }}"
+          git diff --staged --quiet || git commit -m "Auto Release: v$VERSION"
           git push
