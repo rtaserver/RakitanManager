@@ -56,7 +56,7 @@ jobs:
       - name: Setup dependencies
         run: |
           sudo apt-get update
-          sudo apt-get -y install curl git tar zstd build-essential libncurses-dev gawk gettext unzip file libssl-dev wget python3-distutils rsync
+          sudo apt-get -y install curl git tar zstd build-essential libncurses-dev gawk gettext unzip file libssl-dev wget rsync
 
       - name: Cache OpenWrt SDKs
         uses: actions/cache@v4
