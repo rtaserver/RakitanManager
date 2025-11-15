@@ -230,7 +230,8 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
                             // Periksa jika versi terbaru berbeda dari versi saat ini
                             if (latestVersion && latestVersion !== currentVersion) {
                                 // Tampilkan modal
-                                $('#updateModal').modal('show');
+                                var modal = new bootstrap.Modal(document.getElementById('updateModal'));
+                                modal.show();
 
                                 // Load Changelog
                                 $.get(changelogUrl, function (changelogData) {
@@ -256,7 +257,8 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
                             // Periksa jika versi terbaru berbeda dari versi saat ini
                             if (latestVersion && latestVersion !== currentVersion) {
                                 // Tampilkan modal
-                                $('#updateModal').modal('show');
+                                var modal = new bootstrap.Modal(document.getElementById('updateModal'));
+                                modal.show();
 
                                 // Load Changelog
                                 $.get(changelogUrl, function (changelogData) {
@@ -284,6 +286,22 @@ $branch_select = exec("uci -q get rakitanmanager.cfg.branch");
 
             // Panggil fungsi untuk memeriksa pembaruan ketika dokumen selesai dimuat
             checkUpdate();
+
+            // Theme toggle
+            $('#theme-toggle').click(function() {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                $(this).find('i').toggleClass('fa-moon fa-sun');
+            });
+
+            // Load saved theme
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            if (savedTheme === 'dark') {
+                $('#theme-toggle').find('i').removeClass('fa-moon').addClass('fa-sun');
+            }
         });
     </script>
 
@@ -391,134 +409,112 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
 <body>
     <div id="app">
         <?php include ('navbar.php'); ?>
-        <form id="myForm" method="POST" class="mt-5">
-            <div class="container-fluid">
-                <div class="row py-2">
-                    <div class="col-lg-8 col-md-9 mx-auto mt-3">
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="text-center">
-                                    <h4><i class="fa fa-home"></i> RAKITAN MANAGER</h4>
+        <div class="container-fluid mt-5 pt-5">
+            <div class="row justify-content-center">
+                <div class="col-lg-10 col-xl-8">
+                    <div class="card shadow-lg mb-4">
+                        <div class="card-header bg-primary text-white text-center">
+                            <h4 class="mb-0"><i class="fas fa-wifi me-2"></i>RAKITAN MANAGER</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="text-center mb-4">
+                                <img src="curent.svg" alt="Current Version" class="mb-2">
+                                <img alt="Latest Version"
+                                    src="https://img.shields.io/github/v/release/rtaserver/RakitanManager?display_name=tag&logo=openwrt&label=Latest%20Version&color=dark-green">
+                            </div>
+
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#tambahModemModal"
+                                        <?php if ($rakitanmanager_status == 1) echo 'disabled'; ?>>
+                                        <i class="fas fa-plus me-2"></i>Tambah Modem
+                                    </button>
+                                </div>
+                                <div class="col-md-6">
+                                    <form method="POST">
+                                        <?php if ($rakitanmanager_status == 1): ?>
+                                            <button type="submit" class="btn btn-danger w-100" name="disable">
+                                                <i class="fas fa-stop me-2"></i>Stop Modem
+                                            </button>
+                                        <?php else: ?>
+                                            <button type="submit" class="btn btn-success w-100" name="enable" <?php echo $start_button_disabled; ?>>
+                                                <i class="fas fa-play me-2"></i>Start Modem
+                                            </button>
+                                        <?php endif; ?>
+                                    </form>
                                 </div>
                             </div>
-                            <div class="card-body">
-                                <div class="card-body py-0 px-0">
-                                    <div class="body">
-                                        <div class="text-center">
-                                            <img src="curent.svg" alt="Current Version">
-                                            <img alt="Latest Version"
-                                                src="https://img.shields.io/github/v/release/rtaserver/RakitanManager?display_name=tag&logo=openwrt&label=Latest%20Version&color=dark-green">
-                                        </div>
-                                        <br>
-                                    </div>
-                                    <div class="container-fluid">
-                                        <div class="container mt-5">
 
-                                            <div class="container">
-                                                <div class="row">
-                                                    <div class="col-md-6">
-                                                        <button type="button" class="btn btn-primary btn-block mb-3"
-                                                            data-toggle="modal" data-target="#tambahModemModal" <?php if ($rakitanmanager_status == 1)
-                                                                echo 'disabled'; ?>>Tambah Modem</button>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <form method="POST">
-                                                            <?php if ($rakitanmanager_status == 1): ?>
-                                                                <button type="submit" class="btn btn-danger btn-block mb-3"
-                                                                    name="disable">Stop Modem</button>
-                                                            <?php else: ?>
-                                                                <button type="submit" class="btn btn-success btn-block mb-3"
-                                                                    name="enable" <?php echo $start_button_disabled; ?>>Start Modem</button>
-                                                            <?php endif; ?>
-                                                        </form>
-                                                    </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th scope="col"><i class="fas fa-tag me-1"></i>Nama</th>
+                                            <th scope="col"><i class="fas fa-mobile-alt me-1"></i>Jenis Modem</th>
+                                            <th scope="col"><i class="fas fa-network-wired me-1"></i>Metode</th>
+                                            <th scope="col"><i class="fas fa-globe me-1"></i>Host</th>
+                                            <th scope="col"><i class="fas fa-cogs me-1"></i>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    <?php
+                                    foreach ($modems as $index => $modem):
+                                        $statusClass = '';
+                                        $statusIcon = '';
+                                        if (($modem["status"] ?? 0) == -1) {
+                                            $statusClass = 'table-secondary';
+                                            $statusIcon = '<i class="fas fa-ban text-danger me-1"></i>';
+                                        } elseif (($modem["status"] ?? 0) == 2) {
+                                            $statusClass = 'table-warning';
+                                            $statusIcon = '<i class="fas fa-exclamation-triangle text-warning me-1"></i>';
+                                        }
+                                    ?>
+                                        <tr class="<?= $statusClass ?>">
+                                            <td><?= $statusIcon . htmlspecialchars($modem["nama"]) ?></td>
+                                            <td><span class="badge bg-info"><?= htmlspecialchars($modem["jenis"]) ?></span></td>
+                                            <td><span class="badge bg-secondary"><?= htmlspecialchars($modem["metodeping"]) ?></span></td>
+                                            <td><code><?= htmlspecialchars($modem["hostbug"]) ?></code></td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm" role="group">
+                                                    <button type="button" class="btn btn-outline-dark"
+                                                        onclick="updateStatus(<?= $index ?>)" <?php if ($rakitanmanager_status == 1) echo 'disabled'; ?>>
+                                                        <i class="fas fa-<?= ($modem['status'] ?? 0) ? 'ban' : 'check' ?>"></i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-outline-primary"
+                                                        onclick="editModem(<?= $index ?>)" <?php if ($rakitanmanager_status == 1) echo 'disabled'; ?>>
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-outline-danger"
+                                                        onclick="hapusModem(<?= $index ?>)" <?php if ($rakitanmanager_status == 1) echo 'disabled'; ?>>
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
                                                 </div>
-                                            </div>
-                                            <table class="table">
-                                                <thead>
-                                                    <tr>
-                                                        <th scope="col">Nama</th>
-                                                        <th scope="col">Jenis Modem</th>
-                                                        <th scope="col">Metode</th>
-                                                        <th scope="col">Host</th>
-                                                        <th scope="col">Action</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                <?php 
-                                                foreach ($modems as $index => $modem):
-                                                    // Pengecekan versi PHP dan penerapan status yang sesuai
-                                                    if (version_compare(PHP_VERSION, '8.0.0', '>=')) {
-                                                        // Untuk PHP 8+, menggunakan match
-                                                        $status = match($modem["status"] ?? null) {
-                                                            -1 => 'bg-secondary text-white', // disabled
-                                                            // 1 => 'bg-primary', // connected
-                                                            2 => 'bg-warning', // disconnected
-                                                            default => '',        // Default, no class
-                                                        };
-                                                    } else {
-                                                        // Untuk PHP 7, menggunakan switch
-                                                        $status = '';
-                                                        switch ($modem["status"] ?? null) {
-                                                            case -1:
-                                                                $status = 'bg-secondary text-white'; // disabled
-                                                                break;
-                                                            // case 1:
-                                                            //     $status = 'bg-primary'; // connected
-                                                            case 2:
-                                                                $status = 'bg-warning'; // disconnected
-                                                                break;
-                                                            default:
-                                                                $status = ''; // Default, no class
-                                                                break;
-                                                        }
-                                                    }
-                                                ?>
-                                                <tr class="<?= $status ?>">
-                                                    <td><?= $modem["nama"] ?></td>
-                                                    <td><?= $modem["jenis"] ?></td>
-                                                    <td><?= $modem["metodeping"] ?></td>
-                                                    <td><?= $modem["hostbug"] ?></td>
-                                                    <td>
-                                                        <button type="button" class="btn btn-dark btn-sm" 
-                                                            onclick="updateStatus(<?= $index ?>)" <?php if ($rakitanmanager_status == 1)
-                                                            echo 'disabled'; ?>>
-                                                            <i class="fa <?= ($modem['status'] ?? 0) ? 'fa-ban' : 'fa-check' ?>"></i>
-                                                        </button>
-                                                        <button type="button" class="btn btn-primary btn-sm"
-                                                            onclick="editModem(<?= $index ?>)" <?php if ($rakitanmanager_status == 1)
-                                                            echo 'disabled'; ?>><i class="fa fa-pencil"></i></button>
-                                                        <button type="button" class="btn btn-danger btn-sm"
-                                                            onclick="hapusModem(<?= $index ?>)" <?php if ($rakitanmanager_status == 1)
-                                                            echo 'disabled'; ?>><i class="fa fa-trash"></i></button>
-                                                    </td>
-                                                </tr>
-                                                <?php endforeach; ?>
-                                                </tbody>
-                                            </table>
-                                            <form method="POST" class="mt-5">
-                                                <div class="row">
-                                                    <div class="col pt-2">
-                                                        <pre id="logContent" class="form-control text-left"
-                                                            style="height: 200px; width: auto; font-size:80%; background-image-position: center; background-color: #f8f9fa "></pre>
-                                                    </div>
-                                                </div>
-                                            </form>
-                                        </div>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
 
-                                        <!-- Modal Tambah Modem -->
-                                        <div class="modal fade" id="tambahModemModal" tabindex="-1"
-                                            aria-labelledby="tambahModemModalLabel" aria-hidden="true">
-                                            <div class="modal-dialog">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title" id="tambahModemModalLabel">Tambah Modem
-                                                        </h5>
-                                                        <button type="button" class="close" data-dismiss="modal"
-                                                            aria-label="Close">
-                                                            <span aria-hidden="true">&times;</span>
-                                                        </button>
-                                                    </div>
+                            <div class="mt-4">
+                                <h5><i class="fas fa-terminal me-2"></i>System Logs</h5>
+                                <div class="bg-dark text-light p-3 rounded" style="height: 300px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 0.9em;">
+                                    <pre id="logContent" class="mb-0"></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal Tambah Modem -->
+                    <div class="modal fade" id="tambahModemModal" tabindex="-1" aria-labelledby="tambahModemModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header bg-primary text-white">
+                                    <h5 class="modal-title" id="tambahModemModalLabel">
+                                        <i class="fas fa-plus me-2"></i>Tambah Modem
+                                    </h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
                                                     <form id="tambahModemForm" onsubmit="return validateFormTambah()"
                                                         method="post">
                                                         <div class="modal-body">
@@ -649,28 +645,29 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                                                                     class="form-control" placeholder="1" value="3">
                                                             </div>
                                                         </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary"
-                                                                data-dismiss="modal">Tutup</button>
-                                                            <button type="submit" name="tambah_modem"
-                                                                class="btn btn-primary">Simpan</button>
-                                                        </div>
-                                                    </form>
-                                                </div>
-                                            </div>
-                                        </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                        <i class="fas fa-times me-1"></i>Tutup
+                                    </button>
+                                    <button type="submit" name="tambah_modem" class="btn btn-primary">
+                                        <i class="fas fa-save me-1"></i>Simpan
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
 
-                                        <div class="modal fade" id="editModemModal" tabindex="-1"
-                                            aria-labelledby="editModemModalLabel" aria-hidden="true">
-                                            <div class="modal-dialog">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title" id="editModemModalLabel">Edit Modem</h5>
-                                                        <button type="button" class="close" data-dismiss="modal"
-                                                            aria-label="Close">
-                                                            <span aria-hidden="true">&times;</span>
-                                                        </button>
-                                                    </div>
+                <!-- Modal Edit Modem -->
+                <div class="modal fade" id="editModemModal" tabindex="-1" aria-labelledby="editModemModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header bg-warning text-dark">
+                                <h5 class="modal-title" id="editModemModalLabel">
+                                    <i class="fas fa-edit me-2"></i>Edit Modem
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
                                                     <form id="editModemForm" onsubmit="return validateFormEdit()"
                                                         method="post">
                                                         <div class="modal-body">
@@ -801,26 +798,20 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                                                                     placeholder="1">
                                                             </div>
                                                         </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary"
-                                                                data-dismiss="modal">Tutup</button>
-                                                            <button type="submit" name="edit_modem"
-                                                                class="btn btn-primary">Simpan</button>
-                                                            <input type="hidden" name="index" id="editIndex">
-                                                        </div>
-                                                    </form>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                    <i class="fas fa-times me-1"></i>Tutup
+                                </button>
+                                <button type="submit" name="edit_modem" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i>Simpan
+                                </button>
+                                <input type="hidden" name="index" id="editIndex">
                             </div>
-                        </div>
+                        </form>
                     </div>
                 </div>
-                <?php include ('footer.php'); ?>
             </div>
-        </form>
+        </div>
     </div>
     <?php include ("javascript.php"); ?>
     <?php if ($show_modal): ?>
@@ -987,23 +978,6 @@ bash -c <span class="pl-s"><span class="pl-pds">&quot;</span><span class="pl-s">
                     $('#edit_hp_field').hide();
                     $('#edit_customscript_field').show();
                 }
-            });
-
-            // Tambahkan fungsi untuk mengubah status tombol Mulai dan label Status saat diklik
-            var statusBerjalan = false;
-            $('#mulaiStopButton').click(function () {
-                if (!statusBerjalan) {
-                    $(this).text('Berhenti').removeClass('btn-primary').addClass('btn-danger');
-                    $('.status-label').text('Berjalan').css('color', 'green');
-                    // Nonaktifkan semua tombol Edit dan Hapus
-                    $('.btn-primary, .btn-danger').prop('disabled', true);
-                } else {
-                    $(this).text('Mulai').removeClass('btn-danger').addClass('btn-primary');
-                    $('.status-label').text('Berhenti').css('color', 'black');
-                    // Aktifkan kembali semua tombol Edit dan Hapus
-                    $('.btn-primary, .btn-danger').prop('disabled', false);
-                }
-                statusBerjalan = !statusBerjalan;
             });
         });
 

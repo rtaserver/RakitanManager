@@ -63,7 +63,7 @@ jobs:
           sudo apt-get -y install curl git tar zstd build-essential libncurses-dev gawk gettext unzip file libssl-dev wget rsync
 
       - name: Cache OpenWrt SDKs
-        id: cache
+        id: cache-sdk
         uses: actions/cache@v4
         with:
           path: |
@@ -73,8 +73,32 @@ jobs:
           restore-keys: |
             openwrt-sdks-${{ runner.os }}-
 
+      - name: Cache OpenWrt Downloads (dl directory)
+        id: cache-dl
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/openwrt-sdk-stable/dl
+            ~/openwrt-sdk-snapshot/dl
+          key: openwrt-downloads-${{ runner.os }}-${{ hashFiles('**/Makefile') }}
+          restore-keys: |
+            openwrt-downloads-${{ runner.os }}-
+
+      - name: Cache Build artifacts
+        id: cache-build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/openwrt-sdk-stable/staging_dir
+            ~/openwrt-sdk-stable/build_dir
+            ~/openwrt-sdk-snapshot/staging_dir
+            ~/openwrt-sdk-snapshot/build_dir
+          key: openwrt-build-${{ runner.os }}-${{ hashFiles('**/Makefile') }}
+          restore-keys: |
+            openwrt-build-${{ runner.os }}-
+
       - name: Install OpenWrt Stable SDK (23.05.6)
-        if: steps.cache.outputs.cache-hit != 'true'
+        if: steps.cache-sdk.outputs.cache-hit != 'true'
         run: |
           mkdir -p ~/openwrt-sdk-stable
           cd ~/openwrt-sdk-stable
@@ -83,7 +107,7 @@ jobs:
           rm sdk.tar.xz
 
       - name: Install OpenWrt Snapshot SDK
-        if: steps.cache.outputs.cache-hit != 'true'
+        if: steps.cache-sdk.outputs.cache-hit != 'true'
         run: |
           mkdir -p ~/openwrt-sdk-snapshot
           cd ~/openwrt-sdk-snapshot
@@ -99,6 +123,11 @@ jobs:
             rmdir "${DIRS[0]}"
           fi
 
+      - name: Create dl directories if not exists
+        run: |
+          mkdir -p ~/openwrt-sdk-stable/dl
+          mkdir -p ~/openwrt-sdk-snapshot/dl
+
       - name: Copy RakitanManager Source Codes
         run: |
           mkdir -p ~/openwrt-sdk-stable/package/luci-app-rakitanmanager
@@ -106,17 +135,29 @@ jobs:
           cp -rf ./luci-app-rakitanmanager/* ~/openwrt-sdk-stable/package/luci-app-rakitanmanager/
           cp -rf ./luci-app-rakitanmanager/* ~/openwrt-sdk-snapshot/package/luci-app-rakitanmanager/
 
+      - name: Prepare LuCI feed for Stable SDK
+        run: |
+          cd ~/openwrt-sdk-stable
+          mkdir -p feeds/luci
+          git clone --depth=1 --branch openwrt-23.05 https://github.com/openwrt/luci.git feeds/luci
+
+      - name: Prepare LuCI feed for Snapshot SDK
+        run: |
+          cd ~/openwrt-sdk-snapshot
+          mkdir -p feeds/luci
+          git clone --depth=1 https://github.com/openwrt/luci.git feeds/luci
+
       - name: Compile RakitanManager IPK (Stable)
         run: |
           cd ~/openwrt-sdk-stable
           make defconfig
-          make package/luci-app-rakitanmanager/compile V=s
+          make package/luci-app-rakitanmanager/compile V=s -j$(nproc)
 
       - name: Compile RakitanManager APK (Snapshot)
         run: |
           cd ~/openwrt-sdk-snapshot
           make defconfig
-          make package/luci-app-rakitanmanager/compile V=s
+          make package/luci-app-rakitanmanager/compile V=s -j$(nproc)
 
       - name: Checkout package branch for push
         uses: actions/checkout@v4
