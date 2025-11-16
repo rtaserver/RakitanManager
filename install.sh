@@ -193,36 +193,38 @@ get_version_info() {
 # Success message
 finish() {
     clear
-    echo ""
-    echo "${CLCyan}===================================="
-    echo "${BGRed}========= INSTALL BERHASIL ========="
-    echo "${CLCyan}===================================="
-    echo ""
-    echo "${CLWhite}Silahkan Cek Di Tab Modem Dan Pilih Rakitan Manager"
-    echo "${CLWhite}Jika Tidak Ada: Clear Cache, Logout/Login, atau buka manual di:"
-    echo "${CLWhite}http://192.168.1.1/rakitanmanager"
-    echo ""
-    echo "${CLWhite}Ulangi Instalasi Jika Ada Yang Gagal :)${CLReset}"
-    echo ""
-    read -r -n1 -s -p "Tekan tombol apa saja untuk kembali ke menu..."
-    echo ""
-    # Instead of exec (which can fail), just exit and let user re-run
+    printf "%b" "
+${CLCyan}====================================
+${BGRed}========= INSTALL BERHASIL =========
+${CLCyan}====================================
+
+${CLWhite}Silahkan Cek Di Tab Modem Dan Pilih Rakitan Manager
+${CLWhite}Jika Tidak Ada: Clear Cache, Logout/Login, atau buka manual di:
+${CLWhite}http://192.168.1.1/rakitanmanager
+
+${CLWhite}Ulangi Instalasi Jika Ada Yang Gagal :)${CLReset}
+
+"
+    read -r -n1 -s -p "$(printf "${CLWhite}Tekan tombol apa saja untuk kembali ke menu...${CLReset}")"
+    echo
     exit 0
 }
 
 gagal_install() {
     component="$1"
     clear
-    echo ""
-    echo "${CLCyan}===================================="
-    echo "${BGRed}=========== INSTALL GAGAL ==========="
-    echo "${CLCyan}===================================="
-    echo ""
-    echo "${CLWhite}Gagal saat menginstall: $component${CLReset}"
-    echo "${CLWhite}Silakan ulangi instalasi.${CLReset}"
-    echo ""
-    read -r -n1 -s -p "Tekan tombol apa saja untuk kembali ke menu..."
-    echo ""
+    printf "%b" "
+${CLCyan}====================================
+${BGRed}=========== INSTALL GAGAL ===========
+${CLCyan}====================================
+
+${CLWhite}Gagal saat menginstall: ${component}${CLReset}
+${CLWhite}Silakan ulangi instalasi.${CLReset}
+
+"
+    # Untuk prompt read dengan warna, gunakan printf di dalam $()
+    read -r -n1 -s -p "$(printf "${CLWhite}Tekan tombol apa saja untuk kembali ke menu...${CLReset}")"
+    printf "\n"
     exit 1
 }
 
@@ -402,7 +404,7 @@ show_menu() {
     model_info=$(ubus call system board 2>/dev/null | sed -n 's/.*"model":[[:space:]]*"\([^"]*\)".*/\1/p' || echo 'Unknown')
     board_info=$(ubus call system board 2>/dev/null | sed -n 's/.*"board_name":[[:space:]]*"\([^"]*\)".*/\1/p' || echo 'Unknown')
 
-    cat <<EOF
+    printf "%b" "
 ${CLCyan}╔════════════════════════════════════════════════════════╗
 ${BGRed}              RAKITAN MANAGER AUTO INSTALLER              ${CLReset}
 ${CLCyan}╚════════════════════════════════════════════════════════╝
@@ -425,7 +427,7 @@ ${CLCyan}║ ${CLWhite}[${CLCyan}4${CLWhite}] Uninstall Rakitan Manager         
 ${CLCyan}╚════════════════════════════════════════════════════════╝${CLReset}
 
  Ketik [ x ] atau [ Ctrl+C ] untuk keluar.
-EOF
+"
 }
 
 main() {
