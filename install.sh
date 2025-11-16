@@ -60,34 +60,6 @@ stop_services() {
         return
     fi
 }
-
-check_system_requirements() {
-    log "Checking system requirements..."
-
-    if [ ! -f /etc/os-release ]; then
-        log "ERROR: /etc/os-release not found"
-        return 1
-    fi
-
-    if ! grep -q "OpenWrt" /etc/os-release 2>/dev/null; then
-        log "ERROR: This script is designed for OpenWrt systems only"
-        return 1
-    fi
-
-    available_space=$(df /tmp 2>/dev/null | awk 'NR==2 {print $4}')
-    if [ -n "$available_space" ] && [ "$available_space" -lt 51200 ]; then
-        log "WARNING: Low disk space: ${available_space}KB (<50MB)"
-    fi
-
-    if ! ping -c 1 -W 5 8.8.8.8 >/dev/null 2>&1 && ! ping -c 1 -W 5 1.1.1.1 >/dev/null 2>&1; then
-        log "ERROR: No internet connectivity"
-        return 1
-    fi
-
-    log "System requirements check passed"
-    return 0
-}
-
 install_package() {
     pkg="$1"
     max_retries=3
@@ -123,6 +95,31 @@ show_progress() {
     printf "\r[%3d%%] (%d/%d)" "$percentage" "$current" "$total"
 }
 
+
+check_system_requirements() {
+    log "Checking system requirements..."
+
+    if [ ! -f /etc/os-release ]; then
+        log "ERROR: /etc/os-release not found"
+        return 1
+    fi
+
+    if ! grep -q "OpenWrt" /etc/os-release 2>/dev/null; then
+        log "ERROR: This script is designed for OpenWrt systems only"
+        return 1
+    fi
+
+    if ! install_package "procps-ng-pkill"; then
+        log "ERROR: procps-ng-pkill is required but failed to install"
+        return 1
+    fi
+
+    log "System requirements check passed"
+    return 0
+}
+
+
+
 init_script() {
     mkdir -p "$SCRIPT_DIR/rakitanmanager" 2>/dev/null || {
         log "ERROR: Failed to create temp directory"
@@ -132,7 +129,7 @@ init_script() {
     touch "$LOG_FILE" 2>/dev/null || log "WARNING: Logging may be limited"
 
     log "=== RakitanManager Installation Started ==="
-    #check_system_requirements || return 1
+    check_system_requirements || return 1
     return 0
 }
 
