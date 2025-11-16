@@ -42,7 +42,7 @@ OPENWRT_TYPE=""   # Global untuk tipe (stable/snapshot)
 PKG_MANAGER=""    # opkg atau apk
 ARCH=""           # Arsitektur
 BRANCH=""         # Branch OpenWrt (misal openwrt-23.05 atau SNAPSHOT)
-REPO_URL="https://raw.githubusercontent.com/rtaserver/RakitanManager/package"  # Bisa diganti ke feed jika ada
+REPO_URL="https://raw.githubusercontent.com/rtaserver/RakitanManager/refs/heads/package"
 
 # Enhanced logging with icons
 log() {
