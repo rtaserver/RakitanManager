@@ -1,0 +1,157 @@
+name: Compile The New Version RakitanManager v2
+
+on: 
+  push:
+    branches:
+      - dev
+    paths:
+      - 'luci-app-rakitanmanager/Makefile'
+  workflow_dispatch:
+
+jobs:
+  Get-Version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      current_version: ${{ steps.current_version.outputs.version }}
+      changelog: ${{ steps.changelog.outputs.CHANGELOG }}
+    steps:
+      - name: Clone Repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: New Version
+        id: version
+        run: |
+          echo "version=$(grep 'PKG_VERSION:=' ./luci-app-rakitanmanager/Makefile |awk -F '=' '{print $2}')" >> $GITHUB_OUTPUT
+
+      - name: Clone Repository
+        uses: actions/checkout@v4
+        with:
+          ref: package
+
+      - name: Current Version
+        id: current_version
+        run: |
+          echo "version=$(sed -n 1p ./${{ github.ref_name }}/version |awk -F 'v' '{print $2}')" >> $GITHUB_OUTPUT
+
+      - name: Add changelog info to new release description
+        id: changelog
+        shell: bash
+        run: |
+          cd /home/runner/work/RakitanManager/RakitanManager/
+          r=$(awk '/^\*\*Changelog\*\*/ {if(found) exit; found=1} found' CHANGELOG.md)
+          r="${r//'%'/'%25'}"
+          r="${r//$'\n'/'%0A'}"
+          r="${r//$'\r'/'%0D'}"  
+          echo "CHANGELOG=$r" >> $GITHUB_OUTPUT
+
+  Compile:
+    runs-on: ubuntu-latest
+    needs: Get-Version
+    if: ${{ needs.Get-Version.outputs.version != needs.Get-Version.outputs.current_version }}
+    strategy:
+      matrix:
+        target:
+          - { name: ipk, sdk_url: "https://mirrors.pku.edu.cn/openwrt/releases/22.03.0/targets/x86/64/openwrt-sdk-22.03.0-x86-64_gcc-11.2.0_musl.Linux-x86_64.tar.xz", sdk_tar: "SDK.tar.xz", sdk_backup_tar: "SDK.tar.bz2", sdk_dir: "SDK", artifact_pattern: "luci-app-rakitanmanager_*.ipk" }
+          - { name: apk, sdk_url: "snapshot", sdk_tar: "SNAPSDK.tar.zst", sdk_backup_tar: "SNAPSDK.tar.zst", sdk_dir: "SNAPSDK", artifact_pattern: "luci-app-rakitanmanager-*.apk" }
+    steps:
+      - name: Checkout RakitanManager Source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Install Dependencies
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install curl git tar zstd python3 python3-pyelftools python3-setuptools
+
+      - name: Download SDK
+        run: |
+          mkdir -p tmp
+          if [ "${{ matrix.target.name }}" = "ipk" ]; then
+            if ! curl -SLk --connect-timeout 30 --retry 2 "${{ matrix.target.sdk_url }}" -o "./tmp/${{ matrix.target.sdk_tar }}"; then
+              curl -SLk --connect-timeout 30 --retry 2 "https://archive.openwrt.org/chaos_calmer/15.05.1/ar71xx/generic/OpenWrt-SDK-15.05.1-ar71xx-generic_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64.tar.bz2" -o "./tmp/SDK.tar.xz"
+              cd tmp
+              tar xjf ${{ matrix.target.sdk_backup_tar }}
+              mv OpenWrt-SDK-* ${{ matrix.target.sdk_dir }}
+            else
+              cd tmp
+              tar xf ${{ matrix.target.sdk_tar }}
+              mv openwrt-sdk-* ${{ matrix.target.sdk_dir }}
+            fi
+          else
+            BASE_URL="https://downloads.openwrt.org/snapshots/targets/x86/64/"
+            SDK_NAME=$(curl -s $BASE_URL | grep -oE 'openwrt-sdk-x86-64[^"]+\.tar\.zst' | head -n 1)
+            if ! curl -SLk --connect-timeout 30 --retry 2 "$BASE_URL/$SDK_NAME" -o "./tmp/${{ matrix.target.sdk_tar }}"; then
+              BASE_URL2="https://mirrors.pku.edu.cn/files/openwrt/snapshots/targets/x86/64/"
+              SDK_NAME=$(curl -s $BASE_URL2 | grep -oE 'openwrt-sdk-x86-64[^"]+\.tar\.zst' | head -n 1)
+              curl -SLk --connect-timeout 30 --retry 2 "$BASE_URL2/$SDK_NAME" -o "./tmp/${{ matrix.target.sdk_tar }}"
+            fi
+            cd tmp
+            zstd -d ${{ matrix.target.sdk_tar }}
+            tar xf SNAPSDK.tar
+            SDK_DIR=$(tar tf SNAPSDK.tar | head -n 1 | cut -d/ -f1)
+            mv "$SDK_DIR" "${{ matrix.target.sdk_dir }}"
+          fi
+
+      - name: Copy RakitanManager Source Codes
+        run: |
+          mkdir -p tmp/${{ matrix.target.sdk_dir }}/package/luci-app-rakitanmanager
+          cp -rf ./luci-app-rakitanmanager/. tmp/${{ matrix.target.sdk_dir }}/package/luci-app-rakitanmanager/
+
+      - name: Compile RakitanManager
+        run: |
+          cd tmp/${{ matrix.target.sdk_dir }}
+          if [ -f ../${{ matrix.target.sdk_tar }} ]; then
+            make defconfig
+          fi
+          make package/luci-app-rakitanmanager/compile V=99
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rakitanmanager-${{ matrix.target.name }}
+          path: tmp/${{ matrix.target.sdk_dir }}/bin/packages/x86_64/base/${{ matrix.target.artifact_pattern }}
+
+  Post-Process:
+    runs-on: ubuntu-latest
+    needs: [Compile, Get-Version]
+    steps:
+      - name: Checkout package branch
+        uses: actions/checkout@v4
+        with:
+          ref: package
+
+      - name: Download IPK Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: rakitanmanager-ipk
+          path: ./
+
+      - name: Download APK Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: rakitanmanager-apk
+          path: ./
+
+      - name: Commit and Push New Version
+        run: |
+          rm -rf ./${{ github.ref_name }}/luci-app-rakitanmanager*
+          echo "${{ needs.Get-Version.outputs.changelog }}" > ./${{ github.ref_name }}/changelog.txt
+          echo "v${{ needs.Get-Version.outputs.version }}" > ./${{ github.ref_name }}/version
+          echo "https://img.shields.io/badge/New Release-v${{ needs.Get-Version.outputs.version }}-orange.svg" >> ./${{ github.ref_name }}/version
+          cp ./luci-app-rakitanmanager_*.ipk "./${{ github.ref_name }}/"
+          cp ./luci-app-rakitanmanager-*.apk "./${{ github.ref_name }}/"
+          sed -i -E "s/RakitanManager\/tree\/v(.*)/RakitanManager\/tree\/v${{ needs.Get-Version.outputs.version }}/g" ./${{ github.ref_name }}/README.md
+          sed -i -E "s/RakitanManager\/releases\/tag\/v(.*)/RakitanManager\/releases\/tag\/v${{ needs.Get-Version.outputs.version }}/g" ./${{ github.ref_name }}/README.md
+          sed -i -E "s/source code-v(.*)-green/source code-v${{ needs.Get-Version.outputs.version }}-green/g" ./${{ github.ref_name }}/README.md
+          sed -i -E "s/New Release-v(.*)-orange/New Release-v${{ needs.Get-Version.outputs.version }}-orange/g" ./${{ github.ref_name }}/README.md
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add .
+          git commit -m "Auto Release: v${{ needs.Get-Version.outputs.version }}"
+          git push

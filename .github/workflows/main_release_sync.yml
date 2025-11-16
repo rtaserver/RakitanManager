@@ -1,38 +1,42 @@
-name: Sync Package to Main When release
+name: Sync Dev to Main on Release
+
 on:
   push:
     tags:
       - "v*"
   workflow_dispatch:
-  
+
+permissions:
+  contents: write
+
 jobs:
   Sync_packages_to_main:
     runs-on: ubuntu-latest
     steps:
-      - name: Apt Update
-        env:
-          DEBIAN_FRONTEND: noninteractive
-        run: |
-          sudo apt-get update
-          sudo apt-get -y install git
-
-      - name: Clone OpenClash Repository
+      - name: Checkout package branch
         uses: actions/checkout@v4
         with:
           ref: package
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Sync dev package to main
         run: |
-          if [ -n "$(diff -r ./main/ ./dev/)" ]; then
-            rm -rf ./main/README.md
-            rm -rf ./main/luci-app-openclash*
-            rm -rf ./main/version
-            cp -rf "./dev/." "./main/"
-            git config user.name 'github-actions[bot]'
-            git config user.email 'github-actions[bot]@users.noreply.github.com'
-            git add .
-            git commit -m "Release: Auto sync dev package"
-            git push
+          if [ -d "./dev" ] && [ -d "./main" ]; then
+            echo "Checking for differences between dev and main..."
+            if ! diff -r ./main/ ./dev/ > /dev/null 2>&1; then
+              echo "Differences found, syncing dev to main..."
+              rm -rf ./main/*
+              cp -rf ./dev/* ./main/
+              git config user.name 'github-actions[bot]'
+              git config user.email 'github-actions[bot]@users.noreply.github.com'
+              git add .
+              git commit -m "Release: Auto sync dev package to main"
+              git push
+              echo "Sync completed successfully."
+            else
+              echo "No differences found between dev and main, skipping sync."
+            fi
           else
-            echo "main package already sync to dev, exit"
+            echo "Error: dev or main directories not found in package branch."
+            exit 1
           fi

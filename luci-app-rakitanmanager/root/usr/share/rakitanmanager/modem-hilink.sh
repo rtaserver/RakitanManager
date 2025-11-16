@@ -58,32 +58,74 @@ service() {
 }
 
 iphunter() {
-    clear
     login
-    clear
+    log "Starting IP hunter process for modem at $MODEM_IP"
+
+    # Get current network mode
     data=$(curl -s http://$MODEM_IP/api/webserver/SesTokInfo -H "Host: $MODEM_IP" -H "Connection: keep-alive" -H "Accept: */*" -H "X-Requested-With: XMLHttpRequest" -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36" -H "Referer: http://$MODEM_IP/html/home.html" -H "Accept-Encoding: gzip, deflate" -H "Accept-Language: id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7" -H "Cookie: $scoki")
     sesi=$(echo "$data" | grep "SessionID=" | cut -b 10-147)
     token=$(echo "$data" | grep "TokInfo" | cut -b 10-41)
     grs=$(curl -s http://$MODEM_IP/api/net/net-mode -H "Host: $MODEM_IP" -H "Connection: keep-alive" -H "Accept: */*" -H "X-Requested-With: XMLHttpRequest" -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36" -H "Referer: http://$MODEM_IP/html/home.html" -H "Accept-Encoding: gzip, deflate" -H "Accept-Language: id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7" -H "Cookie: $sesi")
     srg=$(echo $grs | awk -F "<NetworkMode>" '{print $2}' | awk -F "</NetworkMode>" '{print $1}')
-    log "Check Service : "; service $srg
+    log "Current network mode: $srg"
+    service $srg
 
+    # Switch network mode to trigger IP change
     case $srg in
         "00")
+            log "Switching from Auto to 4G Only mode"
             data=$(curl -s http://$MODEM_IP/api/webserver/SesTokInfo -H "Host: $MODEM_IP" -H "Connection: keep-alive" -H "Accept: */*" -H "X-Requested-With: XMLHttpRequest" -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36" -H "Referer: http://$MODEM_IP/html/home.html" -H "Accept-Encoding: gzip, deflate" -H "Accept-Language: id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7" -H "Cookie: $scoki")
             sesi=$(echo "$data" | grep "SessionID=" | cut -b 10-147)
             token=$(echo "$data" | grep "TokInfo" | cut -b 10-41)
-            forgonly=$(curl -s -X POST http://$MODEM_IP/api/net/net-mode -H "Host: $MODEM_IP" -H "Connection: keep-alive" -H "Content-Length: 158" -H "Accept: */*" -H "Origin: http://$MODEM_IP" -H "X-Requested-With: XMLHttpRequest" -H "__RequestVerificationToken: $token" -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36" -H "Content-Type: application/x-www-form-urlencoded; charset=UTF-8" -H "Referer: http://$MODEM_IP/html/home.html" -H "Accept-Encoding: gzip, deflate" -H "Accept-Language: id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7" -H "Cookie: $sesi" -d "<?xml version=\"1.0\" encoding=\"UTF-8\"?><response><NetworkMode>03</NetworkMode><NetworkBand>3FFFFFFF</NetworkBand><LTEBand>7FFFFFFFFFFFFFFF</LTEBand></response>")
+            response=$(curl -s -X POST http://$MODEM_IP/api/net/net-mode -H "Host: $MODEM_IP" -H "Connection: keep-alive" -H "Content-Length: 158" -H "Accept: */*" -H "Origin: http://$MODEM_IP" -H "X-Requested-With: XMLHttpRequest" -H "__RequestVerificationToken: $token" -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36" -H "Content-Type: application/x-www-form-urlencoded; charset=UTF-8" -H "Referer: http://$MODEM_IP/html/home.html" -H "Accept-Encoding: gzip, deflate" -H "Accept-Language: id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7" -H "Cookie: $sesi" -d "<?xml version=\"1.0\" encoding=\"UTF-8\"?><response><NetworkMode>03</NetworkMode><NetworkBand>3FFFFFFF</NetworkBand><LTEBand>7FFFFFFFFFFFFFFF</LTEBand></response>")
+            if [[ "$response" == *"OK"* ]]; then
+                log "Successfully switched to 4G Only mode"
+            else
+                log "Failed to switch network mode"
+                return 1
+            fi
             ;;
         "03")
+            log "Switching from 4G Only to Auto mode"
             data=$(curl -s http://$MODEM_IP/api/webserver/SesTokInfo -H "Host: $MODEM_IP" -H "Connection: keep-alive" -H "Accept: */*" -H "X-Requested-With: XMLHttpRequest" -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36" -H "Referer: http://$MODEM_IP/html/home.html" -H "Accept-Encoding: gzip, deflate" -H "Accept-Language: id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7" -H "Cookie: $scoki")
             sesi=$(echo "$data" | grep "SessionID=" | cut -b 10-147)
             token=$(echo "$data" | grep "TokInfo" | cut -b 10-41)
-            forgonly=$(curl -s -X POST http://$MODEM_IP/api/net/net-mode -H "Host: $MODEM_IP" -H "Connection: keep-alive" -H "Content-Length: 158" -H "Accept: */*" -H "Origin: http://$MODEM_IP" -H "X-Requested-With: XMLHttpRequest" -H "__RequestVerificationToken: $token" -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36" -H "Content-Type: application/x-www-form-urlencoded; charset=UTF-8" -H "Referer: http://$MODEM_IP/html/home.html" -H "Accept-Encoding: gzip, deflate" -H "Accept-Language: id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7" -H "Cookie: $sesi" -d "<?xml version=\"1.0\" encoding=\"UTF-8\"?><response><NetworkMode>00</NetworkMode><NetworkBand>3FFFFFFF</NetworkBand><LTEBand>7FFFFFFFFFFFFFFF</LTEBand></response>")
+            response=$(curl -s -X POST http://$MODEM_IP/api/net/net-mode -H "Host: $MODEM_IP" -H "Connection: keep-alive" -H "Content-Length: 158" -H "Accept: */*" -H "Origin: http://$MODEM_IP" -H "X-Requested-With: XMLHttpRequest" -H "__RequestVerificationToken: $token" -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36" -H "Content-Type: application/x-www-form-urlencoded; charset=UTF-8" -H "Referer: http://$MODEM_IP/html/home.html" -H "Accept-Encoding: gzip, deflate" -H "Accept-Language: id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7" -H "Cookie: $sesi" -d "<?xml version=\"1.0\" encoding=\"UTF-8\"?><response><NetworkMode>00</NetworkMode><NetworkBand>3FFFFFFF</NetworkBand><LTEBand>7FFFFFFFFFFFFFFF</LTEBand></response>")
+            if [[ "$response" == *"OK"* ]]; then
+                log "Successfully switched to Auto mode"
+            else
+                log "Failed to switch network mode"
+                return 1
+            fi
+            ;;
+        *)
+            log "Unknown network mode: $srg"
+            return 1
             ;;
     esac
 
-    clear
+    # Wait for network to stabilize
+    log "Waiting 30 seconds for network to stabilize..."
+    sleep 30
+
+    # Get new IP after mode switch
+    get_new_ip
+}
+
+get_new_ip() {
+    # Get current WAN IP from modem
+    data=$(curl -s http://$MODEM_IP/api/webserver/SesTokInfo -H "Host: $MODEM_IP" -H "Connection: keep-alive" -H "Accept: */*" -H "X-Requested-With: XMLHttpRequest" -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36" -H "Referer: http://$MODEM_IP/html/home.html" -H "Accept-Encoding: gzip, deflate" -H "Accept-Language: id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7" -H "Cookie: $scoki")
+    sesi=$(echo "$data" | grep "SessionID=" | cut -b 10-147)
+    wan_info=$(curl -s http://$MODEM_IP/api/monitoring/status -H "Host: $MODEM_IP" -H "Connection: keep-alive" -H "Accept: */*" -H "X-Requested-With: XMLHttpRequest" -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36" -H "Referer: http://$MODEM_IP/html/home.html" -H "Accept-Encoding: gzip, deflate" -H "Accept-Language: id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7" -H "Cookie: $sesi")
+
+    wan_ip=$(echo "$wan_info" | grep -o '<WanIPAddress>.*</WanIPAddress>' | sed 's/<WanIPAddress>//;s/<\/WanIPAddress>//')
+    if [ -n "$wan_ip" ]; then
+        log "New IP: $wan_ip"
+        echo "New IP: $wan_ip"
+    else
+        log "Failed to get new IP address"
+        echo "New IP: Unavailable"
+    fi
 }
 
 iphunter

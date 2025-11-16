@@ -1,5 +1,12 @@
 # What's New!
 
+**Changelog** (v0.00.37-beta 25-01-2025):
+- Enhanced modem-mf90.sh with improved IP detection methods and retry logic
+- Improved modem-orbit.py error handling and logging
+- Created utils.sh with common utility functions for better code reuse
+- Refactored core-manager.sh to use utility functions and improved ping logic
+- Added better error handling and logging consistency across scripts
+
 **Changelog** (v0.00.36-beta 20-01-2025):
 - Fixed Error PHP
   https://www.facebook.com/groups/indowrt/posts/1492622441389960?locale=id_ID

@@ -13,10 +13,23 @@ if ! command -v adb &> /dev/null; then
     exit 1
 fi
 
-# Periksa koneksi ADB
-devices=$(adb devices | sed -n '2p')
-if [[ -z "$devices" || "$devices" == *"unauthorized"* ]]; then
-    echo "ADB device not connected or unauthorized."
+# Periksa koneksi ADB dengan retry
+max_retries=3
+retry_count=0
+while [ $retry_count -lt $max_retries ]; do
+    devices=$(adb devices 2>/dev/null | grep -v "List of devices" | grep "device$")
+    if [[ -n "$devices" && "$devices" != *"unauthorized"* && "$devices" != *"offline"* ]]; then
+        log "ADB device connected successfully"
+        break
+    else
+        log "ADB device not connected, unauthorized, or offline. Retry $((retry_count + 1))/$max_retries"
+        sleep 2
+        ((retry_count++))
+    fi
+done
+
+if [[ -z "$devices" || "$devices" == *"unauthorized"* || "$devices" == *"offline"* ]]; then
+    log "ADB device connection failed after $max_retries retries"
     exit 1
 fi
 
