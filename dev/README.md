@@ -4,11 +4,11 @@
 </h1>
 
   <p align="center">
-  <a target="_blank" href="https://github.com/rtaserver/RakitanManager/tree/v0.00.37
-    <img src="https://img.shields.io/badge/source code-v0.00.37-green.svg">
+  <a target="_blank" href="https://github.com/rtaserver/RakitanManager/tree/v0.00.38
+    <img src="https://img.shields.io/badge/source code-v0.00.38-green.svg">
   </a>
-  <a target="_blank" href="https://github.com/rtaserver/RakitanManager/releases/tag/v0.00.37
-    <img src="https://img.shields.io/badge/New Release-v0.00.37-orange.svg">
+  <a target="_blank" href="https://github.com/rtaserver/RakitanManager/releases/tag/v0.00.38
+    <img src="https://img.shields.io/badge/New Release-v0.00.38-orange.svg">
   </a>
   </p>
 
