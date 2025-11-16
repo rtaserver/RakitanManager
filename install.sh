@@ -1,5 +1,4 @@
 #!/bin/bash
-set -euo pipefail
 
 # Colors for output
 readonly CLBlack="\e[0;30m"
