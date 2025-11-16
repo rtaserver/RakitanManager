@@ -286,7 +286,7 @@ download_and_install_package() {
         return 1
     fi
 
-    package_url="https://raw.githubusercontent.com/rtaserver/RakitanManager/package/$branch/luci-app-rakitanmanager_${latest_version}-beta_all.ipk"
+    package_url="https://raw.githubusercontent.com/rtaserver/RakitanManager/package/$branch/luci-app-rakitanmanager_${latest_version}-1_all.ipk"
     package_file="$SCRIPT_DIR/rakitanmanager.ipk"
 
     while [ $retry -lt $max_retries ]; do
