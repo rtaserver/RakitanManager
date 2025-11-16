@@ -109,6 +109,8 @@ check_system_requirements() {
         return 1
     fi
 
+    opkg update >>"$LOG_FILE" 2>&1 || log "WARN: opkg update failed"
+
     if ! install_package "procps-ng-pkill"; then
         log "ERROR: procps-ng-pkill is required but failed to install"
         return 1
@@ -412,17 +414,14 @@ main() {
         case "$opt" in
             1)
                 clear; printf "%b" "${CLYellow}Memulai instalasi Branch Main...${CLReset}\n"; sleep 2
-                opkg update >>"$LOG_FILE" 2>&1 || log "WARN: opkg update failed"
                 install_upgrade_main
                 ;;
             2)
                 clear; printf "%b" "${CLYellow}Memulai instalasi Branch Dev...${CLReset}\n"; sleep 2
-                opkg update >>"$LOG_FILE" 2>&1 || log "WARN: opkg update failed"
                 install_upgrade_dev
                 ;;
             3)
                 clear; printf "%b" "${CLYellow}Memperbarui packages...${CLReset}\n"; sleep 2
-                opkg update >>"$LOG_FILE" 2>&1 || log "WARN: opkg update failed"
                 install_packages
                 printf "%b" "${CLGreen}Pembaruan selesai.${CLReset}\n"
                 read -r -n1 -s -p "$(printf "Tekan tombol apa saja...")"
