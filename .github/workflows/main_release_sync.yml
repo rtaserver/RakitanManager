@@ -49,25 +49,18 @@ jobs:
     needs: [sync_dev_to_main]
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      # Ambil README custom untuk release
-      # Contoh: file ada di release/RELEASE.md
-      - name: Load Release Notes
-        id: notes
+      - name: Select Release Notes File
+        id: file
         run: |
           if [ -f "./release/RELEASE.md" ]; then
-            BODY=$(cat ./release/RELEASE.md)
+            echo "path=./release/RELEASE.md" >> $GITHUB_OUTPUT
           else
-            BODY=$(cat ./README.md)
+            echo "path=./README.md" >> $GITHUB_OUTPUT
           fi
-          BODY="${BODY//'%'/'%25'}"
-          BODY="${BODY//$'\n'/'%0A'}"
-          BODY="${BODY//$'\r'/'%0D'}"
-          echo "body=$BODY" >> $GITHUB_OUTPUT
 
-      # Upload assets (IPK/APK) secara otomatis
       - name: Find packaged assets
         id: assets
         run: |
@@ -76,12 +69,12 @@ jobs:
           echo "$FILES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Create release
+      - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           name: "RakitanManager ${{ github.ref_name }}"
-          body: ${{ steps.notes.outputs.body }}
+          body_path: ${{ steps.file.outputs.path }}
           files: ${{ steps.assets.outputs.files }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
