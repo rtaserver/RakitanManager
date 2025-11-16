@@ -127,7 +127,7 @@ init_script() {
     touch "$LOG_FILE" 2>/dev/null || log "WARNING: Logging may be limited"
 
     log "=== RakitanManager Installation Started ==="
-    check_system_requirements || return 1
+    #check_system_requirements || return 1
     return 0
 }
 
