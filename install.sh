@@ -3,37 +3,37 @@ set -euo pipefail
 
 # Enhanced error handling
 trap 'error_handler $? $LINENO "$BASH_COMMAND"' ERR
-trap cleanup EXIT
+trap cleanup EXIT INT TERM
 
 # Colors for output
-CLBlack="\e[0;30m"
-CLRed="\e[0;31m"
-CLGreen="\e[0;32m"
-CLYellow="\e[0;33m"
-CLBlue="\e[0;34m"
-CLPurple="\e[0;35m"
-CLCyan="\e[0;36m"
-CLWhite="\e[0;37m"
-CLReset="\e[0m"
+readonly CLBlack="\e[0;30m"
+readonly CLRed="\e[0;31m"
+readonly CLGreen="\e[0;32m"
+readonly CLYellow="\e[0;33m"
+readonly CLBlue="\e[0;34m"
+readonly CLPurple="\e[0;35m"
+readonly CLCyan="\e[0;36m"
+readonly CLWhite="\e[0;37m"
+readonly CLReset="\e[0m"
 
-BGBlack="\e[40m"
-BGRed="\e[41m"
-BGGreen="\e[42m"
-BGYellow="\e[43m"
-BGBlue="\e[44m"
-BGPurple="\e[45m"
-BGCyan="\e[46m"
-BGWhite="\e[47m"
+readonly BGBlack="\e[40m"
+readonly BGRed="\e[41m"
+readonly BGGreen="\e[42m"
+readonly BGYellow="\e[43m"
+readonly BGBlue="\e[44m"
+readonly BGPurple="\e[45m"
+readonly BGCyan="\e[46m"
+readonly BGWhite="\e[47m"
 
 # Global variables
-SCRIPT_DIR="/tmp/rakitanmanager"
-LOG_FILE="/tmp/rakitanmanager_install.log"
+readonly SCRIPT_DIR="/tmp/rakitanmanager"
+readonly LOG_FILE="/tmp/rakitanmanager_install.log"
 INSTALLED_PACKAGES=()
 FAILED_PACKAGES=()
-DIR="${SCRIPT_DIR}"
+CLEANUP_DONE=0
 
 # Required packages list
-REQUIRED_PACKAGES=(
+readonly REQUIRED_PACKAGES=(
     "curl"
     "git"
     "git-http"
@@ -50,10 +50,15 @@ REQUIRED_PACKAGES=(
 )
 
 # Python packages
-PYTHON_PACKAGES=(
+readonly PYTHON_PACKAGES=(
     "requests"
     "huawei-lte-api"
 )
+
+# Version information (populated by get_version_info)
+LATEST_VER_MAIN=""
+LATEST_VER_DEV=""
+CURRENT_VERSION=""
 
 # Logging function
 log() {
@@ -66,15 +71,19 @@ error_handler() {
     local line_no=$2
     local command=$3
     log "ERROR: Command '$command' failed at line $line_no with exit code $exit_code"
-    # Don't auto-rollback on all errors, let specific functions handle it
     return 0
 }
 
 # Cleanup function
 cleanup() {
+    if [ "$CLEANUP_DONE" -eq 1 ]; then
+        return 0
+    fi
+    CLEANUP_DONE=1
+    
     if [ -d "$SCRIPT_DIR" ]; then
         log "Cleaning up temporary files..."
-        rm -rf "$SCRIPT_DIR" 2>/dev/null || true
+        rm -rf "${SCRIPT_DIR:?}" 2>/dev/null || true
     fi
 }
 
@@ -82,14 +91,15 @@ cleanup() {
 rollback_installation() {
     log "Rolling back installation..."
 
-    # Remove installed packages
-    for pkg in "${INSTALLED_PACKAGES[@]}"; do
+    # Remove installed packages in reverse order
+    for ((i=${#INSTALLED_PACKAGES[@]}-1; i>=0; i--)); do
+        local pkg="${INSTALLED_PACKAGES[$i]}"
         log "Removing package: $pkg"
         opkg remove "$pkg" 2>/dev/null || true
     done
 
     # Remove rakitanmanager if installed
-    if opkg list-installed | grep -q "luci-app-rakitanmanager"; then
+    if opkg list-installed 2>/dev/null | grep -q "^luci-app-rakitanmanager "; then
         log "Removing luci-app-rakitanmanager"
         opkg remove luci-app-rakitanmanager 2>/dev/null || true
     fi
@@ -106,16 +116,24 @@ check_system_requirements() {
     log "Checking system requirements..."
 
     # Check if running on OpenWrt
-    if [ ! -f /etc/os-release ] || ! grep -q "OpenWrt" /etc/os-release 2>/dev/null; then
+    if [ ! -f /etc/os-release ]; then
+        log "ERROR: /etc/os-release not found"
+        return 1
+    fi
+    
+    if ! grep -q "OpenWrt" /etc/os-release 2>/dev/null; then
         log "ERROR: This script is designed for OpenWrt systems only"
         return 1
     fi
 
     # Check available disk space (at least 50MB)
     local available_space
-    available_space=$(df /tmp 2>/dev/null | tail -1 | awk '{print $4}')
-    if [ -z "$available_space" ] || [ "$available_space" -lt 51200 ]; then
-        log "WARNING: Low disk space. Need at least 50MB free space"
+    available_space=$(df /tmp 2>/dev/null | awk 'NR==2 {print $4}')
+    
+    if [ -z "$available_space" ]; then
+        log "WARNING: Could not determine available disk space"
+    elif [ "$available_space" -lt 51200 ]; then
+        log "WARNING: Low disk space detected: ${available_space}KB. Need at least 50MB"
     fi
 
     # Check internet connectivity
@@ -134,6 +152,7 @@ install_package() {
     local max_retries=3
     local retry_count=0
 
+    # Check if already installed
     if opkg list-installed 2>/dev/null | grep -q "^${package} "; then
         log "✓ $package already installed"
         return 0
@@ -141,16 +160,17 @@ install_package() {
 
     while [ $retry_count -lt $max_retries ]; do
         log "Installing $package (attempt $((retry_count + 1))/$max_retries)..."
+        
         if opkg install "$package" >>"$LOG_FILE" 2>&1; then
             INSTALLED_PACKAGES+=("$package")
             log "✓ $package installed successfully"
             return 0
-        else
-            retry_count=$((retry_count + 1))
-            if [ $retry_count -lt $max_retries ]; then
-                log "⚠ $package installation failed, retrying in 2 seconds..."
-                sleep 2
-            fi
+        fi
+        
+        retry_count=$((retry_count + 1))
+        if [ $retry_count -lt $max_retries ]; then
+            log "⚠ $package installation failed, retrying in 2 seconds..."
+            sleep 2
         fi
     done
 
@@ -166,18 +186,28 @@ show_progress() {
     local width=50
     local percentage=$((current * 100 / total))
     local completed=$((current * width / total))
+    
+    # Generate progress bar
+    local bar=""
+    for ((i=0; i<completed; i++)); do
+        bar+="█"
+    done
 
-    printf "\r[%-${width}s] %d%% (%d/%d)" "$(printf '█%.0s' $(seq 1 $completed 2>/dev/null || echo ""))" "$percentage" "$current" "$total"
+    printf "\r[%-${width}s] %d%% (%d/%d)" "$bar" "$percentage" "$current" "$total"
 }
 
 # Initialize script
 init_script() {
     # Create temp directory
-    mkdir -p "$SCRIPT_DIR" 2>/dev/null || true
-    mkdir -p "$SCRIPT_DIR/rakitanmanager" 2>/dev/null || true
+    mkdir -p "$SCRIPT_DIR/rakitanmanager" 2>/dev/null || {
+        log "ERROR: Failed to create temp directory"
+        return 1
+    }
 
     # Initialize log file
-    touch "$LOG_FILE" 2>/dev/null || LOG_FILE="/dev/null"
+    if ! touch "$LOG_FILE" 2>/dev/null; then
+        echo "WARNING: Cannot write to log file, logging disabled"
+    fi
 
     log "=== RakitanManager Installation Started ==="
     log "Log file: $LOG_FILE"
@@ -192,25 +222,13 @@ init_script() {
 }
 
 # Get latest version from GitHub
-LatestMain() {
-    local url="https://raw.githubusercontent.com/rtaserver/RakitanManager/package/main/version"
-    local output_file="$DIR/rakitanmanager/LatestMain.txt"
+get_latest_version() {
+    local branch="$1"
+    local url="https://raw.githubusercontent.com/rtaserver/RakitanManager/package/${branch}/version"
+    local output_file="$SCRIPT_DIR/rakitanmanager/Latest${branch^}.txt"
     
     if wget -q -T 10 -t 3 -O "$output_file" "$url" 2>/dev/null; then
-        local ver=$(head -n 1 "$output_file" 2>/dev/null | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]' | sed 's/bt/beta/g')
-        echo "$ver"
-    else
-        echo ""
-    fi
-}
-
-LatestDev() {
-    local url="https://raw.githubusercontent.com/rtaserver/RakitanManager/package/dev/version"
-    local output_file="$DIR/rakitanmanager/LatestDev.txt"
-    
-    if wget -q -T 10 -t 3 -O "$output_file" "$url" 2>/dev/null; then
-        local ver=$(head -n 1 "$output_file" 2>/dev/null | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]' | sed 's/bt/beta/g')
-        echo "$ver"
+        head -n 1 "$output_file" 2>/dev/null | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]' | sed 's/bt/beta/g'
     else
         echo ""
     fi
@@ -218,38 +236,29 @@ LatestDev() {
 
 # Get version information
 get_version_info() {
-    local LatestVerMain=$(LatestMain)
-    local LatestVerDev=$(LatestDev)
-    local currentVersion=""
-
-    if [ -z "$LatestVerMain" ]; then
-        LatestVerMain="Versi Tidak Ada / Gagal Koneksi"
-    fi
-
-    if [ -z "$LatestVerDev" ]; then
-        LatestVerDev="Versi Tidak Ada / Gagal Koneksi"
-    fi
+    LATEST_VER_MAIN=$(get_latest_version "main")
+    LATEST_VER_DEV=$(get_latest_version "dev")
+    
+    # Set defaults for missing versions
+    [ -z "$LATEST_VER_MAIN" ] && LATEST_VER_MAIN="Versi Tidak Ada / Gagal Koneksi"
+    [ -z "$LATEST_VER_DEV" ] && LATEST_VER_DEV="Versi Tidak Ada / Gagal Koneksi"
 
     # Get current installed version
-    local current_branch=$(uci get rakitanmanager.cfg.branch 2>/dev/null || echo "")
+    local current_branch
+    current_branch=$(uci get rakitanmanager.cfg.branch 2>/dev/null || echo "")
     
+    CURRENT_VERSION=""
     if [ "$current_branch" = "main" ] && [ -f /www/rakitanmanager/versionmain.txt ]; then
-        currentVersion=$(head -n 1 /www/rakitanmanager/versionmain.txt 2>/dev/null | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]' | sed 's/bt/beta | Branch Main/g')
+        CURRENT_VERSION=$(head -n 1 /www/rakitanmanager/versionmain.txt 2>/dev/null | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]' | sed 's/bt/beta | Branch Main/g')
     elif [ "$current_branch" = "dev" ] && [ -f /www/rakitanmanager/versiondev.txt ]; then
-        currentVersion=$(head -n 1 /www/rakitanmanager/versiondev.txt 2>/dev/null | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]' | sed 's/bt/beta | Branch Dev/g')
+        CURRENT_VERSION=$(head -n 1 /www/rakitanmanager/versiondev.txt 2>/dev/null | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]' | sed 's/bt/beta | Branch Dev/g')
     fi
 
-    if [ -z "$currentVersion" ]; then
-        currentVersion="Versi Tidak Ada / Tidak Terinstall"
-    fi
-
-    # Export as globals
-    export LATEST_VER_MAIN="$LatestVerMain"
-    export LATEST_VER_DEV="$LatestVerDev"
-    export CURRENT_VERSION="$currentVersion"
+    [ -z "$CURRENT_VERSION" ] && CURRENT_VERSION="Versi Tidak Ada / Tidak Terinstall"
 }
 
-finish(){
+# Success message
+finish() {
     clear
     echo ""
     echo -e "${CLCyan}===================================="
@@ -260,19 +269,25 @@ finish(){
     echo -e "${CLWhite}Atau Membuka Manual Di Tab Baru : 192.168.1.1/rakitanmanager\n"
     echo -e "${CLWhite}Ulangi Instalasi Jika Ada Yang Gagal :)\n"
     read -n 1 -s -r -p "Ketik Apapun Untuk Kembali Ke Menu"
-    exec bash -c "$(wget -qO - 'https://raw.githubusercontent.com/rtaserver/RakitanManager/dev/install.sh')"
+    
+    # Re-run installer menu
+    exec bash -c "$(wget -qO - 'https://raw.githubusercontent.com/rtaserver/RakitanManager/dev/install.sh')" || exit 0
 }
 
-gagal_install(){
+# Failure message
+gagal_install() {
+    local component="$1"
     clear
     echo ""
     echo -e "${CLCyan}===================================="
     echo -e "${BGRed}=========== INSTALL GAGAL ==========="
     echo -e "${CLCyan}====================================\n"
-    echo -e "${CLWhite}Terdapat Kegagalan Saat Menginstall $1"
+    echo -e "${CLWhite}Terdapat Kegagalan Saat Menginstall $component"
     echo -e "${CLWhite}Silahkan Ulangi Instalasi Jika Ada Yang Gagal :)\n"
     read -n 1 -s -r -p "Ketik Apapun Untuk Kembali Ke Menu"
-    exec bash -c "$(wget -qO - 'https://raw.githubusercontent.com/rtaserver/RakitanManager/dev/install.sh')"
+    
+    # Re-run installer menu
+    exec bash -c "$(wget -qO - 'https://raw.githubusercontent.com/rtaserver/RakitanManager/dev/install.sh')" || exit 1
 }
 
 # Install system packages
@@ -285,9 +300,9 @@ install_system_packages() {
 
     for pkg in "${REQUIRED_PACKAGES[@]}"; do
         if ! install_package "$pkg"; then
-            failed=$((failed + 1))
+            ((failed++)) || true
         fi
-        installed_count=$((installed_count + 1))
+        ((installed_count++)) || true
         show_progress "$installed_count" "$total_packages"
     done
 
@@ -318,7 +333,7 @@ configure_web_server() {
         fi
     fi
 
-    log "✓ Web server configuration attempted"
+    log "✓ Web server configuration completed"
 }
 
 # Install Python packages
@@ -395,18 +410,25 @@ download_and_install_package() {
         log "Download attempt $((retry_count + 1))/$max_retries"
 
         # Try curl first, then wget
+        local download_success=0
         if command -v curl >/dev/null 2>&1; then
-            curl -L --connect-timeout 30 --max-time 300 -o "$package_file" "$package_url" >>"$LOG_FILE" 2>&1
+            if curl -L --connect-timeout 30 --max-time 300 -o "$package_file" "$package_url" >>"$LOG_FILE" 2>&1; then
+                download_success=1
+            fi
         elif command -v wget >/dev/null 2>&1; then
-            wget -T 30 -t 3 -O "$package_file" "$package_url" >>"$LOG_FILE" 2>&1
+            if wget -T 30 -t 3 -O "$package_file" "$package_url" >>"$LOG_FILE" 2>&1; then
+                download_success=1
+            fi
         else
             log "ERROR: Neither curl nor wget available"
             return 1
         fi
 
         # Verify package file
-        if [ -f "$package_file" ] && [ -s "$package_file" ]; then
-            log "✓ Package downloaded successfully ($(du -h "$package_file" | cut -f1))"
+        if [ "$download_success" -eq 1 ] && [ -f "$package_file" ] && [ -s "$package_file" ]; then
+            local file_size
+            file_size=$(du -h "$package_file" | cut -f1)
+            log "✓ Package downloaded successfully ($file_size)"
 
             log "Installing package..."
             if opkg install "$package_file" --force-reinstall >>"$LOG_FILE" 2>&1; then
@@ -420,7 +442,7 @@ download_and_install_package() {
             log "✗ Downloaded package file is invalid or empty"
         fi
 
-        retry_count=$((retry_count + 1))
+        ((retry_count++)) || true
         if [ $retry_count -lt $max_retries ]; then
             log "Retrying in 3 seconds..."
             sleep 3
@@ -449,9 +471,12 @@ stop_services() {
 install_packages() {
     log "Starting package installation process..."
 
+    local has_errors=0
+
     # Install system packages
     if ! install_system_packages; then
         log "WARNING: Some system packages failed to install"
+        has_errors=1
     fi
 
     # Configure web server
@@ -460,12 +485,14 @@ install_packages() {
     # Install Python packages
     if ! install_python_packages; then
         log "WARNING: Some Python packages failed to install"
+        has_errors=1
     fi
 
     log "✓ Package installation process completed"
-    return 0
+    return $has_errors
 }
 
+# Install/Upgrade main branch
 install_upgrade_main() {
     log "Starting RakitanManager installation from main branch..."
 
@@ -479,7 +506,7 @@ install_upgrade_main() {
     stop_services
 
     # Install prerequisites
-    install_packages
+    install_packages || true  # Continue even with warnings
 
     # Download and install package
     if download_and_install_package "main"; then
@@ -497,6 +524,7 @@ install_upgrade_main() {
     fi
 }
 
+# Install/Upgrade dev branch
 install_upgrade_dev() {
     log "Starting RakitanManager installation from dev branch..."
 
@@ -510,7 +538,7 @@ install_upgrade_dev() {
     stop_services
 
     # Install prerequisites
-    install_packages
+    install_packages || true  # Continue even with warnings
 
     # Download and install package
     if download_and_install_package "dev"; then
@@ -528,6 +556,7 @@ install_upgrade_dev() {
     fi
 }
 
+# Uninstaller
 uninstaller() {
     log "Starting RakitanManager uninstallation..."
 
@@ -535,7 +564,7 @@ uninstaller() {
     stop_services
 
     # Remove package
-    if opkg list-installed 2>/dev/null | grep -q "luci-app-rakitanmanager"; then
+    if opkg list-installed 2>/dev/null | grep -q "^luci-app-rakitanmanager "; then
         log "Removing luci-app-rakitanmanager package..."
         if opkg remove luci-app-rakitanmanager >>"$LOG_FILE" 2>&1; then
             log "✓ Package removed successfully"
@@ -562,7 +591,7 @@ uninstaller() {
     clear
     echo -e "${CLGreen}Menghapus Rakitan Manager Selesai${CLReset}"
     read -n 1 -s -r -p "Ketik Apapun Untuk Kembali Ke Menu"
-    exec bash -c "$(wget -qO - 'https://raw.githubusercontent.com/rtaserver/RakitanManager/dev/install.sh')"
+    exec bash -c "$(wget -qO - 'https://raw.githubusercontent.com/rtaserver/RakitanManager/dev/install.sh')" || exit 0
 }
 
 # Main menu function
@@ -579,9 +608,10 @@ show_menu() {
     echo -e "${CLCyan}╔════════════════════════════════════════════════════════╗"
     
     # Get system info safely
-    local cpu_info=$(ubus call system board 2>/dev/null | grep '\"system\"' | sed 's/ \+/ /g' | awk -F'\"' '{print $4}' 2>/dev/null || echo 'Unknown')
-    local model_info=$(ubus call system board 2>/dev/null | grep '\"model\"' | sed 's/ \+/ /g' | awk -F'\"' '{print $4}' 2>/dev/null || echo 'Unknown')
-    local board_info=$(ubus call system board 2>/dev/null | grep '\"board_name\"' | sed 's/ \+/ /g' | awk -F'\"' '{print $4}' 2>/dev/null || echo 'Unknown')
+    local cpu_info model_info board_info
+    cpu_info=$(ubus call system board 2>/dev/null | grep '\"system\"' | sed 's/ \+/ /g' | awk -F'\"' '{print $4}' 2>/dev/null || echo 'Unknown')
+    model_info=$(ubus call system board 2>/dev/null | grep '\"model\"' | sed 's/ \+/ /g' | awk -F'\"' '{print $4}' 2>/dev/null || echo 'Unknown')
+    board_info=$(ubus call system board 2>/dev/null | grep '\"board_name\"' | sed 's/ \+/ /g' | awk -F'\"' '{print $4}' 2>/dev/null || echo 'Unknown')
     
     echo -e "${CLWhite} Processor: ${CLYellow}${cpu_info}${CLReset}"
     echo -e "${CLWhite} Device Model: ${CLYellow}${model_info}${CLReset}"
@@ -615,7 +645,7 @@ main() {
 
     while true; do
         show_menu
-        read -p " Pilih Menu :  " opt
+        read -r -p " Pilih Menu :  " opt
         echo -e ""
 
         case $opt in
@@ -644,12 +674,11 @@ main() {
                 if install_packages; then
                     log "✓ Package update completed successfully"
                     echo -e "${CLGreen}Setup Package Sukses${CLReset}"
-                    read -n 1 -s -r -p "Ketik Apapun Untuk Kembali Ke Menu"
                 else
-                    log "✗ Package update had some failures"
+                    log "⚠ Package update completed with warnings"
                     echo -e "${CLYellow}Setup Package Selesai Dengan Beberapa Masalah${CLReset}"
-                    read -n 1 -s -r -p "Ketik Apapun Untuk Kembali Ke Menu"
                 fi
+                read -n 1 -s -r -p "Ketik Apapun Untuk Kembali Ke Menu"
                 ;;
             4)
                 clear
@@ -675,9 +704,6 @@ main() {
         esac
     done
 }
-
-# Signal handler for clean exit
-trap 'echo -e "\n${CLYellow}Installation cancelled by user${CLReset}"; cleanup; exit 1' INT TERM
 
 # Start the script
 main
