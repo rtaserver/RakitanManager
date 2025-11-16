@@ -2,27 +2,30 @@
 
 # Colors only if output is a terminal
 if [ -t 1 ]; then
-    CLBlack="\033[0;30m"
-    CLRed="\033[0;31m"
-    CLGreen="\033[0;32m"
-    CLYellow="\033[0;33m"
-    CLBlue="\033[0;34m"
-    CLPurple="\033[0;35m"
-    CLCyan="\033[0;36m"
-    CLWhite="\033[0;37m"
-    CLReset="\033[0m"
-
-    BGBlack="\033[40m"
-    BGRed="\033[41m"
-    BGGreen="\033[42m"
-    BGYellow="\033[43m"
-    BGBlue="\033[44m"
-    BGPurple="\033[45m"
-    BGCyan="\033[46m"
-    BGWhite="\033[47m"
+    # Base Colors
+    CLBlack="\033[0;30m"    CLRed="\033[0;31m"      CLGreen="\033[0;32m"
+    CLYellow="\033[0;33m"   CLBlue="\033[0;34m"     CLPurple="\033[0;35m"
+    CLCyan="\033[0;36m"     CLWhite="\033[0;37m"    CLReset="\033[0m"
+    
+    # Bold Colors
+    CLBoldBlack="\033[1;30m"  CLBoldRed="\033[1;31m"    CLBoldGreen="\033[1;32m"
+    CLBoldYellow="\033[1;33m" CLBoldBlue="\033[1;34m"   CLBoldPurple="\033[1;35m"
+    CLBoldCyan="\033[1;36m"   CLBoldWhite="\033[1;37m"
+    
+    # Background Colors
+    BGBlack="\033[40m"      BGRed="\033[41m"        BGGreen="\033[42m"
+    BGYellow="\033[43m"     BGBlue="\033[44m"       BGPurple="\033[45m"
+    BGCyan="\033[46m"       BGWhite="\033[47m"
+    
+    # Special Effects
+    CLBlink="\033[5m"       CLBold="\033[1m"        CLUnderline="\033[4m"
+    CLInverse="\033[7m"
 else
+    # Disable colors if not terminal
     CLBlack= CLRed= CLGreen= CLYellow= CLBlue= CLPurple= CLCyan= CLWhite= CLReset=
+    CLBoldBlack= CLBoldRed= CLBoldGreen= CLBoldYellow= CLBoldBlue= CLBoldPurple= CLBoldCyan= CLBoldWhite=
     BGBlack= BGRed= BGGreen= BGYellow= BGBlue= BGPurple= BGCyan= BGWhite=
+    CLBlink= CLBold= CLUnderline= CLInverse=
 fi
 
 # Global variables
@@ -36,13 +39,21 @@ LATEST_VER_MAIN=""
 LATEST_VER_DEV=""
 CURRENT_VERSION=""
 
+# Enhanced logging with icons
 log() {
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - $*" | tee -a "$LOG_FILE"
+    icon="➤"
+    case "$1" in
+        "✓") icon="\033[1;32m✓\033[0m"; shift ;;
+        "✗") icon="\033[1;31m✗\033[0m"; shift ;;
+        "⚠") icon="\033[1;33m⚠\033[0m"; shift ;;
+        "ℹ") icon="\033[1;34mℹ\033[0m"; shift ;;
+    esac
+    echo -e "$(date '+%Y-%m-%d %H:%M:%S') ${icon} $*" | tee -a "$LOG_FILE"
 }
 
 cleanup() {
     if [ -d "$SCRIPT_DIR" ]; then
-        log "Cleaning up temporary files..."
+        log "ℹ" "Cleaning up temporary files..."
         rm -rf "$SCRIPT_DIR" 2>/dev/null || true
     fi
 }
@@ -51,86 +62,107 @@ cleanup() {
 
 stop_services() {
     if pidof core-manager.sh > /dev/null; then
-        log "Stopping RakitanManager services..."
+        log "ℹ" "Stopping RakitanManager services..."
         pkill -f "core-manager.sh" 2>/dev/null
         pkill -f "rakitanmanager" 2>/dev/null
-        log "✓ Services stopped"
+        log "✓" "Services stopped"
     else
-        log "RakitanManager services are not running."
+        log "ℹ" "RakitanManager services are not running."
         return
     fi
 }
+
 install_package() {
     pkg="$1"
     max_retries=3
     retry=0
 
     if opkg list-installed 2>/dev/null | grep -q "^$pkg "; then
-        log "✓ $pkg already installed"
+        log "✓" "$pkg already installed"
         return 0
     fi
 
     while [ $retry -lt $max_retries ]; do
-        log "Installing $pkg (attempt $((retry + 1))/$max_retries)..."
+        log "⚠" "Installing $pkg (attempt $((retry + 1))/$max_retries)..."
         if opkg install "$pkg" >>"$LOG_FILE" 2>&1; then
-            log "✓ $pkg installed successfully"
+            log "✓" "$pkg installed successfully"
             return 0
         fi
         retry=$((retry + 1))
         if [ $retry -lt $max_retries ]; then
-            log "⚠ Failed, retrying in 2s..."
+            log "⚠" "Failed, retrying in 2s..."
             sleep 2
         fi
     done
 
-    log "✗ Failed to install $pkg after $max_retries attempts"
+    log "✗" "Failed to install $pkg after $max_retries attempts"
     return 1
 }
 
+# Enhanced progress bar
 show_progress() {
     current="$1"
     total="$2"
+    label="$3"
+    
     if [ "$total" -eq 0 ]; then total=1; fi
     percentage=$((current * 100 / total))
-    printf "\r[%3d%%] (%d/%d)" "$percentage" "$current" "$total"
+    bar_length=30
+    filled=$((percentage * bar_length / 100))
+    empty=$((bar_length - filled))
+    
+    printf "\r${CLBoldWhite}["
+    printf "${CLGreen}%${filled}s" | tr ' ' '█'
+    printf "${CLYellow}%${empty}s" | tr ' ' '░'
+    printf "${CLBoldWhite}] ${CLBoldCyan}%3d%%${CLBoldWhite} ${label}" "$percentage"
 }
 
+detect_openwrt_type() {
+    if [ -f /etc/openwrt_release ]; then
+        if grep -q "SNAPSHOT" /etc/openwrt_release 2>/dev/null; then
+            echo "snapshot"
+        else
+            echo "stable"
+        fi
+    else
+        # Fallback jika file tidak ada
+        if opkg list-installed | grep -q "openwrt-base"; then
+            echo "stable"
+        else
+            echo "snapshot"
+        fi
+    fi
+}
 
 check_system_requirements() {
-    log "Checking system requirements..."
+    log "ℹ" "Checking system requirements..."
 
-    if [ ! -f /etc/os-release ]; then
-        log "ERROR: /etc/os-release not found"
+    if $(detect_openwrt_type) == "stable"; then
+        log "✓" "OpenWrt type stable detected"
+    else
+        log "✓" "OpenWrt type snapshot detected"
+    fi
+
+    opkg update >>"$LOG_FILE" 2>&1 || log "⚠" "opkg update failed"
+
+    if ! install_package "procps-ng-pkill jq coreutils-sleep"; then
+        log "✗" "procps-ng-pkill is required but failed to install"
         return 1
     fi
 
-    if ! grep -q "OpenWrt" /etc/os-release 2>/dev/null; then
-        log "ERROR: This script is designed for OpenWrt systems only"
-        return 1
-    fi
-
-    opkg update >>"$LOG_FILE" 2>&1 || log "WARN: opkg update failed"
-
-    if ! install_package "procps-ng-pkill"; then
-        log "ERROR: procps-ng-pkill is required but failed to install"
-        return 1
-    fi
-
-    log "System requirements check passed"
+    log "✓" "System requirements check passed"
     return 0
 }
 
-
-
 init_script() {
     mkdir -p "$SCRIPT_DIR/rakitanmanager" 2>/dev/null || {
-        log "ERROR: Failed to create temp directory"
+        log "✗" "Failed to create temp directory"
         return 1
     }
 
-    touch "$LOG_FILE" 2>/dev/null || log "WARNING: Logging may be limited"
+    touch "$LOG_FILE" 2>/dev/null || log "⚠" "Logging may be limited"
 
-    log "=== RakitanManager Installation Started ==="
+    log "ℹ" "=== RakitanManager Installation Started ==="
     check_system_requirements || return 1
     return 0
 }
@@ -151,8 +183,8 @@ get_version_info() {
     LATEST_VER_MAIN=$(get_latest_version "main")
     LATEST_VER_DEV=$(get_latest_version "dev")
 
-    [ -z "$LATEST_VER_MAIN" ] && LATEST_VER_MAIN="Versi Tidak Ada / Gagal Koneksi"
-    [ -z "$LATEST_VER_DEV" ] && LATEST_VER_DEV="Versi Tidak Ada / Gagal Koneksi"
+    [ -z "$LATEST_VER_MAIN" ] && LATEST_VER_MAIN="Tidak Tersedia"
+    [ -z "$LATEST_VER_DEV" ] && LATEST_VER_DEV="Tidak Tersedia"
 
     current_branch=$(uci get rakitanmanager.cfg.branch 2>/dev/null || echo "")
 
@@ -161,66 +193,87 @@ get_version_info() {
     elif [ "$current_branch" = "dev" ] && [ -f /www/rakitanmanager/versiondev.txt ]; then
         CURRENT_VERSION=$(head -n1 /www/rakitanmanager/versiondev.txt | tr -d ' \t\n\r' | tr '[:upper:]' '[:lower:]' | sed 's/bt/beta | Branch Dev/g')
     else
-        CURRENT_VERSION="Versi Tidak Ada / Tidak Terinstall"
+        CURRENT_VERSION="Belum Terinstall"
     fi
 }
 
-# --- FUNGSI YANG DIPERBAIKI DENGAN printf "%b" ---
-
+# Enhanced finish screen
 finish() {
     clear
     printf "%b" "
-${CLCyan}====================================
-${BGRed}========= INSTALL BERHASIL =========
-${CLCyan}====================================
+${CLBoldCyan}╔════════════════════════════════════════════════════════════════════╗${CLReset}
+${CLBoldCyan}║${BGGreen}${CLBoldWhite}                  ✅ INSTALL BERHASIL ✅                     ${CLReset}${CLBoldCyan}║${CLReset}
+${CLBoldCyan}╚════════════════════════════════════════════════════════════════════╝${CLReset}
 
-${CLWhite}Silahkan Cek Di Tab Modem Dan Pilih Rakitan Manager
-${CLWhite}Jika Tidak Ada: Clear Cache, Logout/Login, atau buka manual di:
-${CLWhite}http://192.168.1.1/rakitanmanager
+${CLBoldWhite}╭──────────────────────────────────────────────────────────────────╮${CLReset}
+${CLBoldWhite}│${CLGreen}  🚀 RakitanManager telah berhasil terinstall!                   ${CLBoldWhite}│${CLReset}
+${CLBoldWhite}│                                                                  │${CLReset}
+${CLBoldWhite}│${CLYellow}  ➤ Akses melalui: http://192.168.1.1/rakitanmanager             ${CLBoldWhite}│${CLReset}
+${CLBoldWhite}│${CLYellow}  ➤ Username: admin | Password: admin (default)                  ${CLBoldWhite}│${CLReset}
+${CLBoldWhite}│                                                                  │${CLReset}
+${CLBoldWhite}│${CLBlue}  💡 Tips:                                                       ${CLBoldWhite}│${CLReset}
+${CLBoldWhite}│${CLBlue}  • Clear cache browser jika tampilan tidak muncul                ${CLBoldWhite}│${CLReset}
+${CLBoldWhite}│${CLBlue}  • Restart router jika diperlukan                               ${CLBoldWhite}│${CLReset}
+${CLBoldWhite}│${CLBlue}  • Cek log untuk troubleshooting: /tmp/rakitanmanager_install.log${CLBoldWhite}│${CLReset}
+${CLBoldWhite}╰──────────────────────────────────────────────────────────────────╯${CLReset}
 
-${CLWhite}Ulangi Instalasi Jika Ada Yang Gagal :)${CLReset}
-
+${CLBoldCyan}╔════════════════════════════════════════════════════════════════════╗${CLReset}
+${CLBoldCyan}║${CLBoldWhite} Tekan ${CLBoldGreen}apa saja${CLBoldWhite} untuk keluar dari installer...                     ${CLBoldCyan}║${CLReset}
+${CLBoldCyan}╚════════════════════════════════════════════════════════════════════╝${CLReset}
 "
-    read -r -n1 -s -p "$(printf "${CLWhite}Tekan tombol apa saja untuk kembali ke menu...${CLReset}")"
-    printf "\n"
+    read -r -n1 -s
     exit 0
 }
 
+# Enhanced error screen
 gagal_install() {
     component="$1"
     clear
     printf "%b" "
-${CLCyan}====================================
-${BGRed}=========== INSTALL GAGAL ===========
-${CLCyan}====================================
+${CLBoldCyan}╔════════════════════════════════════════════════════════════════════╗${CLReset}
+${CLBoldCyan}║${BGRed}${CLBoldWhite}                  ❌ INSTALL GAGAL ❌                        ${CLReset}${CLBoldCyan}║${CLReset}
+${CLBoldCyan}╚════════════════════════════════════════════════════════════════════╝${CLReset}
 
-${CLWhite}Gagal saat menginstall: ${component}${CLReset}
-${CLWhite}Silakan ulangi instalasi.${CLReset}
+${CLBoldWhite}╭──────────────────────────────────────────────────────────────────╮${CLReset}
+${CLBoldWhite}│${CLRed}  ❗ Gagal menginstall komponen: ${CLBoldYellow}${component}                      ${CLBoldWhite}│${CLReset}
+${CLBoldWhite}│                                                                  │${CLReset}
+${CLBoldWhite}│${CLYellow}  ➤ Cek log error di: ${CLCyan}${LOG_FILE}                          ${CLBoldWhite}│${CLReset}
+${CLBoldWhite}│${CLYellow}  ➤ Pastikan koneksi internet stabil                             ${CLBoldWhite}│${CLReset}
+${CLBoldWhite}│${CLYellow}  ➤ Coba ulangi instalasi dengan opsi yang sama                  ${CLBoldWhite}│${CLReset}
+${CLBoldWhite}│                                                                  │${CLReset}
+${CLBoldWhite}│${CLBlue}  💡 Solusi umum:                                                ${CLBoldWhite}│${CLReset}
+${CLBoldWhite}│${CLBlue}  • Periksa ruang penyimpanan: df -h                             ${CLBoldWhite}│${CLReset}
+${CLBoldWhite}│${CLBlue}  • Update package list: opkg update                             ${CLBoldWhite}│${CLReset}
+${CLBoldWhite}│${CLBlue}  • Restart router sebelum mencoba lagi                          ${CLBoldWhite}│${CLReset}
+${CLBoldWhite}╰──────────────────────────────────────────────────────────────────╯${CLReset}
 
+${CLBoldCyan}╔════════════════════════════════════════════════════════════════════╗${CLReset}
+${CLBoldCyan}║${CLBoldWhite} Tekan ${CLBoldGreen}apa saja${CLBoldWhite} untuk keluar dari installer...                     ${CLBoldCyan}║${CLReset}
+${CLBoldCyan}╚════════════════════════════════════════════════════════════════════╝${CLReset}
 "
-    read -r -n1 -s -p "$(printf "${CLWhite}Tekan tombol apa saja untuk kembali ke menu...${CLReset}")"
-    printf "\n"
+    read -r -n1 -s
     exit 1
 }
 
 install_system_packages() {
     set -- $REQUIRED_PACKAGES
-    total=0
-    for pkg; do total=$((total + 1)); done
-
+    total=$#
     current=0
     failed=0
+    
+    printf "\n${CLBoldWhite}📦 Installing System Packages:${CLReset}\n"
+    
     for pkg in $REQUIRED_PACKAGES; do
         current=$((current + 1))
-        show_progress "$current" "$total"
+        show_progress "$current" "$total" "Installing ${pkg}"
         if ! install_package "$pkg"; then
             failed=$((failed + 1))
         fi
     done
-    echo ""
-
+    printf "\n\n"
+    
     if [ "$failed" -gt 0 ]; then
-        log "WARNING: $failed package(s) failed"
+        log "⚠" "$failed package(s) failed to install"
         return 1
     fi
     return 0
@@ -233,34 +286,41 @@ configure_web_server() {
         uci commit uhttpd 2>/dev/null
         [ -x /etc/init.d/uhttpd ] && /etc/init.d/uhttpd restart >>"$LOG_FILE" 2>&1
     fi
-    log "✓ Web server configured"
+    log "✓" "Web server configured"
 }
 
 install_python_packages() {
     if ! command -v pip3 >/dev/null 2>&1; then
-        log "ERROR: pip3 not found"
+        log "✗" "pip3 not found"
         return 1
     fi
 
+    printf "\n${CLBoldWhite}🐍 Installing Python Packages:${CLReset}\n"
     pip3 install --upgrade pip --quiet >>"$LOG_FILE" 2>&1 || true
 
     failures=""
+    total=$(echo "$PYTHON_PACKAGES" | wc -w)
+    current=0
+    
     for pkg in $PYTHON_PACKAGES; do
+        current=$((current + 1))
+        show_progress "$current" "$total" "Installing ${pkg}"
+        
         if pip3 show "$pkg" >/dev/null 2>&1; then
-            log "✓ Python package $pkg already installed"
+            log "✓" "Python package $pkg already installed"
         else
-            log "Installing Python package: $pkg"
             if pip3 install "$pkg" --quiet >>"$LOG_FILE" 2>&1; then
-                log "✓ $pkg installed"
+                log "✓" "$pkg installed"
             else
-                log "✗ Failed: $pkg"
+                log "✗" "Failed: $pkg"
                 failures="$failures $pkg"
             fi
         fi
     done
+    printf "\n\n"
 
     if [ -n "$failures" ]; then
-        log "WARNING: Failed Python packages:$failures"
+        log "⚠" "Failed Python packages:$failures"
         return 1
     fi
     return 0
@@ -268,61 +328,144 @@ install_python_packages() {
 
 download_and_install_package() {
     branch="$1"
+    branch_name=$(echo "$branch" | awk '{print toupper(substr($0,1,1)) substr($0,2)}')
     max_retries=3
     retry=0
+    
+    # Deteksi jenis OpenWrt
+    openwrt_type=$(detect_openwrt_type)
+    log "ℹ" "Terdeteksi OpenWrt ${openwrt_type^}"
 
+    printf "\n${CLBoldWhite}⏬ Downloading RakitanManager (${branch_name} Branch):${CLReset}\n"
+    
     version_url="https://raw.githubusercontent.com/rtaserver/RakitanManager/package/$branch/version"
     version_info=$(curl -s --connect-timeout 10 "$version_url" 2>/dev/null || wget -qO- --timeout=10 "$version_url" 2>/dev/null)
 
     if [ -z "$version_info" ]; then
-        log "ERROR: Cannot fetch version info"
+        log "✗" "Cannot fetch version info"
         return 1
     fi
 
     latest_version=$(echo "$version_info" | grep -o 'v[0-9.]*' | head -1 | cut -c2-)
     if [ -z "$latest_version" ]; then
-        log "ERROR: Cannot parse version"
+        log "✗" "Cannot parse version"
         return 1
     fi
 
-    package_url="https://raw.githubusercontent.com/rtaserver/RakitanManager/package/$branch/luci-app-rakitanmanager_${latest_version}-1_all.ipk"
-    package_file="$SCRIPT_DIR/rakitanmanager.ipk"
-
-    while [ $retry -lt $max_retries ]; do
-        log "Download attempt $((retry + 1))"
-
-        if command -v curl >/dev/null 2>&1; then
-            curl -L --connect-timeout 30 --max-time 300 -o "$package_file" "$package_url" >>"$LOG_FILE" 2>&1
-        elif command -v wget >/dev/null 2>&1; then
-            wget -T 30 -O "$package_file" "$package_url" >>"$LOG_FILE" 2>&1
-        else
-            log "ERROR: No downloader available"
-            return 1
-        fi
-
-        if [ -s "$package_file" ]; then
-            if opkg install "$package_file" --force-reinstall >>"$LOG_FILE" 2>&1; then
-                rm -f "$package_file"
-                return 0
+    package_file="$SCRIPT_DIR/rakitanmanager_pkg"
+    
+    # Tentukan pola penamaan berdasarkan jenis OpenWrt
+    if [ "$openwrt_type" = "stable" ]; then
+        patterns=(
+            "luci-app-rakitanmanager_${latest_version}-1_all.ipk"
+            "luci-app-rakitanmanager_${latest_version}_all.ipk"
+            "luci-app-rakitanmanager_${latest_version}-[0-9]*_all.ipk"
+        )
+        package_type="ipk"
+    else
+        patterns=(
+            "luci-app-rakitanmanager-${latest_version}-r1.apk"
+            "luci-app-rakitanmanager-${latest_version}-r[0-9]*.apk"
+            "luci-app-rakitanmanager-${latest_version}*.apk"
+        )
+        package_type="apk"
+    fi
+    
+    success=0
+    tried_urls=""
+    
+    # Coba setiap pola yang mungkin
+    for pattern in "${patterns[@]}"; do
+        # Handle wildcard patterns
+        if [[ "$pattern" == *"*"* ]]; then
+            # Gunakan GitHub API untuk cari file yang cocok
+            repo="rtaserver/RakitanManager"
+            api_url="https://api.github.com/repos/$repo/contents/package/$branch?ref=package/$branch"
+            
+            # Cari file yang cocok dengan pola
+            matching_file=$(curl -s "$api_url" | jq -r --arg pat "$pattern" --arg ver "$latest_version" '
+                .[] 
+                | select(.type == "file")
+                | select(.name | test($pat))
+                | .name
+                | select(test(".*\\." + ($pat | split(".")[-1])))
+            ')
+            
+            if [ -z "$matching_file" ] || [ "$matching_file" = "null" ]; then
+                continue
             fi
+            
+            package_url="https://raw.githubusercontent.com/$repo/package/$branch/$matching_file"
+            log "ℹ" "Mencocokkan pola wildcard: $matching_file"
+        else
+            package_url="https://raw.githubusercontent.com/rtaserver/RakitanManager/package/$branch/$pattern"
         fi
-
-        retry=$((retry + 1))
-        [ $retry -lt $max_retries ] && sleep 3
+        
+        tried_urls="$tried_urls\n  • $package_url"
+        log "ℹ" "Mencoba URL: $package_url"
+        
+        retry=0
+        while [ $retry -lt $max_retries ]; do
+            if command -v curl >/dev/null 2>&1; then
+                curl -fL --connect-timeout 15 --max-time 60 -o "$package_file" "$package_url" >>"$LOG_FILE" 2>&1
+            elif command -v wget >/dev/null 2>&1; then
+                wget -T 15 -O "$package_file" "$package_url" >>"$LOG_FILE" 2>&1
+            else
+                log "✗" "No downloader available"
+                return 1
+            fi
+            
+            if [ -s "$package_file" ]; then
+                log "✓" "Package berhasil diunduh: $(basename "$package_file")"
+                
+                # Install sesuai jenis package
+                if [ "$package_type" = "ipk" ]; then
+                    log "ℹ" "Menginstall package OpenWrt Stabil (.ipk)"
+                    if opkg install "$package_file" --force-reinstall >>"$LOG_FILE" 2>&1; then
+                        success=1
+                        break 2
+                    fi
+                else
+                    log "ℹ" "Menginstall package OpenWrt Snapshot (.apk)"
+                    if opkg install "$package_file" --force-reinstall --force-checksum >>"$LOG_FILE" 2>&1; then
+                        success=1
+                        break 2
+                    fi
+                fi
+            fi
+            
+            retry=$((retry + 1))
+            if [ $retry -lt $max_retries ]; then
+                log "⚠" "Gagal, mencoba ulang ($retry/$max_retries)..."
+                sleep 3
+            fi
+        done
     done
-
-    log "✗ Package install failed after $max_retries tries"
-    return 1
+    
+    if [ $success -eq 0 ]; then
+        log "✗" "Gagal menemukan package yang cocok untuk versi $latest_version"
+        log "ℹ" "URL yang telah dicoba:$tried_urls"
+        rm -f "$package_file" 2>/dev/null
+        return 1
+    fi
+    
+    rm -f "$package_file"
+    log "✓" "RakitanManager berhasil diinstall!"
+    return 0
 }
 
 install_packages() {
-    install_system_packages || log "⚠ System packages had issues"
+    install_system_packages || log "⚠" "System packages had issues"
     configure_web_server
-    install_python_packages || log "⚠ Python packages had issues"
+    install_python_packages || log "⚠" "Python packages had issues"
     return 0
 }
 
 install_upgrade_main() {
+    printf "\n${CLBoldCyan}╔════════════════════════════════════════════════════════╗${CLReset}\n"
+    printf "${CLBoldCyan}║${CLBoldWhite}      🌿 Installing RakitanManager (MAIN BRANCH)       ${CLBoldCyan}║${CLReset}\n"
+    printf "${CLBoldCyan}╚════════════════════════════════════════════════════════╝${CLReset}\n"
+    
     stop_services
     install_packages
     if download_and_install_package "main"; then
@@ -330,11 +473,15 @@ install_upgrade_main() {
         uci commit rakitanmanager 2>/dev/null
         finish
     else
-        gagal_install "RakitanManager (main)"
+        gagal_install "RakitanManager (main branch)"
     fi
 }
 
 install_upgrade_dev() {
+    printf "\n${CLBoldCyan}╔════════════════════════════════════════════════════════╗${CLReset}\n"
+    printf "${CLBoldCyan}║${CLBoldWhite}      🔥 Installing RakitanManager (DEV BRANCH)        ${CLBoldCyan}║${CLReset}\n"
+    printf "${CLBoldCyan}╚════════════════════════════════════════════════════════╝${CLReset}\n"
+    
     stop_services
     install_packages
     if download_and_install_package "dev"; then
@@ -342,11 +489,15 @@ install_upgrade_dev() {
         uci commit rakitanmanager 2>/dev/null
         finish
     else
-        gagal_install "RakitanManager (dev)"
+        gagal_install "RakitanManager (dev branch)"
     fi
 }
 
 uninstaller() {
+    printf "\n${CLBoldCyan}╔════════════════════════════════════════════════════════╗${CLReset}\n"
+    printf "${CLBoldCyan}║${CLBoldWhite}          🗑️  Uninstalling RakitanManager              ${CLBoldCyan}║${CLReset}\n"
+    printf "${CLBoldCyan}╚════════════════════════════════════════════════════════╝${CLReset}\n"
+    
     stop_services
     if opkg list-installed 2>/dev/null | grep -q "^luci-app-rakitanmanager "; then
         opkg remove luci-app-rakitanmanager >>"$LOG_FILE" 2>&1
@@ -354,15 +505,28 @@ uninstaller() {
     uci delete rakitanmanager 2>/dev/null
     uci commit 2>/dev/null
     rm -rf /usr/share/rakitanmanager /www/rakitanmanager /var/log/rakitanmanager.log 2>/dev/null
-    log "✓ Uninstalled"
+    log "✓" "Uninstallation completed"
 
     clear
-    printf "%b" "${CLGreen}Menghapus Rakitan Manager Selesai${CLReset}\n"
-    read -r -n1 -s -p "$(printf "Tekan tombol apa saja untuk kembali ke menu...")"
-    printf "\n"
-    exit 0
+    printf "%b" "
+${CLBoldCyan}╔════════════════════════════════════════════════════════════════════╗${CLReset}
+${CLBoldCyan}║${BGGreen}${CLBoldWhite}                ✅ UNINSTALL BERHASIL ✅                    ${CLReset}${CLBoldCyan}║${CLReset}
+${CLBoldCyan}╚════════════════════════════════════════════════════════════════════╝${CLReset}
+
+${CLBoldWhite}╭──────────────────────────────────────────────────────────────────╮${CLReset}
+${CLBoldWhite}│${CLGreen}  ✔ Semua komponen RakitanManager telah dihapus                  ${CLBoldWhite}│${CLReset}
+${CLBoldWhite}│${CLYellow}  ➤ Anda dapat menginstall ulang kapan saja                      ${CLBoldWhite}│${CLReset}
+${CLBoldWhite}│${CLBlue}  ➤ File konfigurasi dan data user telah dihapus permanen        ${CLBoldWhite}│${CLReset}
+${CLBoldWhite}╰──────────────────────────────────────────────────────────────────╯${CLReset}
+
+${CLBoldCyan}╔════════════════════════════════════════════════════════════════════╗${CLReset}
+${CLBoldCyan}║${CLBoldWhite} Tekan ${CLBoldGreen}apa saja${CLBoldWhite} untuk kembali ke menu...                        ${CLBoldCyan}║${CLReset}
+${CLBoldCyan}╚════════════════════════════════════════════════════════════════════╝${CLReset}
+"
+    read -r -n1 -s
 }
 
+# Enhanced main menu
 show_menu() {
     get_version_info
 
@@ -371,71 +535,82 @@ show_menu() {
     model_info=$(ubus call system board 2>/dev/null | sed -n 's/.*"model":[[:space:]]*"\([^"]*\)".*/\1/p' || echo 'Unknown')
     board_info=$(ubus call system board 2>/dev/null | sed -n 's/.*"board_name":[[:space:]]*"\([^"]*\)".*/\1/p' || echo 'Unknown')
 
+    # Get terminal width
+    term_width=$(tput cols 2>/dev/null || echo 80)
+    box_width=$((term_width - 4))
+    
     printf "%b" "
-${CLCyan}╔════════════════════════════════════════════════════════╗
-${BGRed}              RAKITAN MANAGER AUTO INSTALLER              ${CLReset}
-${CLCyan}╚════════════════════════════════════════════════════════╝
-${CLCyan}╔════════════════════════════════════════════════════════╗
-${CLWhite} Versi Terinstall: ${CLBlue}${CURRENT_VERSION}${CLReset}
-${CLWhite} Versi Terbaru: ${CLGreen}${LATEST_VER_MAIN} | Branch Main | Utama${CLReset}
-${CLWhite} Versi Terbaru: ${CLYellow}${LATEST_VER_DEV} | Branch Dev | Pengembangan${CLReset}
-${CLCyan}╚════════════════════════════════════════════════════════╝
-${CLCyan}╔════════════════════════════════════════════════════════╗
-${CLWhite} Processor: ${CLYellow}${cpu_info}${CLReset}
-${CLWhite} Device Model: ${CLYellow}${model_info}${CLReset}
-${CLWhite} Device Board: ${CLYellow}${board_info}${CLReset}
-${CLCyan}╚════════════════════════════════════════════════════════╝
-${CLCyan}╔════════════════════════════════════════════════════════╗
-${CLCyan}║ ${CLBlue}DAFTAR MENU :                                          ${CLCyan}║
-${CLCyan}║ ${CLWhite}[${CLCyan}1${CLWhite}] Install / Upgrade Rakitan Manager | ${CLGreen}Branch Main   ${CLCyan}║
-${CLCyan}║ ${CLWhite}[${CLCyan}2${CLWhite}] Install / Upgrade Rakitan Manager | ${CLYellow}Branch Dev    ${CLCyan}║
-${CLCyan}║ ${CLWhite}[${CLCyan}3${CLWhite}] Update Packages Saja                              ${CLCyan}║
-${CLCyan}║ ${CLWhite}[${CLCyan}4${CLWhite}] Uninstall Rakitan Manager                         ${CLCyan}║
-${CLCyan}╚════════════════════════════════════════════════════════╝${CLReset}
+${CLBoldCyan}╔${CLReset}=$(printf '=%.0s' $(seq 1 $box_width))${CLBoldCyan}╗${CLReset}
+${CLBoldCyan}║${CLReset} ${CLBoldWhite}🚀${CLReset} ${CLBoldBlue}RAKITAN MANAGER AUTO INSTALLER${CLReset} ${CLBoldYellow}v2.1${CLReset} ${CLBoldWhite}🚀${CLReset} ${CLBoldCyan}║${CLReset}
+${CLBoldCyan}╚${CLReset}=$(printf '=%.0s' $(seq 1 $box_width))${CLBoldCyan}╝${CLReset}
 
- Ketik [ x ] atau [ Ctrl+C ] untuk keluar.
+${CLBoldCyan}╔${CLReset}=$(printf '=%.0s' $(seq 1 $box_width))${CLBoldCyan}╗${CLReset}
+${CLBoldCyan}║${CLReset} ${CLBoldWhite}💻 Sistem Informasi${CLReset} ${CLBoldCyan}║${CLReset}
+${CLBoldCyan}║${CLReset} ${CLYellow}• CPU:${CLReset} ${cpu_info} ${CLBoldCyan}║${CLReset}
+${CLBoldCyan}║${CLReset} ${CLYellow}• Model:${CLReset} ${model_info} ${CLBoldCyan}║${CLReset}
+${CLBoldCyan}║${CLReset} ${CLYellow}• Board:${CLReset} ${board_info} ${CLBoldCyan}║${CLReset}
+${CLBoldCyan}╚${CLReset}=$(printf '=%.0s' $(seq 1 $box_width))${CLBoldCyan}╝${CLReset}
+
+${CLBoldCyan}╔${CLReset}=$(printf '=%.0s' $(seq 1 $box_width))${CLBoldCyan}╗${CLReset}
+${CLBoldCyan}║${CLReset} ${CLBoldWhite}📦 Versi Terinstall${CLReset} ${CLBoldCyan}║${CLReset}
+${CLBoldCyan}║${CLReset} ${CLGreen}• Saat Ini:${CLReset} ${CLBoldWhite}${CURRENT_VERSION}${CLReset} ${CLBoldCyan}║${CLReset}
+${CLBoldCyan}║${CLReset} ${CLGreen}• Main Branch:${CLReset} ${CLBoldGreen}${LATEST_VER_MAIN}${CLReset} ${CLBoldCyan}║${CLReset}
+${CLBoldCyan}║${CLReset} ${CLYellow}• Dev Branch:${CLReset} ${CLBoldYellow}${LATEST_VER_DEV}${CLReset} ${CLBoldCyan}║${CLReset}
+${CLBoldCyan}╚${CLReset}=$(printf '=%.0s' $(seq 1 $box_width))${CLBoldCyan}╝${CLReset}
+
+${CLBoldCyan}╔${CLReset}=$(printf '=%.0s' $(seq 1 $box_width))${CLBoldCyan}╗${CLReset}
+${CLBoldCyan}║${CLReset} ${CLBoldWhite}🎮 MENU UTAMA${CLReset} ${CLBoldCyan}║${CLReset}
+${CLBoldCyan}║${CLReset} ${CLWhite}[${CLBoldGreen}1${CLWhite}] ${CLGreen}Install/Upgrade - Main Branch${CLReset} ${CLBoldWhite}(Stabil)${CLReset} ${CLBoldCyan}║${CLReset}
+${CLBoldCyan}║${CLReset} ${CLWhite}[${CLBoldYellow}2${CLWhite}] ${CLYellow}Install/Upgrade - Dev Branch${CLReset} ${CLBoldWhite}(Terbaru)${CLReset} ${CLBoldCyan}║${CLReset}
+${CLBoldCyan}║${CLReset} ${CLWhite}[${CLBoldBlue}3${CLWhite}] ${CLBlue}Update Dependencies${CLReset} ${CLBoldWhite}(Packages saja)${CLReset} ${CLBoldCyan}║${CLReset}
+${CLBoldCyan}║${CLReset} ${CLWhite}[${CLBoldRed}4${CLWhite}] ${CLRed}Uninstall RakitanManager${CLReset} ${CLBoldCyan}║${CLReset}
+${CLBoldCyan}║${CLReset} ${CLWhite}[${CLBoldWhite}x${CLWhite}] ${CLWhite}Keluar${CLReset} ${CLBoldCyan}║${CLReset}
+${CLBoldCyan}╚${CLReset}=$(printf '=%.0s' $(seq 1 $box_width))${CLBoldCyan}╝${CLReset}
+
+${CLBoldWhite}╭─${CLReset}=$(printf '─%.0s' $(seq 1 $((box_width-2))))${CLBoldWhite}─╮${CLReset}
+${CLBoldWhite}│${CLReset} ${CLBoldYellow}ℹ${CLReset} ${CLYellow}Tips: Pilih branch DEV untuk fitur terbaru (mungkin belum stabil)${CLReset} ${CLBoldWhite}│${CLReset}
+${CLBoldWhite}╰─${CLReset}=$(printf '─%.0s' $(seq 1 $((box_width-2))))${CLBoldWhite}─╯${CLReset}
 "
 }
 
 main() {
     if ! init_script; then
-        printf "%b" "${CLRed}Gagal inisialisasi skrip.${CLReset}\n" >&2
+        printf "%b" "${CLBoldRed}✗ Gagal inisialisasi skrip.${CLReset}\n" >&2
         exit 1
     fi
 
     while true; do
         show_menu
-        printf " Pilih Menu: "
+        printf "${CLBoldWhite}➤${CLReset} ${CLBoldYellow}Pilih Menu:${CLReset} "
         read -r opt
         echo
 
         case "$opt" in
             1)
-                clear; printf "%b" "${CLYellow}Memulai instalasi Branch Main...${CLReset}\n"; sleep 2
                 install_upgrade_main
                 ;;
             2)
-                clear; printf "%b" "${CLYellow}Memulai instalasi Branch Dev...${CLReset}\n"; sleep 2
                 install_upgrade_dev
                 ;;
             3)
-                clear; printf "%b" "${CLYellow}Memperbarui packages...${CLReset}\n"; sleep 2
+                clear
+                printf "${CLBoldCyan}╔════════════════════════════════════════════════════════╗${CLReset}\n"
+                printf "${CLBoldCyan}║${CLBoldWhite}          🔧 Updating System Dependencies             ${CLBoldCyan}║${CLReset}\n"
+                printf "${CLBoldCyan}╚════════════════════════════════════════════════════════╝${CLReset}\n"
                 install_packages
-                printf "%b" "${CLGreen}Pembaruan selesai.${CLReset}\n"
-                read -r -n1 -s -p "$(printf "Tekan tombol apa saja...")"
-                printf "\n"
+                printf "\n${CLBoldGreen}✓${CLReset} ${CLBoldWhite}Update dependencies selesai!${CLReset}\n"
+                read -r -n1 -s -p "$(printf "${CLBoldWhite}Tekan tombol apa saja untuk kembali ke menu...${CLReset}")"
                 ;;
             4)
-                clear; printf "%b" "${CLYellow}Mencopot Rakitan Manager...${CLReset}\n"; sleep 2
                 uninstaller
                 ;;
             x|X)
-                printf "%b" "${CLGreen}Terima kasih!${CLReset}\n"
+                printf "\n${CLBoldGreen}✓${CLReset} ${CLBoldWhite}Terima kasih telah menggunakan RakitanManager Installer!${CLReset}\n\n"
                 exit 0
                 ;;
             *)
-                printf "%b" "${CLRed}Pilihan tidak valid.${CLReset}\n"
-                sleep 2
+                printf "${CLBoldRed}✗${CLReset} ${CLBoldWhite}Pilihan tidak valid. Tekan tombol apa saja untuk ulangi...${CLReset}\n"
+                read -r -n1 -s
                 ;;
         esac
     done

@@ -22,7 +22,7 @@ define Package/$(PKG_NAME)
 	SUBMENU:=3. Applications
 	TITLE:=LuCI support for Modem Manager
 	PKGARCH:=all
-	DEPENDS:=+bash +curl +unzip +procps-ng-pkill +git +git-http +modemmanager +python3-pip +bc +screen +adb +httping +jq
+	DEPENDS:=+bash +curl +unzip +procps-ng-pkill +git +git-http +modemmanager +python3-pip +bc +screen +adb +httping +jq +coreutils-sleep
 	MAINTAINER:=rtaserver
 endef
 
