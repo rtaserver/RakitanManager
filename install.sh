@@ -50,10 +50,15 @@ cleanup() {
 # trap cleanup EXIT
 
 stop_services() {
-    pkill -f "core-manager.sh" 2>/dev/null
-    pkill -f "rakitanmanager" 2>/dev/null
-    sleep 2
-    log "✓ Services stopped"
+    if pidof core-manager.sh > /dev/null; then
+        log "Stopping RakitanManager services..."
+        pkill -f "core-manager.sh" 2>/dev/null
+        pkill -f "rakitanmanager" 2>/dev/null
+        log "✓ Services stopped"
+    else
+        log "RakitanManager services are not running."
+        return
+    fi
 }
 
 check_system_requirements() {
