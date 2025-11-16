@@ -21,6 +21,16 @@ jobs:
         with:
           ref: ${{ github.ref_name }}
 
+      - name: Add changelog info to new release description
+        id: changelog
+        shell: bash
+        run: |
+          r=$(awk '/^\*\*Changelog\*\*/ {if(found) exit; found=1} found' CHANGELOG.md)
+          r="${r//'%'/'%25'}"
+          r="${r//$'\n'/'%0A'}"
+          r="${r//$'\r'/'%0D'}"  
+          echo "CHANGELOG=$r" >> $GITHUB_OUTPUT
+
       - name: New Version
         id: version
         run: |
@@ -35,17 +45,6 @@ jobs:
         id: current_version
         run: |
           echo "version=$(sed -n 1p ./${{ github.ref_name }}/version |awk -F 'v' '{print $2}')" >> $GITHUB_OUTPUT
-
-      - name: Add changelog info to new release description
-        id: changelog
-        shell: bash
-        run: |
-          cd /home/runner/work/RakitanManager/RakitanManager/
-          r=$(awk '/^\*\*Changelog\*\*/ {if(found) exit; found=1} found' CHANGELOG.md)
-          r="${r//'%'/'%25'}"
-          r="${r//$'\n'/'%0A'}"
-          r="${r//$'\r'/'%0D'}"  
-          echo "CHANGELOG=$r" >> $GITHUB_OUTPUT
 
   Compile:
     runs-on: ubuntu-latest
