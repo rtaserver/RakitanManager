@@ -1,4 +1,4 @@
-name: Sync Dev to Main on Release
+name: Auto Sync Dev → Main + Auto Release
 
 on:
   push:
@@ -10,8 +10,10 @@ permissions:
   contents: write
 
 jobs:
-  Sync_packages_to_main:
+  sync_dev_to_main:
+    name: Sync Dev → Main
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout package branch
         uses: actions/checkout@v4
@@ -37,6 +39,49 @@ jobs:
               echo "No differences found between dev and main, skipping sync."
             fi
           else
-            echo "Error: dev or main directories not found in package branch."
+            echo "Error: dev or main directories not found."
             exit 1
           fi
+
+  create_release:
+    name: Create Auto Release
+    runs-on: ubuntu-latest
+    needs: [sync_dev_to_main]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Ambil README custom untuk release
+      # Contoh: file ada di release/RELEASE.md
+      - name: Load Release Notes
+        id: notes
+        run: |
+          if [ -f "./release/RELEASE.md" ]; then
+            BODY=$(cat ./release/RELEASE.md)
+          else
+            BODY=$(cat ./README.md)
+          fi
+          BODY="${BODY//'%'/'%25'}"
+          BODY="${BODY//$'\n'/'%0A'}"
+          BODY="${BODY//$'\r'/'%0D'}"
+          echo "body=$BODY" >> $GITHUB_OUTPUT
+
+      # Upload assets (IPK/APK) secara otomatis
+      - name: Find packaged assets
+        id: assets
+        run: |
+          FILES=$(find . -type f -name "*.ipk" -o -name "*.apk")
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          echo "$FILES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "RakitanManager ${{ github.ref_name }}"
+          body: ${{ steps.notes.outputs.body }}
+          files: ${{ steps.assets.outputs.files }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
