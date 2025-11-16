@@ -137,7 +137,7 @@ detect_openwrt_type() {
 check_system_requirements() {
     log "ℹ" "Checking system requirements..."
 
-    if $(detect_openwrt_type) == "stable"; then
+    if [ "$(detect_openwrt_type)" = "stable" ]; then
         log "✓" "OpenWrt type stable detected"
     else
         log "✓" "OpenWrt type snapshot detected"
@@ -145,8 +145,22 @@ check_system_requirements() {
 
     opkg update >>"$LOG_FILE" 2>&1 || log "⚠" "opkg update failed"
 
-    if ! install_package "procps-ng-pkill jq coreutils-sleep"; then
-        log "✗" "procps-ng-pkill is required but failed to install"
+    REQUIRED_PACKAGES="procps-ng-pkill jq coreutils-sleep"
+    total=$(echo "$REQUIRED_PACKAGES" | wc -w)
+    current=0
+    failed=0
+    printf "\n${CLBoldWhite}📦 Installing Required Packages:${CLReset}\n"
+    for pkg in $REQUIRED_PACKAGES; do
+        current=$((current + 1))
+        show_progress "$current" "$total" "Installing ${pkg}"
+        if ! install_package "$pkg"; then
+            failed=$((failed + 1))
+            log "✗" "Missing required package: $pkg"
+        fi
+    done
+    printf "\n\n"
+    if [ "$failed" -gt 0 ]; then
+        log "✗" "System requirements check failed with $failed missing packages"
         return 1
     fi
 
