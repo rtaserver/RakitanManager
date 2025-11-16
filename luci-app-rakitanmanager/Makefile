@@ -106,11 +106,14 @@ define Package/$(PKG_NAME)/postrm
 endef
 
 define Package/$(PKG_NAME)/install
-	$(CP) $(PKG_BUILD_DIR)/root/* $(1)/
-	$(CP) $(PKG_BUILD_DIR)/luasrc/* $(1)/usr/lib/lua/luci/
+	# Buat direktori dulu
 	$(INSTALL_DIR) $(1)/usr/lib/lua/luci
 	$(INSTALL_DIR) $(1)/usr/share/rakitanmanager
 	$(INSTALL_DIR) $(1)/www/rakitanmanager
+
+	# Copy file setelah folder ada
+	$(CP) $(PKG_BUILD_DIR)/root/* $(1)/
+	$(CP) $(PKG_BUILD_DIR)/luasrc/* $(1)/usr/lib/lua/luci/
 endef
 
 $(eval $(call BuildPackage,$(PKG_NAME)))
