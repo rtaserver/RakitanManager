@@ -14,6 +14,7 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
       current_version: ${{ steps.current_version.outputs.version }}
+      changelog: ${{ steps.changelog.outputs.CHANGELOG }}
     steps:
       - name: Clone Repository
         uses: actions/checkout@v4
@@ -34,6 +35,17 @@ jobs:
         id: current_version
         run: |
           echo "version=$(sed -n 1p ./${{ github.ref_name }}/version |awk -F 'v' '{print $2}')" >> $GITHUB_OUTPUT
+
+      - name: Add changelog info to new release description
+        id: changelog
+        shell: bash
+        run: |
+          cd /home/runner/work/RakitanManager/RakitanManager/
+          r=$(awk '/^\*\*Changelog\*\*/ {if(found) exit; found=1} found' CHANGELOG.md)
+          r="${r//'%'/'%25'}"
+          r="${r//$'\n'/'%0A'}"
+          r="${r//$'\r'/'%0D'}"  
+          echo "CHANGELOG=$r" >> $GITHUB_OUTPUT
 
   Compile:
     runs-on: ubuntu-latest
@@ -129,6 +141,7 @@ jobs:
       - name: Commit and Push New Version
         run: |
           rm -rf ./${{ github.ref_name }}/luci-app-rakitanmanager*
+          echo "${{ needs.Get-Version.outputs.changelog }}" > ./${{ github.ref_name }}/changelog.txt
           echo "v${{ needs.Get-Version.outputs.version }}" > ./${{ github.ref_name }}/version
           echo "https://img.shields.io/badge/New Release-v${{ needs.Get-Version.outputs.version }}-orange.svg" >> ./${{ github.ref_name }}/version
           cp ./luci-app-rakitanmanager_*.ipk "./${{ github.ref_name }}/"
