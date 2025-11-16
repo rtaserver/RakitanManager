@@ -21,6 +21,16 @@ jobs:
         with:
           ref: ${{ github.ref_name }}
 
+      - name: Add changelog info to new release description
+        id: changelog
+        shell: bash
+        run: |
+          r=$(awk '/^\*\*Changelog\*\*/ {if(found) exit; found=1} found' CHANGELOG.md)
+          r="${r//'%'/'%25'}"
+          r="${r//$'\n'/'%0A'}"
+          r="${r//$'\r'/'%0D'}"  
+          echo "CHANGELOG=$r" >> $GITHUB_OUTPUT
+
       - name: New Version
         id: version
         run: |
@@ -35,17 +45,6 @@ jobs:
         id: current_version
         run: |
           echo "version=$(sed -n 1p ./${{ github.ref_name }}/version |awk -F 'v' '{print $2}')" >> $GITHUB_OUTPUT
-
-      - name: Add changelog info to new release description
-        id: changelog
-        shell: bash
-        run: |
-          cd /home/runner/work/RakitanManager/RakitanManager/
-          r=$(awk '/^\*\*Changelog\*\*/ {if(found) exit; found=1} found' CHANGELOG.md)
-          r="${r//'%'/'%25'}"
-          r="${r//$'\n'/'%0A'}"
-          r="${r//$'\r'/'%0D'}"  
-          echo "CHANGELOG=$r" >> $GITHUB_OUTPUT
 
   Compile:
     runs-on: ubuntu-latest
@@ -146,6 +145,8 @@ jobs:
           echo "https://img.shields.io/badge/New Release-v${{ needs.Get-Version.outputs.version }}-orange.svg" >> ./${{ github.ref_name }}/version
           cp ./luci-app-rakitanmanager_*.ipk "./${{ github.ref_name }}/"
           cp ./luci-app-rakitanmanager-*.apk "./${{ github.ref_name }}/"
+          rm -rf ../luci-app-rakitanmanager_*.ipk
+          rm -rf ../luci-app-rakitanmanager-*.apk
           sed -i -E "s/RakitanManager\/tree\/v(.*)/RakitanManager\/tree\/v${{ needs.Get-Version.outputs.version }}/g" ./${{ github.ref_name }}/README.md
           sed -i -E "s/RakitanManager\/releases\/tag\/v(.*)/RakitanManager\/releases\/tag\/v${{ needs.Get-Version.outputs.version }}/g" ./${{ github.ref_name }}/README.md
           sed -i -E "s/source code-v(.*)-green/source code-v${{ needs.Get-Version.outputs.version }}-green/g" ./${{ github.ref_name }}/README.md
