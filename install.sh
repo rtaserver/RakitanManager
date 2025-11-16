@@ -323,7 +323,6 @@ install_packages() {
 }
 
 install_upgrade_main() {
-    init_script || gagal_install "inisialisasi"
     stop_services
     install_packages
     if download_and_install_package "main"; then
@@ -336,7 +335,6 @@ install_upgrade_main() {
 }
 
 install_upgrade_dev() {
-    init_script || gagal_install "inisialisasi"
     stop_services
     install_packages
     if download_and_install_package "dev"; then
