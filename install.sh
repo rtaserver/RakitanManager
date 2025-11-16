@@ -1,8 +1,5 @@
 #!/bin/sh
 
-# Ensure POSIX compliance and avoid bashisms (since OpenWrt often uses ash/dash)
-# Using /bin/sh is safer on OpenWrt
-
 # Colors only if output is a terminal
 if [ -t 1 ]; then
     CLBlack="\033[0;30m"
@@ -24,7 +21,6 @@ if [ -t 1 ]; then
     BGCyan="\033[46m"
     BGWhite="\033[47m"
 else
-    # Disable colors
     CLBlack= CLRed= CLGreen= CLYellow= CLBlue= CLPurple= CLCyan= CLWhite= CLReset=
     BGBlack= BGRed= BGGreen= BGYellow= BGBlue= BGPurple= BGCyan= BGWhite=
 fi
@@ -33,7 +29,6 @@ fi
 SCRIPT_DIR="/tmp/rakitanmanager"
 LOG_FILE="/tmp/rakitanmanager_install.log"
 
-# Use arrays via space-separated strings (POSIX-safe)
 REQUIRED_PACKAGES="curl git git-http modemmanager python3-pip bc screen adb httping jq php8 uhttpd unzip"
 PYTHON_PACKAGES="requests huawei-lte-api"
 
@@ -41,12 +36,10 @@ LATEST_VER_MAIN=""
 LATEST_VER_DEV=""
 CURRENT_VERSION=""
 
-# Logging function
 log() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - $*" | tee -a "$LOG_FILE"
 }
 
-# Cleanup function
 cleanup() {
     if [ -d "$SCRIPT_DIR" ]; then
         log "Cleaning up temporary files..."
@@ -54,33 +47,15 @@ cleanup() {
     fi
 }
 
-# Trap EXIT to ensure cleanup
-trap cleanup EXIT
+# trap cleanup EXIT
 
-# Rollback installation on failure
-rollback_installation() {
-    log "Rolling back installation..."
-
-    # Simulate reverse removal (in POSIX, no true array reverse, so just remove as-is)
-    for pkg in $REQUIRED_PACKAGES; do
-        if opkg list-installed 2>/dev/null | grep -q "^$pkg "; then
-            log "Removing package: $pkg"
-            opkg remove "$pkg" 2>/dev/null || true
-        fi
-    done
-
-    if opkg list-installed 2>/dev/null | grep -q "^luci-app-rakitanmanager "; then
-        log "Removing luci-app-rakitanmanager"
-        opkg remove luci-app-rakitanmanager 2>/dev/null || true
-    fi
-
-    pkill -f "core-manager.sh" 2>/dev/null || true
-    pkill -f "rakitanmanager" 2>/dev/null || true
-
-    log "Rollback completed"
+stop_services() {
+    pkill -f "core-manager.sh" 2>/dev/null
+    pkill -f "rakitanmanager" 2>/dev/null
+    sleep 2
+    log "✓ Services stopped"
 }
 
-# Check system requirements
 check_system_requirements() {
     log "Checking system requirements..."
 
@@ -108,7 +83,6 @@ check_system_requirements() {
     return 0
 }
 
-# Install package with retry (POSIX-compatible loop)
 install_package() {
     pkg="$1"
     max_retries=3
@@ -136,7 +110,6 @@ install_package() {
     return 1
 }
 
-# Progress indicator (simplified)
 show_progress() {
     current="$1"
     total="$2"
@@ -145,7 +118,6 @@ show_progress() {
     printf "\r[%3d%%] (%d/%d)" "$percentage" "$current" "$total"
 }
 
-# Initialize
 init_script() {
     mkdir -p "$SCRIPT_DIR/rakitanmanager" 2>/dev/null || {
         log "ERROR: Failed to create temp directory"
@@ -159,11 +131,10 @@ init_script() {
     return 0
 }
 
-# Get version from branch
-get_latest_version() {
+get_latest_version () {
     branch="$1"
     url="https://raw.githubusercontent.com/rtaserver/RakitanManager/package/${branch}/version"
-    out="$SCRIPT_DIR/Latest$(echo "$branch" | tr '[:lower:]' '[:upper:]' | cut -c1)$(echo "$branch" | cut -c2-).txt"
+    out="$SCRIPT_DIR/Latest$(echo "$branch" | awk '{print toupper(substr($0,1,1)) substr($0,2)}').txt"
 
     if wget -q -T 10 -O "$out" "$url" 2>/dev/null || curl -s -m 10 -o "$out" "$url" 2>/dev/null; then
         head -n1 "$out" | tr -d ' \t\n\r' | tr '[:upper:]' '[:lower:]' | sed 's/bt/beta/g'
@@ -190,7 +161,8 @@ get_version_info() {
     fi
 }
 
-# Success message
+# --- FUNGSI YANG DIPERBAIKI DENGAN printf "%b" ---
+
 finish() {
     clear
     printf "%b" "
@@ -206,7 +178,7 @@ ${CLWhite}Ulangi Instalasi Jika Ada Yang Gagal :)${CLReset}
 
 "
     read -r -n1 -s -p "$(printf "${CLWhite}Tekan tombol apa saja untuk kembali ke menu...${CLReset}")"
-    echo
+    printf "\n"
     exit 0
 }
 
@@ -222,7 +194,6 @@ ${CLWhite}Gagal saat menginstall: ${component}${CLReset}
 ${CLWhite}Silakan ulangi instalasi.${CLReset}
 
 "
-    # Untuk prompt read dengan warna, gunakan printf di dalam $()
     read -r -n1 -s -p "$(printf "${CLWhite}Tekan tombol apa saja untuk kembali ke menu...${CLReset}")"
     printf "\n"
     exit 1
@@ -304,7 +275,6 @@ download_and_install_package() {
         return 1
     fi
 
-    # Extract version like "New Release-v1.2.3-beta" → "1.2.3"
     latest_version=$(echo "$version_info" | grep -o 'v[0-9.]*' | head -1 | cut -c2-)
     if [ -z "$latest_version" ]; then
         log "ERROR: Cannot parse version"
@@ -341,22 +311,15 @@ download_and_install_package() {
     return 1
 }
 
-stop_services() {
-    pkill -f "core-manager.sh" 2>/dev/null
-    pkill -f "rakitanmanager" 2>/dev/null
-    sleep 2
-    log "✓ Services stopped"
-}
-
 install_packages() {
     install_system_packages || log "⚠ System packages had issues"
     configure_web_server
     install_python_packages || log "⚠ Python packages had issues"
-    return 0  # Always continue
+    return 0
 }
 
 install_upgrade_main() {
-    init_script || gagal_install "init"
+    init_script || gagal_install "inisialisasi"
     stop_services
     install_packages
     if download_and_install_package "main"; then
@@ -369,7 +332,7 @@ install_upgrade_main() {
 }
 
 install_upgrade_dev() {
-    init_script || gagal_install "init"
+    init_script || gagal_install "inisialisasi"
     stop_services
     install_packages
     if download_and_install_package "dev"; then
@@ -383,16 +346,18 @@ install_upgrade_dev() {
 
 uninstaller() {
     stop_services
-    if opkg list-installed | grep -q "^luci-app-rakitanmanager "; then
+    if opkg list-installed 2>/dev/null | grep -q "^luci-app-rakitanmanager "; then
         opkg remove luci-app-rakitanmanager >>"$LOG_FILE" 2>&1
     fi
     uci delete rakitanmanager 2>/dev/null
     uci commit 2>/dev/null
     rm -rf /usr/share/rakitanmanager /www/rakitanmanager /var/log/rakitanmanager.log 2>/dev/null
     log "✓ Uninstalled"
+
     clear
-    echo "${CLGreen}Menghapus Rakitan Manager Selesai${CLReset}"
-    read -r -n1 -s -p "Tekan tombol apa saja..."
+    printf "%b" "${CLGreen}Menghapus Rakitan Manager Selesai${CLReset}\n"
+    read -r -n1 -s -p "$(printf "Tekan tombol apa saja untuk kembali ke menu...")"
+    printf "\n"
     exit 0
 }
 
@@ -432,7 +397,7 @@ ${CLCyan}╚══════════════════════�
 
 main() {
     if ! init_script; then
-        echo "${CLRed}Gagal inisialisasi${CLReset}" >&2
+        printf "%b" "${CLRed}Gagal inisialisasi skrip.${CLReset}\n" >&2
         exit 1
     fi
 
@@ -444,31 +409,34 @@ main() {
 
         case "$opt" in
             1)
-                clear; echo "${CLYellow}Memulai instalasi Branch Main...${CLReset}"; sleep 2
+                clear; printf "%b" "${CLYellow}Memulai instalasi Branch Main...${CLReset}\n"; sleep 2
                 opkg update >>"$LOG_FILE" 2>&1 || log "WARN: opkg update failed"
                 install_upgrade_main
                 ;;
             2)
-                clear; echo "${CLYellow}Memulai instalasi Branch Dev...${CLReset}"; sleep 2
+                clear; printf "%b" "${CLYellow}Memulai instalasi Branch Dev...${CLReset}\n"; sleep 2
                 opkg update >>"$LOG_FILE" 2>&1 || log "WARN: opkg update failed"
                 install_upgrade_dev
                 ;;
             3)
-                clear; echo "${CLYellow}Memperbarui packages...${CLReset}"; sleep 2
+                clear; printf "%b" "${CLYellow}Memperbarui packages...${CLReset}\n"; sleep 2
                 opkg update >>"$LOG_FILE" 2>&1 || log "WARN: opkg update failed"
                 install_packages
-                echo "${CLGreen}Pembaruan selesai.${CLReset}"
-                read -r -n1 -s -p "Tekan tombol apa saja..."
+                printf "%b" "${CLGreen}Pembaruan selesai.${CLReset}\n"
+                read -r -n1 -s -p "$(printf "Tekan tombol apa saja...")"
+                printf "\n"
                 ;;
             4)
-                clear; echo "${CLYellow}Mencopot Rakitan Manager...${CLReset}"; sleep 2
+                clear; printf "%b" "${CLYellow}Mencopot Rakitan Manager...${CLReset}\n"; sleep 2
                 uninstaller
                 ;;
             x|X)
-                echo "${CLGreen}Terima kasih!${CLReset}"; exit 0
+                printf "%b" "${CLGreen}Terima kasih!${CLReset}\n"
+                exit 0
                 ;;
             *)
-                echo "${CLRed}Pilihan tidak valid.${CLReset}"; sleep 2
+                printf "%b" "${CLRed}Pilihan tidak valid.${CLReset}\n"
+                sleep 2
                 ;;
         esac
     done
