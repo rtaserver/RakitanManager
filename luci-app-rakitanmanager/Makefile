@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-rakitanmanager
-PKG_VERSION:=0.00.37
+PKG_VERSION:=0.00.38
 PKG_RELEASE:=1
 PKG_MAINTAINER:=rtaserver <https://github.com/rtaserver/RakitanManager>
 
@@ -22,7 +22,7 @@ define Package/$(PKG_NAME)
 	SUBMENU:=3. Applications
 	TITLE:=LuCI support for Modem Manager
 	PKGARCH:=all
-	DEPENDS:=+bash +curl +unzip
+	DEPENDS:=+bash +curl +unzip +procps-ng-pkill +git +git-http +modemmanager +python3-pip +bc +screen +adb +httping +jq
 	MAINTAINER:=rtaserver
 endef
 
