@@ -29,6 +29,7 @@ jobs:
           ARCH: ${{ matrix.arch }}-${{ matrix.branch }}
           PACKAGES: luci-app-rakitanmanager
           NO_REFRESH_CHECK: true
+          V: "s"
 
       - name: upload
         uses: actions/upload-artifact@v4
